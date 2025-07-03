@@ -1,17 +1,9 @@
-# PyTorch CPU 버전 (pip 설치 시 --index-url 필수)
-torch==2.1.0+cpu
-torchvision==0.16.0+cpu
-# pip install 시 --index-url https://download.pytorch.org/whl/cpu 필요
-
-# Diffusers 및 관련 라이브러리
+torch==2.1.0
+torchvision==0.16.0
 diffusers==0.24.0
 transformers==4.38.2
 huggingface_hub==0.16.4
 accelerate==0.26.1
 safetensors
-
-# 이미지 처리
 Pillow==10.2.0
-
-# 비동기 작업
 celery==5.3.6
