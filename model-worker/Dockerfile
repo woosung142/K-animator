@@ -13,9 +13,6 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# 모델 캐시 사전 다운로드 (선택)
-RUN python -c "from diffusers import StableDiffusionPipeline; StableDiffusionPipeline.from_pretrained('cagliostrolab/tiny-stable-diffusion-v1-0')"
-
 # 앱 코드 복사
 COPY . .
 
