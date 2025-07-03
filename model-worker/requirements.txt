@@ -1,0 +1,6 @@
+torch==2.1.0
+diffusers==0.24.0
+transformers==4.38.2
+accelerate==0.26.1
+Pillow==10.2.0
+celery==5.3.6
