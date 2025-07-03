@@ -4,7 +4,7 @@ services:
   web:
     build:
       context: ./web
-      dockerfile: index-Dockerfile
+      dockerfile: Dockerfile
     container_name: web
     ports:
       - "8080:80"
@@ -14,7 +14,7 @@ services:
   model-api:
     build:
       context: ./model-api
-      dockerfile: api-Dockerfile
+      dockerfile: Dockerfile
     container_name: model-api
     ports:
       - "8000:8000"
@@ -24,7 +24,7 @@ services:
   model-worker:
     build:
       context: ./model-worker
-      dockerfile: worker-Dockerfile
+      dockerfile: Dockerfile
     container_name: model-worker
     depends_on:
       - redis
