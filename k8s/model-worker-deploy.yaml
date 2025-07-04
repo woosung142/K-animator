@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: model-worker
-          image: ghcr.io/YOUR_ID/model-worker:latest
+          image: ghcr.io/ajh9789/model-worker:latest
           env:
             - name: TRANSFORMERS_CACHE
               value: /models
