@@ -28,7 +28,7 @@ class PromptRequest(BaseModel):
 # 이미지 생성 요청 → 비동기 Task로 전달
 @app.post("/generate-image")
 async def generate_image(request: PromptRequest):
-    task = celery_app.send_task("worker.generate_image_task", args=[request.prompt])
+    task = celery_app.send_task("generate_image", args=[request.prompt])
     return {"task_id": task.id}
 
 # 이미지 생성 상태 확인
