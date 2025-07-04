@@ -29,7 +29,7 @@ jobs:
       - name: Build and Push image to GHCR
         uses: docker/build-push-action@v5
         with:
-          context: ./{{ matrix.service }}
-          file: ./{{ matrix.service }}/Dockerfile
+          context: ./${{ matrix.service }}
+          file: ./${{ matrix.service }}/Dockerfile
           push: true
-          tags: ghcr.io/${{ secrets.CR_USERNAME }}/{{ matrix.service }}:latest
+          tags: ghcr.io/${{ secrets.CR_USERNAME }}/${{ matrix.service }}:latest
