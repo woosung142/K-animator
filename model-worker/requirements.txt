@@ -5,4 +5,5 @@ huggingface_hub==0.20.3
 safetensors==0.4.2
 Pillow==10.2.0
 celery==5.3.6
-redis==4.6.0 
+redis==4.6.0
+numpy==1.26.4
