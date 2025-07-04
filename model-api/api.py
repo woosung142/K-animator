@@ -38,7 +38,7 @@ async def get_result(task_id: str):
     if result.state == "PENDING":
         return {"status": "PENDING"}
     elif result.state == "SUCCESS":
-        return {"status": "SUCCESS", "image_base64": result.result}
+        return {"status": "SUCCESS", "image_base64": result.result.get("image_base64")}
     elif result.state == "FAILURE":
         raise HTTPException(status_code=500, detail="Task failed")
     else:
