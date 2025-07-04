@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: model-api
+  template:
+    metadata:
+      labels:
+        app: model-api
+    spec:
+      containers:
+        - name: model-api
+          image: ghcr.io/ajh9789/model-api:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: TRANSFORMERS_CACHE
+              value: /models
+          volumeMounts:
+            - mountPath: /models
+              name: model-cache
+      volumes:
+        - name: model-cache
+          emptyDir: {}

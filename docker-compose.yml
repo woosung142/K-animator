@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: web
+    ports:
+      - "8080:80"
+    depends_on:
+      - model-api
+
+  model-api:
+    build:
+      context: ./model-api
+      dockerfile: Dockerfile
+    container_name: model-api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  model-worker:
+    build:
+      context: ./model-worker
+      dockerfile: Dockerfile
+    container_name: model-worker
+    depends_on:
+      - redis
+    restart: unless-stopped
+    environment:
+      - TRANSFORMERS_CACHE=/models
+    volumes:
+      - model_cache:/models  # 모델 캐시 공유
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  model_cache:

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: model-worker
+  template:
+    metadata:
+      labels:
+        app: model-worker
+    spec:
+      containers:
+        - name: model-worker
+          image: ghcr.io/ajh9789/model-worker:latest
+          env:
+            - name: TRANSFORMERS_CACHE
+              value: /models
+          volumeMounts:
+            - mountPath: /models
+              name: model-cache
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "1000m"
+            limits:
+              memory: "8Gi"
+              cpu: "2000m"
+      volumes:
+        - name: model-cache
+          emptyDir: {}

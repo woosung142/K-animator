@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>TinySD Image Generator</title>
+</head>
+<body>
+  <h1>TinySD 이미지 생성</h1>
+  <form id="generate-form">
+    <input type="text" id="prompt" placeholder="텍스트 프롬프트 입력" required />
+    <button type="submit">이미지 생성</button>
+  </form>
+  <p id="status"></p>
+  <img id="result-image" style="max-width: 500px; display: none;" />
+
+  <script>
+    const API_BASE = "http://20.249.163.221";  // 도커 내부에서 model-api 컨테이너 접근
+
+    const form = document.getElementById('generate-form');
+    const status = document.getElementById('status');
+    const resultImage = document.getElementById('result-image');
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const prompt = document.getElementById('prompt').value;
+      status.textContent = "이미지 생성 요청 중...";
+      resultImage.style.display = "none";
+
+      try {
+        const res = await fetch(`${API_BASE}/api/generate-image`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt })
+        });
+        const data = await res.json();
+        const taskId = data.task_id;
+
+        const checkStatus = async () => {
+          const resp = await fetch(`${API_BASE}/api/result/${taskId}`);
+          const result = await resp.json();
+          if (result.status === "PENDING") {
+            status.textContent = "이미지 생성 중...";
+            setTimeout(checkStatus, 2000);
+          } else if (result.status === "SUCCESS") {
+            status.textContent = "완료!";
+            resultImage.src = result.image_base64;
+            resultImage.style.display = "block";
+          } else {
+            status.textContent = "에러 발생!";
+          }
+        };
+        checkStatus();
+      } catch (err) {
+        status.textContent = "요청 실패: " + err.message;
+      }
+    };
+  </script>
+</body>
+</html>
