@@ -9,11 +9,13 @@ from diffusers import StableDiffusionPipeline
 device = "cuda" if torch.cuda.is_available() else "cpu"
 dtype = torch.float16 if device == "cuda" else torch.float32
 
-# Stable Diffusion 모델 로드 (Tiny 모델 사용)
+# 경량화된 최신 모델 (diffusers 호환)
 pipe = StableDiffusionPipeline.from_pretrained(
-    "cagliostrolab/tiny-stable-diffusion-v1-0",
+    "nota-ai/bk-sdm-tiny",
     torch_dtype=dtype
 ).to(device)
+
+pipe.enable_attention_slicing()  # 메모리 최적화 옵션
 
 # Celery 설정
 celery_app = Celery(
@@ -26,10 +28,10 @@ celery_app = Celery(
 @celery_app.task(name="generate_image")
 def generate_image(prompt: str) -> dict:
     try:
-        # 이미지 생성
-        img = pipe(prompt, num_inference_steps=25).images[0]
+        # 생성: num_inference_steps를 20~30으로 설정하면 품질/속도 균형
+        img = pipe(prompt, num_inference_steps=25, guidance_scale=7.5).images[0]
 
-        # base64로 인코딩
+        # base64 인코딩
         buffer = BytesIO()
         img.save(buffer, format="PNG")
         encoded_img = base64.b64encode(buffer.getvalue()).decode("utf-8")
