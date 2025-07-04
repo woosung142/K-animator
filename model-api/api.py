@@ -26,13 +26,13 @@ class PromptRequest(BaseModel):
     prompt: str
 
 # 이미지 생성 요청 → 비동기 Task로 전달
-@app.post("/generate-image")
+@app.post("/api/generate-image")
 async def generate_image(request: PromptRequest):
     task = celery_app.send_task("generate_image", args=[request.prompt])
     return {"task_id": task.id}
 
 # 이미지 생성 상태 확인
-@app.get("/result/{task_id}")
+@app.get("/api/result/{task_id}")
 async def get_result(task_id: str):
     result = celery_app.AsyncResult(task_id)
     if result.state == "PENDING":
