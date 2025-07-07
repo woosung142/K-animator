@@ -25,13 +25,13 @@ app.post('/send-message', async (req, res) => {
         const fullUrl = `${N8N_WEBHOOK_URL}?sessionId=${sessionId}`;
 
         // n8n에 메시지 전송
-        const n8nResponse = await axios.post(fullUrl, { messages });
+        const n8nResponse = await axios.post(fullUrl, { chatInput: messages });
 
         // 응답 JSON 전체 출력 (디버깅용)
         console.log('[n8n 응답]', JSON.stringify(n8nResponse.data, null, 2));
 
         // 일반 텍스트 응답 추출
-        const text = n8nResponse.data?.text || '[빈 응답]';
+        const text = n8nResponse.data?.output || '[빈 응답]';
 
         res.json({ text });
     } catch (error) {
