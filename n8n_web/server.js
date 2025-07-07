@@ -15,7 +15,6 @@ app.get('/', (req, res) => {
 });
 
 app.post('/send-message', async (req, res) => {
-    // 1. 프론트엔드에서 message와 sessionId를 모두 받음
     const { messages, sessionId } = req.body;
 
     if (!messages || !sessionId) {
@@ -25,15 +24,18 @@ app.post('/send-message', async (req, res) => {
     try {
         const fullUrl = `${N8N_WEBHOOK_URL}?sessionId=${sessionId}`;
 
-        // 메시지를 n8n 웹훅에 POST로 전달
-        const n8nResponse = await axios.post(fullUrl, {
-            messages: messages
-        });
+        // n8n에 메시지 전송
+        const n8nResponse = await axios.post(fullUrl, { messages });
 
-        // 4. n8n Agent의 최종 응답('output' 필드)을 프론트엔드로 전달
-        res.json({ text: n8nResponse.data.text });
+        // 응답 JSON 전체 출력 (디버깅용)
+        console.log('[n8n 응답]', JSON.stringify(n8nResponse.data, null, 2));
+
+        // 일반 텍스트 응답 추출
+        const text = n8nResponse.data?.text || '[빈 응답]';
+
+        res.json({ text });
     } catch (error) {
-        console.error('n8n 통신 오류:', error.messages);
+        console.error('n8n 통신 오류:', error.message); // ✅ 오타 수정
         res.status(500).json({ error: '챗봇 서버와 통신할 수 없습니다.' });
     }
 });
