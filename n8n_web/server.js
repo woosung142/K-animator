@@ -23,10 +23,9 @@ app.post('/send-message', async (req, res) => {
     }
 
     try {
-        // 2. n8n 웹훅 URL에 쿼리 파라미터로 sessionId 추가
         const fullUrl = `${N8N_WEBHOOK_URL}?sessionId=${sessionId}`;
 
-        // 3. n8n에는 message 객체만 본문으로 전송
+        // 메시지를 n8n 웹훅에 POST로 전달
         const n8nResponse = await axios.post(fullUrl, {
             messages: messages
         });
