@@ -1,59 +1,151 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>n8n 챗봇</title>
-    <style>
-        body { font-family: sans-serif; }
-        #chatbox { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; margin-bottom: 10px; }
-        #userInput { width: 80%; padding: 8px; }
-        #sendBtn { padding: 8px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>n8n Chat Demo</title>
+  <style>
+    :root {
+      --gap: 1rem;
+      --radius: .75rem;
+      --primary: #2563eb;
+      --bg: #f8fafc;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--gap);
+      height: 100vh;
+    }
+
+    h1 { margin: .25rem 0 1rem; font-size: 1.4rem; }
+
+    #chatbox {
+      flex: 1 1 auto;
+      width: 100%;
+      max-width: 600px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: var(--radius);
+      padding: var(--gap);
+      overflow-y: auto;
+    }
+
+    .msg { margin-bottom: .6rem; line-height: 1.45; }
+    .msg strong { color: var(--primary); }
+
+    form {
+      display: flex;
+      gap: .5rem;
+      width: 100%;
+      max-width: 600px;
+      margin-top: var(--gap);
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: .65rem .9rem;
+      font-size: 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: var(--radius);
+    }
+
+    button {
+      padding: .65rem 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+    }
+
+    button:disabled { opacity: .4; cursor: not-allowed; }
+  </style>
 </head>
 <body>
-    <h1>My n8n 챗봇</h1>
-    <div id="chatbox"></div>
-    <input type="text" id="userInput" placeholder="메시지를 입력하세요...">
-    <button id="sendBtn">전송</button>
+  <h1>My n8n 챗봇</h1>
 
-    <script>
-        const chatbox = document.getElementById('chatbox');
-        const userInput = document.getElementById('userInput');
-        const sendBtn = document.getElementById('sendBtn');
+  <div id="chatbox" aria-live="polite" aria-label="대화 내용"></div>
 
-        // 1. 페이지 로드 시 고유한 세션 ID 생성 또는 가져오기
-        let sessionId = sessionStorage.getItem('chatSessionId');
-        if (!sessionId) {
-            sessionId = `web-user-${Date.now()}`;
-            sessionStorage.setItem('chatSessionId', sessionId);
-        }
+  <form id="chat-form" autocomplete="off">
+    <input id="userInput" type="text" placeholder="메시지를 입력하세요…" />
+    <button type="submit">전송</button>
+  </form>
 
-        async function sendMessage() {
-            const messages = userInput.value;
-            if (!messages) return;
+  <script>
+    /* ────────────────────────────────────────────────
+     * Utility helpers (inspired by Frontend‑Fundamentals)
+     * ──────────────────────────────────────────────── */
+    /** qs: 단일 노드 querySelector  */
+    const qs = (sel, scope = document) => scope.querySelector(sel);
+    /** on: 이벤트 리스너  */
+    const on = (el, type, cb) => el.addEventListener(type, cb);
+    /** escape for safe HTML  */
+    const escapeHTML = str => str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
 
-            chatbox.innerHTML += `<p><strong>나:</strong> ${messages}</p>`;
-            userInput.value = '';
+    /* ──────────────────────────────────────────────── */
+    const chatbox   = qs('#chatbox');
+    const userInput = qs('#userInput');
+    const form      = qs('#chat-form');
+    const sendBtn   = qs('button', form);
 
-            // 2. 백엔드 서버에 메시지와 함께 세션 ID 전송
-            const response = await fetch('/send-message', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: messages, sessionId: sessionId })
-            });
+    // 세션 ID 저장 / 생성
+    let sessionId = sessionStorage.getItem('chatSessionId');
+    if (!sessionId) {
+      sessionId = `web-user-${Date.now()}`;
+      sessionStorage.setItem('chatSessionId', sessionId);
+    }
 
-            const data = await response.json();
-            
-            // 3. 백엔드에서 보낸 'output' 키를 사용하여 응답 표시
-            const reply = data.text || '응답이 없습니다.';
-            chatbox.innerHTML += `<p><strong>챗봇:</strong> ${reply}</p>`;
-            chatbox.scrollTop = chatbox.scrollHeight;
-        }
+    // message 출력 helper
+    const addLine = (who, text) => {
+      const p = document.createElement('p');
+      p.className = 'msg';
+      p.innerHTML = `<strong>${who}:</strong> ${escapeHTML(text)}`;
+      chatbox.appendChild(p);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    };
 
-        sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') sendMessage();
+    /* ────────────────────────────────────────────────
+     * Send → backend & display reply
+     * ──────────────────────────────────────────────── */
+    const sendMessage = async ev => {
+      ev?.preventDefault();
+      const msg = userInput.value.trim();
+      if (!msg) return;
+
+      addLine('나', msg);
+      userInput.value = '';
+      userInput.focus();
+      sendBtn.disabled = true;
+
+      try {
+        const res = await fetch('/send-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: msg, sessionId })
         });
-    </script>
+
+        if (!res.ok) throw new Error(`서버 오류 ${res.status}`);
+        const { text } = await res.json();
+        addLine('챗봇', text ?? '[빈 응답]');
+      } catch (err) {
+        console.error(err);
+        addLine('시스템', `⚠️ ${err.message}`);
+      } finally {
+        sendBtn.disabled = false;
+      }
+    };
+
+    // 이벤트 wiring
+    on(form, 'submit', sendMessage);
+    on(userInput, 'keydown', e => { if (e.key === 'Enter' && !e.shiftKey) sendMessage(e); });
+  </script>
 </body>
 </html>
