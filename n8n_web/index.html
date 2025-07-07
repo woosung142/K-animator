@@ -21,25 +21,32 @@
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
 
+        // 1. 페이지 로드 시 고유한 세션 ID 생성 또는 가져오기
+        let sessionId = sessionStorage.getItem('chatSessionId');
+        if (!sessionId) {
+            sessionId = `web-user-${Date.now()}`;
+            sessionStorage.setItem('chatSessionId', sessionId);
+        }
+
         async function sendMessage() {
             const message = userInput.value;
             if (!message) return;
 
-            // 사용자 메시지 표시
             chatbox.innerHTML += `<p><strong>나:</strong> ${message}</p>`;
             userInput.value = '';
 
-            // 백엔드 서버에 메시지 전송 요청
+            // 2. 백엔드 서버에 메시지와 함께 세션 ID 전송
             const response = await fetch('/send-message', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: message })
+                body: JSON.stringify({ message: message, sessionId: sessionId })
             });
 
             const data = await response.json();
-
-            // 챗봇 응답 표시
-            chatbox.innerHTML += `<p><strong>챗봇:</strong> ${typeof data.reply === 'object' ? JSON.stringify(data.reply) : data.reply}</p>`;
+            
+            // 3. 백엔드에서 보낸 'output' 키를 사용하여 응답 표시
+            const reply = data.output || '응답이 없습니다.';
+            chatbox.innerHTML += `<p><strong>챗봇:</strong> ${reply}</p>`;
             chatbox.scrollTop = chatbox.scrollHeight;
         }
 

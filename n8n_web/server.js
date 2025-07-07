@@ -5,33 +5,36 @@ const path = require('path');
 const app = express();
 const port = 3000;
 
-// JSON 요청 본문을 파싱하기 위한 미들웨어
 app.use(express.json());
 
-// n8n 웹훅 URL (반드시 본인의 Production URL로 변경)
-const N8N_WEBHOOK_URL = 'http://20.196.73.32:5678/webhook/9dc8aa1f-0e2b-4de9-ae86-141cdac3ede1';
+// n8n 웹훅 URL - Chat Trigger는 쿼리 파라미터로 sessionId를 받습니다.
+const N8N_WEBHOOK_URL = 'http://20.196.73.32:5678/webhook/4bafa620-3d7a-42b1-89aa-1eb17b31503e/chat';
 
-// 기본 HTML 페이지 제공
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 프론트엔드로부터 메시지를 받아 n8n으로 전달하는 API
 app.post('/send-message', async (req, res) => {
-    const { message } = req.body; // 프론트엔드에서 보낸 메시지
+    // 1. 프론트엔드에서 message와 sessionId를 모두 받음
+    const { message, sessionId } = req.body;
 
-    if (!message) {
-        return res.status(400).json({ error: '메시지가 없습니다.' });
+    if (!message || !sessionId) {
+        return res.status(400).json({ error: '메시지 또는 세션 ID가 없습니다.' });
     }
 
     try {
-        // n8n 웹훅으로 POST 요청 전송
-        const {data} = await axios.post(N8N_WEBHOOK_URL, {message, sessionId}); // 워크플로우에서 받을 데이터 형식에 맞게 전송
+        // 2. n8n 웹훅 URL에 쿼리 파라미터로 sessionId 추가
+        const fullUrl = `${N8N_WEBHOOK_URL}?sessionId=${sessionId}`;
 
-        // n8n의 응답을 프론트엔드로 다시 전달
-        res.json({ output: data.reply });
+        // 3. n8n에는 message 객체만 본문으로 전송
+        const n8nResponse = await axios.post(fullUrl, {
+            message: message
+        });
+
+        // 4. n8n Agent의 최종 응답('output' 필드)을 프론트엔드로 전달
+        res.json({ output: n8nResponse.data.output });
     } catch (error) {
-        console.error('n8n 통신 오류:', error);
+        console.error('n8n 통신 오류:', error.message);
         res.status(500).json({ error: '챗봇 서버와 통신할 수 없습니다.' });
     }
 });
