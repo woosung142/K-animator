@@ -6,12 +6,13 @@ from diffusers import StableDiffusionPipeline
 from azure.storage.blob import BlobServiceClient
 import uuid
 import os
+import subprocess
 from dotenv import load_dotenv
 
 # .env 로딩
 load_dotenv()
 
-# Azure Blob 설정 (환경변수에서 조립)
+# Azure Blob 설정
 AZURE_ACCOUNT_NAME = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
 AZURE_ACCOUNT_KEY = os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
 AZURE_CONTAINER_NAME = os.getenv("AZURE_CONTAINER_NAME", "images")
@@ -50,7 +51,7 @@ def generate_image(self, prompt: str) -> dict:
         task_id = self.request.id
         img = pipe(prompt, num_inference_steps=25, guidance_scale=7.5).images[0]
 
-        # PNG 저장
+        # PNG 저장 및 업로드
         png_buffer = BytesIO()
         img.save(png_buffer, format="PNG")
         png_buffer.seek(0)
@@ -58,14 +59,19 @@ def generate_image(self, prompt: str) -> dict:
         container_client.upload_blob(name=filename_png, data=png_buffer, overwrite=True)
         png_url = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{filename_png}"
 
-        # PSD 저장
-        psd_buffer = BytesIO()
-        img.save(psd_buffer, format="PSD")  # Pillow 10.1+ 필요
-        psd_buffer.seek(0)
-        filename_psd = f"{task_id}.psd"
-        container_client.upload_blob(name=filename_psd, data=psd_buffer, overwrite=True)
-        psd_url = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{filename_psd}"
+        # PSD 저장 (ImageMagick 이용)
+        temp_png_path = f"/tmp/{task_id}.png"
+        temp_psd_path = f"/tmp/{task_id}.psd"
+        img.save(temp_png_path, format="PNG")
+        subprocess.run(["convert", temp_png_path, temp_psd_path], check=True)
 
+        # PSD 업로드
+        with open(temp_psd_path, "rb") as f:
+            container_client.upload_blob(name=f"{task_id}.psd", data=f, overwrite=True)
+        psd_url = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{task_id}.psd"
+        # 임시 파일 삭제
+        os.remove(temp_png_path)
+        os.remove(temp_psd_path)
         return {
             "status": "SUCCESS",
             "png_url": png_url,

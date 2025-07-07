@@ -1,8 +1,8 @@
 FROM python:3.10-slim
 
-# 시스템 패키지 설치 (이미지 디코딩, torch native 연산, git)
+# 시스템 패키지 설치 (이미지 디코딩, torch native 연산, ImageMagick 포함)
 RUN apt-get update && \
-    apt-get install -y git libgl1 libglib2.0-0 libstdc++6 && \
+    apt-get install -y git libgl1 libglib2.0-0 libstdc++6 imagemagick && \
     rm -rf /var/lib/apt/lists/*
 
 # 작업 디렉토리 설정
