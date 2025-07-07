@@ -29,23 +29,23 @@
         }
 
         async function sendMessage() {
-            const message = userInput.value;
-            if (!message) return;
+            const messages = userInput.value;
+            if (!messages) return;
 
-            chatbox.innerHTML += `<p><strong>나:</strong> ${message}</p>`;
+            chatbox.innerHTML += `<p><strong>나:</strong> ${messages}</p>`;
             userInput.value = '';
 
             // 2. 백엔드 서버에 메시지와 함께 세션 ID 전송
             const response = await fetch('/send-message', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: message, sessionId: sessionId })
+                body: JSON.stringify({ messages: messages, sessionId: sessionId })
             });
 
             const data = await response.json();
             
             // 3. 백엔드에서 보낸 'output' 키를 사용하여 응답 표시
-            const reply = data.output || '응답이 없습니다.';
+            const reply = data.text || '응답이 없습니다.';
             chatbox.innerHTML += `<p><strong>챗봇:</strong> ${reply}</p>`;
             chatbox.scrollTop = chatbox.scrollHeight;
         }
