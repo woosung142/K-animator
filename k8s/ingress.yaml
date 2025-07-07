@@ -2,9 +2,16 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: web-ingress
+  # annotations:
+  #   cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Cert-Manager를 사용해 인증서를 발급받도록 지정
 spec:
   ingressClassName: nginx
+  # tls:
+  #   - hosts:
+  #       - your-domain.com  # 자신의 도메인으로 변경
+  #     secretName: web-ingress-tls  # 인증서를 저장할 Secret 이름
   rules:
+    # - host: your-domain.com  # 자신의 도메인으로 변경
     - http:
         paths:
           - path: /api
