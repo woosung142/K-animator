@@ -9,7 +9,7 @@ const port = 3000;
 app.use(express.json());
 
 // n8n 웹훅 URL (반드시 본인의 Production URL로 변경)
-const N8N_WEBHOOK_URL = 'http://20.196.73.32:5678/webhook-test/edfdc4b6-eba5-49f6-84b2-3c1e77630179';
+const N8N_WEBHOOK_URL = 'http://20.196.73.32:5678/webhook/9dc8aa1f-0e2b-4de9-ae86-141cdac3ede1';
 
 // 기본 HTML 페이지 제공
 app.get('/', (req, res) => {
@@ -31,7 +31,7 @@ app.post('/send-message', async (req, res) => {
         });
 
         // n8n의 응답을 프론트엔드로 다시 전달
-        res.json({ reply: n8nResponse.data });
+        res.json({ reply: n8nResponse.data.reply ?? n8nResponse.data});
     } catch (error) {
         console.error('n8n 통신 오류:', error);
         res.status(500).json({ error: '챗봇 서버와 통신할 수 없습니다.' });

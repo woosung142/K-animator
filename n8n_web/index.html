@@ -39,7 +39,7 @@
             const data = await response.json();
 
             // 챗봇 응답 표시
-            chatbox.innerHTML += `<p><strong>챗봇:</strong> ${data.reply}</p>`;
+            chatbox.innerHTML += `<p><strong>챗봇:</strong> ${typeof data.reply === 'object' ? JSON.stringify(data.reply) : data.reply}</p>`;
             chatbox.scrollTop = chatbox.scrollHeight;
         }
 
