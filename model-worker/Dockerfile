@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-# 시스템 패키지 설치 (이미지 디코딩용, torch native 연산용, git)
+# 시스템 패키지 설치 (이미지 디코딩, torch native 연산, git)
 RUN apt-get update && \
     apt-get install -y git libgl1 libglib2.0-0 libstdc++6 && \
     rm -rf /var/lib/apt/lists/*

@@ -10,6 +10,8 @@ services:
       - "8080:80"
     depends_on:
       - model-api
+    env_file:
+      - ../.env  # 경로는 docker-compose.yml 기준 상대경로
 
   model-api:
     build:
@@ -20,6 +22,8 @@ services:
       - "8000:8000"
     depends_on:
       - redis
+    env_file:
+      - ../.env 
 
   model-worker:
     build:
@@ -29,10 +33,12 @@ services:
     depends_on:
       - redis
     restart: unless-stopped
+    env_file:
+      - ../.env 
     environment:
       - TRANSFORMERS_CACHE=/models
     volumes:
-      - model_cache:/models  # 모델 캐시 공유
+      - model_cache:/models
 
   redis:
     image: redis:7

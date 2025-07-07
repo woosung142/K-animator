@@ -2,28 +2,38 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>TinySD Image Generator</title>
+  <title>TinySD 이미지 생성</title>
 </head>
 <body>
   <h1>TinySD 이미지 생성</h1>
+
   <form id="generate-form">
     <input type="text" id="prompt" placeholder="텍스트 프롬프트 입력" required />
     <button type="submit">이미지 생성</button>
   </form>
+
   <p id="status"></p>
+
+  <!-- 이미지 출력 -->
   <img id="result-image" style="max-width: 500px; display: none;" />
+
+  <!-- PSD 다운로드 링크 -->
+  <a id="psd-download" href="#" download style="display: none;">.PSD 파일 다운로드</a>
+
   <script>
-    const API_BASE = "http://20.249.163.221";  // 도커 내부에서 model-api 컨테이너 접근
+    const API_BASE = "http://20.249.163.221";
 
     const form = document.getElementById('generate-form');
     const status = document.getElementById('status');
     const resultImage = document.getElementById('result-image');
+    const psdLink = document.getElementById('psd-download');
 
     form.onsubmit = async (e) => {
       e.preventDefault();
       const prompt = document.getElementById('prompt').value;
       status.textContent = "이미지 생성 요청 중...";
       resultImage.style.display = "none";
+      psdLink.style.display = "none";
 
       try {
         const res = await fetch(`${API_BASE}/api/generate-image`, {
@@ -42,8 +52,12 @@
             setTimeout(checkStatus, 2000);
           } else if (result.status === "SUCCESS") {
             status.textContent = "완료!";
-            resultImage.src = result.image_base64;
+            // PNG 미리보기
+            resultImage.src = result.png_url;
             resultImage.style.display = "block";
+            // PSD 다운로드 링크 표시
+            psdLink.href = result.psd_url;
+            psdLink.style.display = "inline-block";
           } else {
             status.textContent = "에러 발생!";
           }
