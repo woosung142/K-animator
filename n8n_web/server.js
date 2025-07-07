@@ -26,7 +26,7 @@ app.post('/send-message', async (req, res) => {
 
     try {
         // n8n 웹훅으로 POST 요청 전송
-        const {data} = await axios.post(N8N_WEBHOOK_URL, {message}); // 워크플로우에서 받을 데이터 형식에 맞게 전송
+        const {data} = await axios.post(N8N_WEBHOOK_URL, {message, sessionId}); // 워크플로우에서 받을 데이터 형식에 맞게 전송
 
         // n8n의 응답을 프론트엔드로 다시 전달
         res.json({ output: data.reply });
