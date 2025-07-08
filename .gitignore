@@ -42,3 +42,6 @@ logs/
 
 # Ignore node modules if you ever use frontend deps
 node_modules/
+
+secret.yaml
+*.secret.yaml

@@ -17,3 +17,6 @@ spec:
           image: ghcr.io/ajh9789/web:latest
           ports:
             - containerPort: 80
+          envFrom:
+            - secretRef:
+                name: azure-secret

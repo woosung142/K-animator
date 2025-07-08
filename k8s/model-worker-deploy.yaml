@@ -18,6 +18,9 @@ spec:
           env:
             - name: TRANSFORMERS_CACHE
               value: /models
+          envFrom:
+            - secretRef:
+                name: azure-secret
           volumeMounts:
             - mountPath: /models
               name: model-cache

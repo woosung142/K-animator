@@ -17,6 +17,9 @@ spec:
           image: ghcr.io/ajh9789/model-api:latest
           ports:
             - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: azure-secret
           env:
             - name: TRANSFORMERS_CACHE
               value: /models
