@@ -7,7 +7,7 @@ const port = 3000;
 
 app.use(express.json());
 
-// n8n 웹훅 URL - Chat Trigger는 쿼리 파라미터로 sessionId를 받습니다.
+// n8n 웹훅 URL - Chat Trigger는 쿼리 파라미터로 sessionId를 받습니다
 const N8N_WEBHOOK_URL = 'http://20.196.73.32:5678/webhook/bc35d298-b105-4394-81df-b1c981efaaf2/chat';
 
 app.get('/', (req, res) => {
