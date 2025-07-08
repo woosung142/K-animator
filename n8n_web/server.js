@@ -1,14 +1,16 @@
+require('dotenv').config();
+
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
 // n8n 웹훅 URL - Chat Trigger는 쿼리 파라미터로 sessionId를 받습니다
-const N8N_WEBHOOK_URL = 'http://20.196.73.32:5678/webhook/bc35d298-b105-4394-81df-b1c981efaaf2/chat';
+const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));

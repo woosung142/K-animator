@@ -15,3 +15,5 @@ services:
       # 컨테이너 안의 node_modules는 동기화하지 않도록 예외 처리합니다.
       # (내 컴퓨터와 컨테이너의 운영체제가 달라 생길 수 있는 충돌 방지)
       - /usr/src/app/node_modules
+    env_file:
+      - .env
