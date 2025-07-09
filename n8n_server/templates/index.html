@@ -1,151 +1,195 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>n8n Chat Demo</title>
-  <style>
-    :root {
-      --gap: 1rem;
-      --radius: .75rem;
-      --primary: #2563eb;
-      --bg: #f8fafc;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>n8n Chat Demo</title>
+    <style>
+        :root {
+            --gap: 1rem;
+            --radius: .75rem;
+            --primary: #2563eb;
+            --bg: #f8fafc;
+        }
 
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: system-ui, sans-serif;
-      background: var(--bg);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: var(--gap);
-      height: 100vh;
-    }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: system-ui, sans-serif;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--gap);
+            height: 100vh;
+        }
 
-    h1 { margin: .25rem 0 1rem; font-size: 1.4rem; }
+        h1 { margin: .25rem 0 1rem; font-size: 1.4rem; }
 
-    #chatbox {
-      flex: 1 1 auto;
-      width: 100%;
-      max-width: 600px;
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: var(--radius);
-      padding: var(--gap);
-      overflow-y: auto;
-    }
+        #chatbox {
+            flex: 1 1 auto;
+            width: 100%;
+            max-width: 600px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: var(--radius);
+            padding: var(--gap);
+            overflow-y: auto;
+        }
 
-    .msg { margin-bottom: .6rem; line-height: 1.45; }
-    .msg strong { color: var(--primary); }
+        .msg { margin-bottom: .6rem; line-height: 1.45; }
+        .msg strong { color: var(--primary); }
 
-    form {
-      display: flex;
-      gap: .5rem;
-      width: 100%;
-      max-width: 600px;
-      margin-top: var(--gap);
-    }
+        form {
+            display: flex;
+            gap: .5rem;
+            width: 100%;
+            max-width: 600px;
+            margin-top: var(--gap);
+        }
 
-    input[type="text"] {
-      flex: 1;
-      padding: .65rem .9rem;
-      font-size: 1rem;
-      border: 1px solid #d1d5db;
-      border-radius: var(--radius);
-    }
+        input[type="text"] {
+            flex: 1;
+            padding: .65rem .9rem;
+            font-size: 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: var(--radius);
+        }
 
-    button {
-      padding: .65rem 1rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: var(--radius);
-      background: var(--primary);
-      color: #fff;
-      cursor: pointer;
-    }
+        button {
+            padding: .65rem 1rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: var(--radius);
+            background: var(--primary);
+            color: #fff;
+            cursor: pointer;
+            flex-shrink: 0; /* 버튼 크기 고정 */
+        }
 
-    button:disabled { opacity: .4; cursor: not-allowed; }
-  </style>
+        button:disabled { opacity: .4; cursor: not-allowed; }
+    </style>
 </head>
 <body>
-  <h1>n8n 챗봇</h1>
+    <h1>n8n 챗봇</h1>
 
-  <div id="chatbox" aria-live="polite" aria-label="대화 내용"></div>
+    <div id="chatbox" aria-live="polite" aria-label="대화 내용"></div>
 
-  <form id="chat-form" autocomplete="off">
-    <input id="userInput" type="text" placeholder="메시지를 입력하세요…" />
-    <button type="submit">전송</button>
-  </form>
+    <form id="chat-form" autocomplete="off">
+        <input id="userInput" type="text" placeholder="메시지를 입력하세요…" />
+        <button type="button" id="sttBtn">🎤</button> 
+        <button type="submit">전송</button>
+    </form>
+    
+    <script src="https://aka.ms/csspeech/jsbrowserpackageresults/speech-sdk.bundle.js"></script>
 
-  <script>
-    /* ────────────────────────────────────────────────
-     * Utility helpers (inspired by Frontend‑Fundamentals)
-     * ──────────────────────────────────────────────── */
-    /** qs: 단일 노드 querySelector  */
-    const qs = (sel, scope = document) => scope.querySelector(sel);
-    /** on: 이벤트 리스너  */
-    const on = (el, type, cb) => el.addEventListener(type, cb);
-    /** escape for safe HTML  */
-    const escapeHTML = str => str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
+    <script>
+        /* ────────────────────────────────────────────────
+         * Utility helpers
+         * ──────────────────────────────────────────────── */
+        const qs = (sel, scope = document) => scope.querySelector(sel);
+        const on = (el, type, cb) => el.addEventListener(type, cb);
+        const escapeHTML = str => str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
 
-    /* ──────────────────────────────────────────────── */
-    const chatbox   = qs('#chatbox');
-    const userInput = qs('#userInput');
-    const form      = qs('#chat-form');
-    const sendBtn   = qs('button', form);
+        /* ──────────────────────────────────────────────── */
+        const chatbox   = qs('#chatbox');
+        const userInput = qs('#userInput');
+        const form      = qs('#chat-form');
+        const sendBtn   = qs('button[type="submit"]', form);
+        const sttBtn    = qs('#sttBtn'); // [추가] 마이크 버튼 참조
 
-    // 세션 ID 저장 / 생성
-    let sessionId = sessionStorage.getItem('chatSessionId');
-    if (!sessionId) {
-      sessionId = `web-user-${Date.now()}`;
-      sessionStorage.setItem('chatSessionId', sessionId);
-    }
+        let sessionId = sessionStorage.getItem('chatSessionId');
+        if (!sessionId) {
+            sessionId = `web-user-${Date.now()}`;
+            sessionStorage.setItem('chatSessionId', sessionId);
+        }
 
-    // message 출력 helper
-    const addLine = (who, text) => {
-      const p = document.createElement('p');
-      p.className = 'msg';
-      p.innerHTML = `<strong>${who}:</strong> ${escapeHTML(text)}`;
-      chatbox.appendChild(p);
-      chatbox.scrollTop = chatbox.scrollHeight;
-    };
+        const addLine = (who, text) => {
+            const p = document.createElement('p');
+            p.className = 'msg';
+            p.innerHTML = `<strong>${who}:</strong> ${escapeHTML(text)}`;
+            chatbox.appendChild(p);
+            chatbox.scrollTop = chatbox.scrollHeight;
+        };
 
-    /* ────────────────────────────────────────────────
-     * Send → backend & display reply
-     * ──────────────────────────────────────────────── */
-    const sendMessage = async ev => {
-      ev?.preventDefault();
-      const msg = userInput.value.trim();
-      if (!msg) return;
+        const sendMessage = async ev => {
+            ev?.preventDefault();
+            const msg = userInput.value.trim();
+            if (!msg) return;
 
-      addLine('나', msg);
-      userInput.value = '';
-      userInput.focus();
-      sendBtn.disabled = true;
+            addLine('나', msg);
+            userInput.value = '';
+            userInput.focus();
+            sendBtn.disabled = true;
 
-      try {
-        const res = await fetch('/send-message', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: msg, sessionId })
+            try {
+                const res = await fetch('/send-message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: msg, sessionId })
+                });
+
+                if (!res.ok) throw new Error(`서버 오류 ${res.status}`);
+                const { text } = await res.json();
+                addLine('챗봇', text ?? '[빈 응답]');
+            } catch (err) {
+                console.error(err);
+                addLine('시스템', `⚠️ ${err.message}`);
+            } finally {
+                sendBtn.disabled = false;
+            }
+        };
+
+        // ------------------ [추가] STT 기능 초기화 및 이벤트 핸들링 ------------------
+        let recognizer; // 음성 인식기 변수
+
+        // 페이지 로딩 시 음성인식기 초기화
+        on(document, 'DOMContentLoaded', async () => {
+            sttBtn.disabled = true; // 초기에는 비활성화
+            try {
+                const response = await fetch('/api/get-speech-token');
+                if (!response.ok) throw new Error('인증 토큰을 가져올 수 없습니다.');
+                
+                const data = await response.json();
+                const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
+                speechConfig.speechRecognitionLanguage = 'ko-KR';
+                
+                const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+                recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+                
+                sttBtn.disabled = false; // 초기화 성공 시 버튼 활성화
+                console.log("음성 인식기 초기화 완료");
+
+            } catch (error) {
+                console.error("음성 인식기 초기화 실패:", error);
+                sttBtn.innerHTML = '⚠️';
+            }
         });
 
-        if (!res.ok) throw new Error(`서버 오류 ${res.status}`);
-        const { text } = await res.json();
-        addLine('챗봇', text ?? '[빈 응답]');
-      } catch (err) {
-        console.error(err);
-        addLine('시스템', `⚠️ ${err.message}`);
-      } finally {
-        sendBtn.disabled = false;
-      }
-    };
+        // 마이크 버튼 클릭 이벤트
+        on(sttBtn, 'click', () => {
+            if (!recognizer) return;
+            
+            sttBtn.disabled = true;
+            sttBtn.innerHTML = '👂';
+            userInput.value = '';
+            userInput.placeholder = '말씀하세요...';
 
-    // 이벤트 wiring
-    on(form, 'submit', sendMessage);
-    on(userInput, 'keydown', e => { if (e.key === 'Enter' && !e.shiftKey) sendMessage(e); });
-  </script>
+            recognizer.recognizeOnceAsync(result => {
+                if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+                    userInput.value = result.text;
+                } else {
+                    userInput.placeholder = '음성 인식 실패. 다시 시도하세요.';
+                }
+                sttBtn.disabled = false;
+                sttBtn.innerHTML = '🎤';
+            });
+        });
+        // ------------------ STT 기능 끝 ------------------
+
+        // 기존 이벤트 리스너
+        on(form, 'submit', sendMessage);
+        on(userInput, 'keydown', e => { if (e.key === 'Enter' && !e.shiftKey) sendMessage(e); });
+    </script>
 </body>
 </html>

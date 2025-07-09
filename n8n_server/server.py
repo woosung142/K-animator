@@ -14,29 +14,36 @@ PORT = int(os.getenv("PORT", 3000))
 N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL")
 BASE_DIR = Path(__file__).resolve().parent
 
+# Azure Speech Service 환경 변수
+SPEECH_KEY = os.getenv("SPEECH_KEY")
+SPEECH_REGION = os.getenv("SPEECH_REGION")
+
 # 정적 파일(index.html, CSS, JS 등)을 서빙할 디렉토리 마운트
 # /static 경로로 접근하면 templates 폴더의 파일들을 서빙합니다.
 app.mount("/static", StaticFiles(directory=BASE_DIR / "templates"), name="static")
 
-# Jinja2Templates를 사용하는 경우 (더 복잡한 HTML 템플릿에 유용)
-# templates = Jinja2Templates(directory=BASE_DIR / "templates")
-
-
 @app.get("/")
 async def root():
-    # StaticFiles를 사용하면 직접 파일 경로를 지정하지 않고,
-    # /static/index.html 경로로 리다이렉트하거나,
-    # Jinja2Templates를 사용하여 렌더링할 수 있습니다.
-    # 여기서는 /static/index.html로 리다이렉트하는 예시를 들겠습니다.
-    # 또는 그냥 /static/index.html을 직접 브라우저에서 접근하게 할 수도 있습니다.
-    
-    # 만약 Jinja2Templates를 사용한다면:
-    # return templates.TemplateResponse("index.html", {"request": request})
-
-    # 간단하게 index.html을 직접 반환하려면 FileResponse를 계속 사용할 수 있지만,
-    # 경로를 templates 폴더 안으로 변경해야 합니다.
     return FileResponse(BASE_DIR / "templates" / "index.html")
 
+# Azure 인증 토큰 발급 API
+@app.get("/api/get-speech-token")
+async def get_speech_token():
+    """Azure Speech Service용 인증 토큰을 발급합니다."""
+    if not SPEECH_KEY or not SPEECH_REGION:
+        raise HTTPException(status_code=500, detail="Azure Speech Service 환경 변수가 설정되지 않았습니다.")
+
+    fetch_token_url = f'https://{SPEECH_REGION}.api.cognitive.microsoft.com/sts/v1.0/issueToken'
+    headers = {
+        'Ocp-Apim-Subscription-Key': SPEECH_KEY,
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    try:
+        response = requests.post(fetch_token_url, headers=headers)
+        response.raise_for_status()
+        return JSONResponse({'token': response.text, 'region': SPEECH_REGION})
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/send-message")
 async def send_message(request: Request):
