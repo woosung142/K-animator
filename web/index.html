@@ -20,6 +20,9 @@
   <!-- PSD 다운로드 링크 -->
   <a id="psd-download" href="#" download style="display: none;">.PSD 파일 다운로드</a>
 
+  <!-- PSD 자동 실행 버튼 -->
+  <button id="open-psd" style="display: none;">PSD 자동 실행</button>
+
   <script>
     const API_BASE = "https://n8n.koreacentral.cloudapp.azure.com";
 
@@ -27,6 +30,7 @@
     const status = document.getElementById('status');
     const resultImage = document.getElementById('result-image');
     const psdLink = document.getElementById('psd-download');
+    const openPsdBtn = document.getElementById('open-psd');
 
     form.onsubmit = async (e) => {
       e.preventDefault();
@@ -34,6 +38,7 @@
       status.textContent = "이미지 생성 요청 중...";
       resultImage.style.display = "none";
       psdLink.style.display = "none";
+      openPsdBtn.style.display = "none";
 
       try {
         const res = await fetch(`${API_BASE}/api/generate-image`, {
@@ -47,6 +52,7 @@
         const checkStatus = async () => {
           const resp = await fetch(`${API_BASE}/api/result/${taskId}`);
           const result = await resp.json();
+
           if (result.status === "PENDING") {
             status.textContent = "이미지 생성 중...";
             setTimeout(checkStatus, 2000);
@@ -55,13 +61,34 @@
             // PNG 미리보기
             resultImage.src = result.png_url;
             resultImage.style.display = "block";
-            // PSD 다운로드 링크 표시
+
+            // PSD 다운로드 링크 설정
             psdLink.href = result.psd_url;
+            psdLink.download = `${taskId}.psd`;
             psdLink.style.display = "inline-block";
+
+            // PSD 자동 실행 버튼 설정
+            openPsdBtn.style.display = "inline-block";
+            openPsdBtn.onclick = async () => {
+              try {
+                await fetch("http://localhost:5001/download-and-open-psd", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    url: result.psd_url,
+                    filename: `${taskId}.psd`
+                  })
+                });
+                alert("PSD 파일 실행 요청을 보냈습니다.");
+              } catch (err) {
+                alert("PSD 실행 요청 실패: " + err.message);
+              }
+            };
           } else {
             status.textContent = "에러 발생!";
           }
         };
+
         checkStatus();
       } catch (err) {
         status.textContent = "요청 실패: " + err.message;
