@@ -3,3 +3,8 @@ requests==2.31.0
 pyinstaller==5.13.2
 pystray==0.19.5
 Pillow==10.3.0
+flask-cors==4.0.0
+win10toast==0.9
+
+
+

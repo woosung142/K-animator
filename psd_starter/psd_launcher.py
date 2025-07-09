@@ -1,17 +1,22 @@
 import traceback
 import logging
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import subprocess
 import os
 import requests
 import threading
 import sys
-
-# 트레이용
 from pystray import Icon, Menu, MenuItem
 from PIL import Image, ImageDraw
+from win10toast import ToastNotifier
+import tkinter as tk
+from tkinter import messagebox
 
-# 로그 파일로 모든 stdout, stderr 리디렉션
+# pyinstaller 빌드 명령어
+# pyinstaller --onefile --noconsole --hidden-import=flask_cors --hidden-import=win10toast psd_launcher.py
+
+# stdout, stderr 로그 저장
 try:
     sys_stdout = open("stdout.log", "w")
     sys_stderr = open("stderr.log", "w")
@@ -21,6 +26,7 @@ except Exception:
     pass
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/download-and-open-psd', methods=['POST'])
 def download_and_open_psd():
@@ -29,24 +35,30 @@ def download_and_open_psd():
     filename = data.get('filename')
 
     if not url or not filename:
-        return jsonify({'status': 'fail', 'reason': 'URL 또는 파일명 누락'}), 400
+        return jsonify({'status': 'fail', 'reason': 'InvalidRequest'}), 400
 
     try:
+        # 저장 경로: Downloads 폴더
         save_dir = os.path.expanduser("~/Downloads")
         os.makedirs(save_dir, exist_ok=True)
         save_path = os.path.join(save_dir, filename)
 
+        # 다운로드
         with requests.get(url, stream=True) as r:
-            r.raise_for_status()
+            if r.status_code != 200:
+                return jsonify({'status': 'fail', 'reason': 'DownloadFailed'}), 404
+
             with open(save_path, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=8192):
                     f.write(chunk)
 
+        # 파일 실행
         subprocess.Popen(['start', '', save_path], shell=True)
         return jsonify({'status': 'success'}), 200
 
     except Exception as e:
-        return jsonify({'status': 'fail', 'reason': str(e)}), 500
+        logging.exception("다운로드 또는 실행 실패:")
+        return jsonify({'status': 'fail', 'reason': 'UnexpectedError'}), 500
 
 def run_flask():
     try:
@@ -55,24 +67,34 @@ def run_flask():
         with open("fatal_error.log", "w") as f:
             traceback.print_exc(file=f)
 
+def show_info(icon, item):
+    root = tk.Tk()
+    root.withdraw()
+    messagebox.showinfo(
+        "PSD 실행기 정보",
+        "이 프로그램은 PSD 파일을 자동 다운로드 및 실행하는 도우미입니다.\nFlask 서버와 트레이 아이콘으로 구성되어 있습니다."
+    )
+
 def create_icon():
-    # 기본 아이콘 이미지 (검은 원)
     image = Image.new('RGB', (64, 64), color=(0, 0, 0))
     d = ImageDraw.Draw(image)
     d.ellipse((16, 16, 48, 48), fill=(255, 255, 255))
 
-    # 종료 함수
     def on_exit(icon, item):
         icon.stop()
         os._exit(0)
 
-    menu = Menu(MenuItem('종료', on_exit))
+    menu = Menu(
+        MenuItem('정보', show_info),
+        MenuItem('종료', on_exit)
+    )
+
+    toaster = ToastNotifier()
+    toaster.show_toast("PSD 실행기 시작됨", "트레이에서 실행 중입니다.", duration=3, threaded=True)
+
     icon = Icon("PSD 실행기", image, "PSD 자동 실행기", menu)
     icon.run()
 
 if __name__ == '__main__':
-    # Flask 서버를 백그라운드에서 실행
     threading.Thread(target=run_flask, daemon=True).start()
-
-    # 트레이 아이콘 실행 (메인 스레드)
     create_icon()
