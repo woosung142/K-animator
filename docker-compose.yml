@@ -35,10 +35,6 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    environment:
-      - TRANSFORMERS_CACHE=/models
-    volumes:
-      - model_cache:/models
 
   redis:
     image: redis:7

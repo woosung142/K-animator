@@ -15,22 +15,10 @@ spec:
       containers:
         - name: model-worker
           image: ghcr.io/ajh9789/model-worker:latest
-          env:
-            - name: TRANSFORMERS_CACHE
-              value: /models
           envFrom:
             - secretRef:
                 name: azure-secret
-          volumeMounts:
-            - mountPath: /models
-              name: model-cache
           resources:
             requests:
-              memory: "4Gi"
-              cpu: "1000m"
-            limits:
-              memory: "8Gi"
-              cpu: "2000m"
-      volumes:
-        - name: model-cache
-          emptyDir: {}
+              memory: "512Mi"
+              cpu: "250m"
