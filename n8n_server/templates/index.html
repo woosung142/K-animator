@@ -60,12 +60,32 @@
             flex-shrink: 0;
         }
         button:disabled { opacity: .4; cursor: not-allowed; }
+        #preview-area {
+            width: 100%;
+            max-width: 600px;
+            padding: 0 .5rem .5rem;
+            display: flex;
+            align-items: center;
+        }
+        #preview-area img {
+            max-height: 80px;
+            border-radius: var(--radius);
+        }
+        #preview-area button {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #9ca3af;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <h1>n8n 챗봇</h1>
 
     <div id="chatbox" aria-live="polite" aria-label="대화 내용"></div>
+
+    <div id="preview-area"></div>
 
     <form id="chat-form" autocomplete="off">
         <button type="button" id="addFileBtn">+</button>
@@ -80,140 +100,182 @@
 
     <script>
         /* ────────────────────────────────────────────────
-         * Utility helpers
+         * Utility helpers and DOM Elements
          * ──────────────────────────────────────────────── */
         const qs = (sel, scope = document) => scope.querySelector(sel);
         const on = (el, type, cb) => el.addEventListener(type, cb);
         const escapeHTML = str => str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
 
-        /* ──────────────────────────────────────────────── */
-        const chatbox   = qs('#chatbox');
-        const userInput = qs('#userInput');
-        const form      = qs('#chat-form');
-        const sendBtn   = qs('button[type="submit"]', form);
-        const sttBtn    = qs('#sttBtn');
-        
-        // --- [수정된 부분] ---
-        const addFileBtn = qs('#addFileBtn'); // 오타 수정 (addfileBtn -> addFileBtn)
-        const fileInput  = qs('#fileInput');  // 이제 이 요소가 존재하므로 정상적으로 찾아옵니다.
-        
-        // --- 파일 첨부 버튼 클릭 이벤트 ---
-        on(addFileBtn, 'click', () => {
-            fileInput.click(); // 숨겨진 file input을 클릭시킴
-        });
+        const chatbox     = qs('#chatbox');
+        const userInput   = qs('#userInput');
+        const form        = qs('#chat-form');
+        const sendBtn     = qs('button[type="submit"]', form);
+        const sttBtn      = qs('#sttBtn');
+        const addFileBtn  = qs('#addFileBtn');
+        const fileInput   = qs('#fileInput');
+        const previewArea = qs('#preview-area');
 
-        // --- 파일이 실제로 선택되었을 때의 이벤트 ---
-        on(fileInput, 'change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                uploadImageAndShow(file);
-            }
-            fileInput.value = '';
-        });
+        let fileToSend = null; // 전송할 파일을 임시 저장
+        let recognizer; // 음성 인식기
 
-        // --- 텍스트 입력창에 붙여넣기 이벤트 ---
-        on(userInput, 'paste', (e) => {
-            const items = e.clipboardData.items;
-            for (const item of items) {
-                if (item.kind === 'file' && item.type.startsWith('image/')) {
-                    const file = item.getAsFile();
-                    uploadImageAndShow(file);
-                    e.preventDefault();
-                    return;
-                }
-            }
-        });
-
-        // --- 이미지 업로드 및 처리를 위한 함수 ---
-        const uploadImageAndShow = async (file) => {
-            const formData = new FormData();
-            formData.append('image_file', file);
-            addLine('나', '이미지 전송 중...');
-
-            try {
-                const res = await fetch('/upload-image', {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (!res.ok) throw new Error(`이미지 업로드 실패: ${res.statusText}`);
-
-                const result = await res.json();
-                const imageUrl = result.image_url;
-
-                const p = document.createElement('p');
-                p.className = 'msg';
-                p.innerHTML = `<strong>나:</strong> <img src="${escapeHTML(imageUrl)}" alt="업로드된 이미지" width="200">`;
-                chatbox.appendChild(p);
-                chatbox.scrollTop = chatbox.scrollHeight;
-
-            } catch (err) {
-                console.error(err);
-                addLine('시스템', `⚠️ ${err.message}`);
-            }
-        };
-
-        // --- 나머지 코드는 동일 ---
+        // 세션 ID 설정
         let sessionId = sessionStorage.getItem('chatSessionId');
         if (!sessionId) {
             sessionId = `web-user-${Date.now()}`;
             sessionStorage.setItem('chatSessionId', sessionId);
         }
 
-        const addLine = (who, text) => {
+        /* ────────────────────────────────────────────────
+         * Core Functions
+         * ──────────────────────────────────────────────── */
+        
+        // 메시지/이미지 UI 추가 함수 (중복 제거)
+        const addLine = (who, content, isHtml = false) => {
             const p = document.createElement('p');
             p.className = 'msg';
-            p.innerHTML = `<strong>${who}:</strong> ${escapeHTML(text)}`;
+            p.innerHTML = `<strong>${who}:</strong> ${isHtml ? content : escapeHTML(content)}`;
             chatbox.appendChild(p);
             chatbox.scrollTop = chatbox.scrollHeight;
         };
 
-        const sendMessage = async ev => {
-            ev?.preventDefault();
-            const msg = userInput.value.trim();
-            if (!msg) return;
+        // 이미지 미리보기 UI 표시 함수
+        const showPreview = (file) => {
+            fileToSend = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewArea.innerHTML = `
+                    <img src="${e.target.result}" alt="미리보기">
+                    <button type="button" id="remove-preview-btn">×</button>
+                `;
+                userInput.disabled = true;
+            };
+            reader.readAsDataURL(file);
+        };
 
-            addLine('나', msg);
-            userInput.value = '';
+        // 이미지 미리보기 UI 제거 함수
+        const clearPreview = () => {
+            fileToSend = null;
+            previewArea.innerHTML = '';
+            userInput.disabled = false;
             userInput.focus();
-            sendBtn.disabled = true;
+        };
 
-            try {
-                const res = await fetch('/send-message', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messages: msg, sessionId })
-                });
+        // '전송' 버튼의 메인 로직
+        const handleSend = async (ev) => {
+            ev?.preventDefault();
 
-                if (!res.ok) throw new Error(`서버 오류 ${res.status}`);
-                const { text } = await res.json();
-                addLine('챗봇', text ?? '[빈 응답]');
-            } catch (err) {
-                console.error(err);
-                addLine('시스템', `⚠️ ${err.message}`);
-            } finally {
-                sendBtn.disabled = false;
+            // 1. 보낼 파일이 있는지 확인
+            if (fileToSend) {
+                const file = fileToSend;
+                const filePreviewUrl = URL.createObjectURL(file); // 미리보기용 URL 생성
+                clearPreview();
+
+                addLine('나', `<img src="${filePreviewUrl}" alt="전송 이미지" width="200">`, true);
+                sendBtn.disabled = true;
+
+                try {
+                    const formData = new FormData();
+                    formData.append('image_file', file);
+                    const res = await fetch('/upload-image', { method: 'POST', body: formData });
+                    if (!res.ok) throw new Error('이미지 업로드 실패');
+                    
+                    const result = await res.json();
+                    const imageUrl = result.image_url;
+
+                    // n8n에 이미지 URL 정보 전송
+                    const n8nRes = await fetch('/send-message', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ messages: `이미지 전송됨: ${imageUrl}`, sessionId })
+                    });
+                    if (!n8nRes.ok) throw new Error('n8n 서버 통신 실패');
+                    
+                    const { text } = await n8nRes.json();
+                    addLine('챗봇', text);
+
+                } catch (err) {
+                    console.error(err);
+                    addLine('시스템', `⚠️ ${err.message}`);
+                } finally {
+                    sendBtn.disabled = false;
+                }
+            
+            // 2. 보낼 파일이 없으면 텍스트 메시지 전송
+            } else {
+                const msg = userInput.value.trim();
+                if (!msg) return;
+
+                addLine('나', msg);
+                userInput.value = '';
+                userInput.focus();
+                sendBtn.disabled = true;
+
+                try {
+                    const res = await fetch('/send-message', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ messages: msg, sessionId })
+                    });
+                    if (!res.ok) throw new Error(`서버 오류 ${res.status}`);
+                    
+                    const { text } = await res.json();
+                    addLine('챗봇', text);
+                } catch (err) {
+                    console.error(err);
+                    addLine('시스템', `⚠️ ${err.message}`);
+                } finally {
+                    sendBtn.disabled = false;
+                }
             }
         };
 
-        // --- STT 기능 초기화 및 이벤트 핸들링 ---
-        let recognizer;
+        /* ────────────────────────────────────────────────
+         * Event Listeners
+         * ──────────────────────────────────────────────── */
+        
+        // '전송' 버튼 클릭 또는 Enter 키
+        on(form, 'submit', handleSend);
+        on(userInput, 'keydown', e => { if (e.key === 'Enter' && !e.shiftKey) handleSend(e); });
+        
+        // '+' 버튼 클릭
+        on(addFileBtn, 'click', () => fileInput.click());
+
+        // 파일 선택
+        on(fileInput, 'change', e => {
+            const file = e.target.files[0];
+            if (file) showPreview(file);
+            fileInput.value = '';
+        });
+
+        // 붙여넣기
+        on(userInput, 'paste', e => {
+            const file = e.clipboardData.files[0];
+            if (file && file.type.startsWith('image/')) {
+                e.preventDefault();
+                showPreview(file);
+            }
+        });
+
+        // 미리보기 제거 버튼 클릭 (이벤트 위임)
+        on(previewArea, 'click', e => {
+            if (e.target.id === 'remove-preview-btn') {
+                clearPreview();
+            }
+        });
+        
+        // 음성 인식(STT) 관련
         on(document, 'DOMContentLoaded', async () => {
             sttBtn.disabled = true;
             try {
                 const response = await fetch('/api/get-speech-token');
                 if (!response.ok) throw new Error('인증 토큰을 가져올 수 없습니다.');
-                
                 const data = await response.json();
                 const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
                 speechConfig.speechRecognitionLanguage = 'ko-KR';
-                
                 const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
                 recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-                
                 sttBtn.disabled = false;
                 console.log("음성 인식기 초기화 완료");
-
             } catch (error) {
                 console.error("음성 인식기 초기화 실패:", error);
                 sttBtn.innerHTML = '⚠️';
@@ -239,9 +301,6 @@
             });
         });
 
-        // --- 기존 이벤트 리스너 ---
-        on(form, 'submit', sendMessage);
-        on(userInput, 'keydown', e => { if (e.key === 'Enter' && !e.shiftKey) sendMessage(e); });
     </script>
 </body>
 </html>
