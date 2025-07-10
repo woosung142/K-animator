@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: korea-webtoon-generator
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ajh9789/k8s-deploy  # 여기에 너 깃 주소
+    targetRevision: main
+    path: k8s  # YAML들 있는 폴더
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+# Argo CD 설치 이후, Git 리포지토리 내 Secret 리소스를 무시하는 설정 방법
+
+# 1. Argo CD가 설치된 네임스페이스(argocd)에서 argocd-cm ConfigMap을 수정한다.
+# kubectl edit configmap argocd-cm -n argocd
+
+# 2. 에디터가 열리면 아래 내용을 data 항목에 추가한다.
+# (이미 data: 필드가 있다면 그 안에 추가)
+
+# data:
+#   resource.exclusions: |
+#     - apiGroups:
+#         - ""
+#       kinds:
+#         - Secret
+#       clusters:
+#         - "*"
+
+# 이 설정은 다음을 의미함:
+# - apiGroup이 없는 core 리소스 ("" = core API group)
+# - Secret 리소스를
+# - 모든 클러스터 대상으로 (clusters: "*")
+# Argo CD가 관리하지 않도록 무시하게 한다.
+
+# 3. ConfigMap을 저장하고 에디터 종료하면 설정은 반영되지만,
+#    Argo CD의 내부 컴포넌트들이 변경을 감지하려면 아래처럼 리스타트가 필요하다.
+
+# kubectl rollout restart deployment argocd-repo-server -n argocd
+# kubectl rollout restart deployment argocd-server -n argocd
+
+# 4. 이후 Argo CD는 Git 리포지토리 내 Secret YAML 파일이 변경되어도
+#    Sync 대상에서 제외하며, 수동으로 클러스터 내에 있는 Secret은 그대로 유지된다.
+
+#  참고:
+# - ConfigMap은 GitOps로 관리하지 않으며, 직접 수동 설정이 일반적이다.
+# - Helm 설치 시엔 values.yaml에서 설정할 수도 있으나,
+#   수동 설치 기반이라면 위 방식이 가장 직관적이다.
