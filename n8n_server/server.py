@@ -12,6 +12,33 @@ app = FastAPI()
 N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL")
 BASE_DIR = Path(__file__).resolve().parent
 
+# --- [추가] uploads 폴더를 정적 파일 경로로 마운트 ---
+# 이렇게 해야 /uploads/filename.png 같은 URL로 이미지에 접근 가능
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+
+# --- [추가] 이미지 업로드 API 엔드포인트 ---
+@app.post("/upload-image")
+async def upload_image(image_file: UploadFile = File(...)):
+    # 고유한 파일 이름 생성 (파일 이름 충돌 방지)
+    unique_id = uuid.uuid4().hex
+    file_extension = Path(image_file.filename).suffix
+    unique_filename = f"{unique_id}{file_extension}"
+    
+    file_path = Path("uploads") / unique_filename
+
+    try:
+        # 파일을 서버의 uploads 폴더에 저장
+        with open(file_path, "wb") as buffer:
+            buffer.write(await image_file.read())
+        
+        # 클라이언트가 접근할 수 있는 이미지 URL 반환
+        return {"image_url": f"/uploads/{unique_filename}"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"이미지 저장 실패: {e}")
+
+
 # Azure Speech Service 환경 변수
 SPEECH_KEY = os.getenv("SPEECH_KEY")
 SPEECH_REGION = os.getenv("SPEECH_REGION")

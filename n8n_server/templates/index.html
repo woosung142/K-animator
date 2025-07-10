@@ -76,6 +76,7 @@
     <div id="chatbox" aria-live="polite" aria-label="대화 내용"></div>
 
     <form id="chat-form" autocomplete="off">
+        <button type="button" id="addFileBtn">➕</button>
         <input id="userInput" type="text" placeholder="메시지를 입력하세요…" />
         <button type="button" id="sttBtn">🎤</button> 
         <button type="submit">전송</button>
@@ -97,6 +98,72 @@
         const form      = qs('#chat-form');
         const sendBtn   = qs('button[type="submit"]', form);
         const sttBtn    = qs('#sttBtn'); // [추가] 마이크 버튼 참조
+        const addfileBtn= qs('#addfileBtn');
+        const fileInput = qs('#fileInput');
+
+                // --- [추가] 파일 첨부 버튼 클릭 이벤트 ---
+        on(addfileBtn, 'click', () => {
+            fileInput.click(); // 숨겨진 file input을 클릭시킴
+        });
+
+        // --- [추가] 파일이 실제로 선택되었을 때의 이벤트 ---
+        on(fileInput, 'change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                uploadImageAndShow(file);
+            }
+            fileInput.value = ''; // 다음 선택을 위해 값 비우기
+        });
+
+        // --- [추가] 텍스트 입력창에 붙여넣기 이벤트 ---
+        on(userInput, 'paste', (e) => {
+            const items = e.clipboardData.items;
+            for (const item of items) {
+                if (item.kind === 'file' && item.type.startsWith('image/')) {
+                    const file = item.getAsFile();
+                    uploadImageAndShow(file);
+                    e.preventDefault(); // 텍스트로 붙여넣어지는 것 방지
+                    return;
+                }
+            }
+        });
+
+        // --- [추가] 이미지 업로드 및 처리를 위한 함수 ---
+        const uploadImageAndShow = async (file) => {
+            // 1. FormData 객체에 이미지 파일 담기
+            const formData = new FormData();
+            formData.append('image_file', file);
+
+            addLine('나', '이미지 전송 중...'); // 사용자에게 상태 표시
+
+            try {
+                // 2. FastAPI 서버의 /upload-image 엔드포인트로 전송
+                const res = await fetch('/upload-image', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!res.ok) throw new Error(`이미지 업로드 실패: ${res.statusText}`);
+
+                const result = await res.json();
+                const imageUrl = result.image_url;
+
+                // 3. 서버로부터 받은 이미지 URL을 채팅창에 이미지로 표시
+                const p = document.createElement('p');
+                p.className = 'msg';
+                p.innerHTML = `<strong>나:</strong> <img src="${escapeHTML(imageUrl)}" alt="업로드된 이미지" width="200">`;
+                chatbox.appendChild(p);
+                chatbox.scrollTop = chatbox.scrollHeight;
+
+                // (선택) n8n에 이미지 URL을 텍스트로 보낼 수도 있음
+                // userInput.value = `이미지: ${window.location.origin}${imageUrl}`;
+                // sendMessage();
+
+            } catch (err) {
+                console.error(err);
+                addLine('시스템', `⚠️ ${err.message}`);
+            }
+        };
 
         let sessionId = sessionStorage.getItem('chatSessionId');
         if (!sessionId) {
