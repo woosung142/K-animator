@@ -1,16 +1,27 @@
 from celery import Celery
 from io import BytesIO
 from PIL import Image
-import torch
-from diffusers import StableDiffusionPipeline
+import requests
 from azure.storage.blob import BlobServiceClient
 import uuid
 import os
 import subprocess
 from dotenv import load_dotenv
+from openai import AzureOpenAI
 
 # .env 로딩
 load_dotenv()
+
+# Azure OpenAI 설정
+AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_API_KEY")
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+AZURE_OPENAI_VERSION = "2024-05-01-preview"  # 필요 시 버전 고정
+
+client = AzureOpenAI(
+    api_key=AZURE_OPENAI_KEY,
+    azure_endpoint=AZURE_OPENAI_ENDPOINT,
+    api_version=AZURE_OPENAI_VERSION
+)
 
 # Azure Blob 설정
 AZURE_ACCOUNT_NAME = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
@@ -27,17 +38,6 @@ AZURE_CONNECTION_STRING = (
 blob_service = BlobServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
 container_client = blob_service.get_container_client(AZURE_CONTAINER_NAME)
 
-# 디바이스 설정
-device = "cuda" if torch.cuda.is_available() else "cpu"
-dtype = torch.float16 if device == "cuda" else torch.float32
-
-# 모델 로딩
-pipe = StableDiffusionPipeline.from_pretrained(
-    "nota-ai/bk-sdm-tiny",
-    torch_dtype=dtype
-).to(device)
-pipe.enable_attention_slicing()
-
 # Celery 설정
 celery_app = Celery(
     'worker',
@@ -49,7 +49,19 @@ celery_app = Celery(
 def generate_image(self, prompt: str) -> dict:
     try:
         task_id = self.request.id
-        img = pipe(prompt, num_inference_steps=25, guidance_scale=7.5).images[0]
+
+        # Azure OpenAI에 이미지 생성 요청
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size="1024x1024",
+            n=1
+        )
+        image_url = response.data[0].url
+
+        # 이미지 다운로드
+        image_data = requests.get(image_url).content
+        img = Image.open(BytesIO(image_data))
 
         # PNG 저장 및 업로드
         png_buffer = BytesIO()
@@ -69,9 +81,10 @@ def generate_image(self, prompt: str) -> dict:
         with open(temp_psd_path, "rb") as f:
             container_client.upload_blob(name=f"{task_id}.psd", data=f, overwrite=True)
         psd_url = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{task_id}.psd"
-        # 임시 파일 삭제
+
         os.remove(temp_png_path)
         os.remove(temp_psd_path)
+
         return {
             "status": "SUCCESS",
             "png_url": png_url,
