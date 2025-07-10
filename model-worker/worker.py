@@ -20,7 +20,7 @@ AZURE_OPENAI_VERSION = "2024-05-01-preview"  # 필요 시 버전 고정
 client = AzureOpenAI(
     api_key=AZURE_OPENAI_KEY,
     azure_endpoint=AZURE_OPENAI_ENDPOINT,
-    api_version=AZURE_OPENAI_VERSION
+    api_version="2024-05-01-preview"
 )
 
 # Azure Blob 설정
