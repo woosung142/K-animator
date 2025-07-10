@@ -7,6 +7,10 @@
 <body>
   <h1>TinySD 이미지 생성</h1>
 
+  <!-- PSD 실행기 다운로드 버튼 -->
+  <button id="exe-download" style="display: inline-block;">PSD 실행기 다운로드 (.zip)</button>
+
+  <!-- 이미지 생성 폼 -->
   <form id="generate-form">
     <input type="text" id="prompt" placeholder="텍스트 프롬프트 입력" required />
     <button type="submit">이미지 생성</button>
@@ -31,10 +35,17 @@
     const resultImage = document.getElementById('result-image');
     const psdLink = document.getElementById('psd-download');
     const openPsdBtn = document.getElementById('open-psd');
+    const exeDownloadBtn = document.getElementById('exe-download');  // 실행기 다운로드 버튼
 
     let taskId = null;
     let psdUrl = null;
 
+    // 실행기 다운로드 버튼 클릭 시 zip 다운로드
+    exeDownloadBtn.onclick = () => {
+      window.location.href = "https://user20storage.blob.core.windows.net/psd-download/psd_launcher.zip";
+    };
+
+    // 이미지 생성 요청 처리
     form.onsubmit = async (e) => {
       e.preventDefault();
       const prompt = document.getElementById('prompt').value;
@@ -80,6 +91,7 @@
       }
     };
 
+    // ▶ PSD 자동 실행 버튼 클릭 시 실행기 서버 호출
     openPsdBtn.onclick = async () => {
       if (!taskId || !psdUrl) return;
 
