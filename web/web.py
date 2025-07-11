@@ -59,7 +59,7 @@ async def upload_image(image_file: UploadFile = File(...)):
 SPEECH_KEY = os.getenv("SPEECH_KEY")
 SPEECH_REGION = os.getenv("SPEECH_REGION")
 
-@app.get("/api/get-speech-token")
+@app.get("/get-speech-token")
 async def get_speech_token():
     if not SPEECH_KEY or not SPEECH_REGION:
         raise HTTPException(status_code=500, detail="Azure Speech Service 환경 변수가 설정되지 않았습니다.")

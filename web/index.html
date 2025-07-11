@@ -107,140 +107,179 @@
     <button id="exeDownloadBtn">실행기(.zip) 다운로드</button>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
-  <script>
-    const qs = (sel, scope = document) => scope.querySelector(sel);
-    const on = (el, type, cb) => el.addEventListener(type, cb);
-    const escapeHTML = str => str.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+<!-- 🎤 음성 인식 SDK 포함 -->
+<script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
+<script>
+  const qs = (sel, scope = document) => scope.querySelector(sel);
+  const on = (el, type, cb) => el.addEventListener(type, cb);
+  const escapeHTML = str => str.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
-    const chatbox = qs('#chatbox');
-    const userInput = qs('#userInput');
-    const form = qs('#chat-form');
-    const sttBtn = qs('#sttBtn');
-    const addFileBtn = qs('#addFileBtn');
-    const fileInput = qs('#fileInput');
-    const previewArea = qs('#preview-area');
-    const generateImageBtn = qs('#generateImageBtn');
+  const chatbox = qs('#chatbox');
+  const userInput = qs('#userInput');
+  const form = qs('#chat-form');
+  const sttBtn = qs('#sttBtn');
+  const addFileBtn = qs('#addFileBtn');
+  const fileInput = qs('#fileInput');
+  const previewArea = qs('#preview-area');
+  const generateImageBtn = qs('#generateImageBtn');
 
-    const downloadPsdBtn = qs('#downloadPsdBtn');
-    const openPsdBtn = qs('#openPsdBtn');
-    const exeDownloadBtn = qs('#exeDownloadBtn');
+  const downloadPsdBtn = qs('#downloadPsdBtn');
+  const openPsdBtn = qs('#openPsdBtn');
+  const exeDownloadBtn = qs('#exeDownloadBtn');
 
-    let fileToSend = null;
-    let uploadedImageUrl = null;
-    let psdUrl = null;
-    let taskId = null;
-    let sessionId = sessionStorage.getItem('chatSessionId') || `web-user-${Date.now()}`;
-    sessionStorage.setItem('chatSessionId', sessionId);
+  let fileToSend = null;
+  let uploadedImageUrl = null;
+  let psdUrl = null;
+  let taskId = null;
+  let recognizer = null;
+  let sessionId = sessionStorage.getItem('chatSessionId') || `web-user-${Date.now()}`;
+  sessionStorage.setItem('chatSessionId', sessionId);
 
-    const addLine = (who, content, isHtml = false) => {
-      const p = document.createElement('p');
-      p.className = 'msg';
-      p.innerHTML = `<strong>${who}:</strong> ${isHtml ? content : escapeHTML(content)}`;
-      chatbox.appendChild(p);
-      chatbox.scrollTop = chatbox.scrollHeight;
+  const addLine = (who, content, isHtml = false) => {
+    const p = document.createElement('p');
+    p.className = 'msg';
+    p.innerHTML = `<strong>${who}:</strong> ${isHtml ? content : escapeHTML(content)}`;
+    chatbox.appendChild(p);
+    chatbox.scrollTop = chatbox.scrollHeight;
+  };
+
+  const showPreview = (file) => {
+    fileToSend = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      previewArea.innerHTML = `<img src="${e.target.result}" alt="미리보기"><button type="button" id="remove-preview-btn">×</button>`;
     };
+    reader.readAsDataURL(file);
+  };
 
-    const showPreview = (file) => {
-      fileToSend = file;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        previewArea.innerHTML = `<img src="${e.target.result}" alt="미리보기"><button type="button" id="remove-preview-btn">×</button>`;
-      };
-      reader.readAsDataURL(file);
-    };
+  const clearPreview = () => {
+    fileToSend = null;
+    uploadedImageUrl = null;
+    previewArea.innerHTML = '';
+  };
 
-    const clearPreview = () => {
-      fileToSend = null;
-      uploadedImageUrl = null;
-      previewArea.innerHTML = '';
-    };
+  on(addFileBtn, 'click', () => fileInput.click());
+  on(fileInput, 'change', async e => {
+    if (e.target.files[0]) {
+      showPreview(e.target.files[0]);
+      const formData = new FormData();
+      formData.append('image_file', e.target.files[0]);
+      const res = await fetch('/upload-image', { method: 'POST', body: formData });
+      const result = await res.json();
+      uploadedImageUrl = result.image_url;
+    }
+  });
 
-    on(addFileBtn, 'click', () => fileInput.click());
-    on(fileInput, 'change', async e => {
-      if (e.target.files[0]) {
-        showPreview(e.target.files[0]);
-        const formData = new FormData();
-        formData.append('image_file', e.target.files[0]);
-        const res = await fetch('/upload-image', { method: 'POST', body: formData });
-        const result = await res.json();
-        uploadedImageUrl = result.image_url;
-      }
-    });
+  on(previewArea, 'click', e => { if (e.target.id === 'remove-preview-btn') clearPreview(); });
 
-    on(previewArea, 'click', e => { if (e.target.id === 'remove-preview-btn') clearPreview(); });
+  on(generateImageBtn, 'click', async () => {
+    const prompt = userInput.value.trim();
+    if (!prompt) return;
+    addLine('나', prompt);
+    userInput.value = '';
 
-    on(generateImageBtn, 'click', async () => {
-      const prompt = userInput.value.trim();
-      if (!prompt) return;
-      addLine('나', prompt);
-      userInput.value = '';
+    downloadPsdBtn.style.display = "none";
+    openPsdBtn.style.display = "none";
+    psdUrl = null;
 
-      downloadPsdBtn.style.display = "none";
-      openPsdBtn.style.display = "none";
-      psdUrl = null;
+    try {
+      const res = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, image_url: uploadedImageUrl })
+      });
+      const { task_id } = await res.json();
+      taskId = task_id;
 
-      try {
-        const res = await fetch('/api/generate-image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt, image_url: uploadedImageUrl })
-        });
-        const { task_id } = await res.json();
-        taskId = task_id;
+      const checkStatus = async () => {
+        const resp = await fetch(`/api/result/${task_id}`);
+        const result = await resp.json();
+        if (result.status === 'PENDING') {
+          setTimeout(checkStatus, 2000);
+        } else if (result.status === 'SUCCESS') {
+          addLine('AI 이미지', `<img src="${result.png_url}" width="300">`, true);
+          addLine('다운로드', `<a href="${result.psd_url}" download>PSD 파일</a>`, true);
 
-        const checkStatus = async () => {
-          const resp = await fetch(`/api/result/${task_id}`);
-          const result = await resp.json();
-          if (result.status === 'PENDING') {
-            setTimeout(checkStatus, 2000);
-          } else if (result.status === 'SUCCESS') {
-            addLine('AI 이미지', `<img src="${result.png_url}" width="300">`, true);
-            addLine('다운로드', `<a href="${result.psd_url}" download>PSD 파일</a>`, true);
-
-            psdUrl = result.psd_url;
-            downloadPsdBtn.style.display = "inline-block";
-            openPsdBtn.style.display = "inline-block";
-          } else {
-            addLine('에러', '이미지 생성 실패');
-          }
-        };
-        checkStatus();
-      } catch (err) {
-        addLine('시스템', `⚠️ 요청 실패: ${err.message}`);
-      }
-    });
-
-    on(downloadPsdBtn, 'click', () => {
-      if (!psdUrl || !taskId) return;
-      const a = document.createElement('a');
-      a.href = psdUrl;
-      a.download = `${taskId}.psd`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    });
-
-    on(openPsdBtn, 'click', async () => {
-      if (!psdUrl || !taskId) return;
-      try {
-        const res = await fetch("http://localhost:5001/download-and-open-psd", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: psdUrl, filename: `${taskId}.psd` })
-        });
-        const data = await res.json();
-        if (data.status === "fail") {
-          alert("PSD 파일이 존재하지 않습니다.");
+          psdUrl = result.psd_url;
+          downloadPsdBtn.style.display = "inline-block";
+          openPsdBtn.style.display = "inline-block";
+        } else {
+          addLine('에러', '이미지 생성 실패');
         }
-      } catch (err) {
-        alert("실행기가 실행 중이 아닙니다. 설치 후 다시 시도해주세요.");
-      }
-    });
+      };
+      checkStatus();
+    } catch (err) {
+      addLine('시스템', `⚠️ 요청 실패: ${err.message}`);
+    }
+  });
 
-    on(exeDownloadBtn, 'click', () => {
-      window.location.href = "https://user20storage.blob.core.windows.net/psd-download/psd_launcher.zip";
+  on(downloadPsdBtn, 'click', () => {
+    if (!psdUrl || !taskId) return;
+    const a = document.createElement('a');
+    a.href = psdUrl;
+    a.download = `${taskId}.psd`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+
+  on(openPsdBtn, 'click', async () => {
+    if (!psdUrl || !taskId) return;
+    try {
+      const res = await fetch("http://localhost:5001/download-and-open-psd", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: psdUrl, filename: `${taskId}.psd` })
+      });
+      const data = await res.json();
+      if (data.status === "fail") {
+        alert("PSD 파일이 존재하지 않습니다.");
+      }
+    } catch (err) {
+      alert("실행기가 실행 중이 아닙니다. 설치 후 다시 시도해주세요.");
+    }
+  });
+
+  on(exeDownloadBtn, 'click', () => {
+    window.location.href = "https://user20storage.blob.core.windows.net/psd-download/psd_launcher.zip";
+  });
+
+  // 🎤 음성 인식 초기화
+  on(document, 'DOMContentLoaded', async () => {
+    sttBtn.disabled = true;
+    try {
+      const response = await fetch('/get-speech-token');
+      if (!response.ok) throw new Error('인증 토큰을 가져올 수 없습니다.');
+      const data = await response.json();
+      const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
+      speechConfig.speechRecognitionLanguage = 'ko-KR';
+      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+      recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+      sttBtn.disabled = false;
+    } catch (error) {
+      console.error("음성 인식 초기화 실패:", error);
+      sttBtn.innerHTML = '⚠️';
+    }
+  });
+
+  // 🎤 버튼 눌렀을 때 음성 인식 실행
+  on(sttBtn, 'click', () => {
+    if (!recognizer) return;
+    sttBtn.disabled = true;
+    sttBtn.innerHTML = '👂';
+    userInput.value = '';
+    userInput.placeholder = '말씀하세요...';
+
+    recognizer.recognizeOnceAsync(result => {
+      if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+        userInput.value = result.text;
+      } else {
+        userInput.placeholder = '음성 인식 실패. 다시 시도하세요.';
+      }
+      sttBtn.disabled = false;
+      sttBtn.innerHTML = '🎤';
     });
-  </script>
+  });
+</script>
 </body>
 </html>
