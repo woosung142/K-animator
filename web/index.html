@@ -1,58 +1,228 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>한국풍 웹툰 배경 이미지 생성기</title>
+  <style>
+    :root {
+      --gap: 1rem;
+      --radius: .75rem;
+      --primary: #2563eb;
+      --bg: #f8fafc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--gap);
+      height: 100vh;
+    }
+    h1 { margin: .25rem 0 1rem; font-size: 1.4rem; }
+    #chatbox {
+      flex: 1 1 auto;
+      width: 100%;
+      max-width: 600px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: var(--radius);
+      padding: var(--gap);
+      overflow-y: auto;
+    }
+    .msg { margin-bottom: .6rem; line-height: 1.45; }
+    .msg strong { color: var(--primary); }
+    form {
+      display: flex;
+      gap: .5rem;
+      width: 100%;
+      max-width: 600px;
+      margin-top: var(--gap);
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: .65rem .9rem;
+      font-size: 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: var(--radius);
+    }
+    button {
+      padding: .65rem 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    button:disabled { opacity: .4; cursor: not-allowed; }
+    #preview-area {
+      width: 100%;
+      max-width: 600px;
+      padding: 0 .5rem .5rem;
+      display: flex;
+      align-items: center;
+    }
+    #preview-area img {
+      max-height: 80px;
+      border-radius: var(--radius);
+    }
+    #preview-area button {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #9ca3af;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
   <h1>한국풍 웹툰 배경 이미지 생성기</h1>
 
-  <!-- PSD 실행기 다운로드 버튼 -->
-  <button id="exe-download" style="display: inline-block;">PSD 실행기 다운로드 (.zip)</button>
+  <div id="chatbox" aria-live="polite" aria-label="대화 내용"></div>
+  <div id="preview-area"></div>
 
-  <!-- 이미지 생성 폼 -->
-  <form id="generate-form">
-    <input type="text" id="prompt" placeholder="텍스트 프롬프트 입력" required />
-    <button type="submit">이미지 생성</button>
+  <form id="chat-form" autocomplete="off">
+    <button type="button" id="addFileBtn">+</button>
+    <input id="userInput" type="text" placeholder="메시지를 입력하세요…" />
+    <button type="button" id="sttBtn">🎤</button>
+    <button type="submit">전송</button>
+    <button type="button" id="generateImageBtn">🎨</button>
+    <input type="file" id="fileInput" accept="image/*" style="display: none;" />
   </form>
 
-  <p id="status"></p>
-
-  <!-- 이미지 출력 -->
-  <img id="result-image" style="max-width: 500px; display: none;" />
-
-  <!-- PSD 다운로드 버튼 -->
-  <button id="psd-download" style="display: none;">.PSD 파일 다운로드</button>
-
-  <!-- PSD 자동 실행 버튼 -->
-  <button id="open-psd" style="display: none;">PSD 자동 실행</button>
-
+  <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
   <script>
-    const API_BASE = "https://n8n.koreacentral.cloudapp.azure.com";
+    const qs = (sel, scope = document) => scope.querySelector(sel);
+    const on = (el, type, cb) => el.addEventListener(type, cb);
+    const escapeHTML = str => str.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
-    const form = document.getElementById('generate-form');
-    const status = document.getElementById('status');
-    const resultImage = document.getElementById('result-image');
-    const psdLink = document.getElementById('psd-download');
-    const openPsdBtn = document.getElementById('open-psd');
-    const exeDownloadBtn = document.getElementById('exe-download');  // 실행기 다운로드 버튼
+    const chatbox = qs('#chatbox');
+    const userInput = qs('#userInput');
+    const form = qs('#chat-form');
+    const sendBtn = qs('button[type="submit"]', form);
+    const sttBtn = qs('#sttBtn');
+    const addFileBtn = qs('#addFileBtn');
+    const fileInput = qs('#fileInput');
+    const previewArea = qs('#preview-area');
+    const generateImageBtn = qs('#generateImageBtn');
 
-    let taskId = null;
-    let psdUrl = null;
+    let fileToSend = null;
+    let recognizer;
+    let sessionId = sessionStorage.getItem('chatSessionId') || `web-user-${Date.now()}`;
+    sessionStorage.setItem('chatSessionId', sessionId);
 
-    // 실행기 다운로드 버튼 클릭 시 zip 다운로드
-    exeDownloadBtn.onclick = () => {
-      window.location.href = "https://user20storage.blob.core.windows.net/psd-download/psd_launcher.zip";
+    const addLine = (who, content, isHtml = false) => {
+      const p = document.createElement('p');
+      p.className = 'msg';
+      p.innerHTML = `<strong>${who}:</strong> ${isHtml ? content : escapeHTML(content)}`;
+      chatbox.appendChild(p);
+      chatbox.scrollTop = chatbox.scrollHeight;
     };
 
-    // 이미지 생성 요청 처리
-    form.onsubmit = async (e) => {
-      e.preventDefault();
-      const prompt = document.getElementById('prompt').value;
-      status.textContent = "이미지 생성 요청 중...";
-      resultImage.style.display = "none";
-      psdLink.style.display = "none";
-      openPsdBtn.style.display = "none";
+    const showPreview = (file) => {
+      fileToSend = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewArea.innerHTML = `
+          <img src="${e.target.result}" alt="미리보기">
+          <button type="button" id="remove-preview-btn">×</button>
+        `;
+        userInput.disabled = true;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    const clearPreview = () => {
+      fileToSend = null;
+      previewArea.innerHTML = '';
+      userInput.disabled = false;
+      userInput.focus();
+    };
+
+    const handleSend = async (ev) => {
+      ev?.preventDefault();
+      const msg = userInput.value.trim();
+      if (!msg && !fileToSend) return;
+
+      if (fileToSend) {
+        addLine('나', `<img src="${URL.createObjectURL(fileToSend)}" width="200">`, true);
+        sendBtn.disabled = true;
+        const formData = new FormData();
+        formData.append('image_file', fileToSend);
+        clearPreview();
+        const res = await fetch('/upload-image', { method: 'POST', body: formData });
+        const result = await res.json();
+        const imageUrl = result.image_url;
+        const n8nRes = await fetch('/send-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: `이미지 전송됨: ${imageUrl}`, sessionId })
+        });
+        const { text } = await n8nRes.json();
+        addLine('생성봇', text);
+        sendBtn.disabled = false;
+      } else {
+        addLine('나', msg);
+        userInput.value = '';
+        sendBtn.disabled = true;
+        const res = await fetch('/send-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: msg, sessionId })
+        });
+        const { text } = await res.json();
+        addLine('생성봇', text);
+        sendBtn.disabled = false;
+      }
+    };
+
+    on(form, 'submit', handleSend);
+    on(userInput, 'keydown', e => { if (e.key === 'Enter' && !e.shiftKey) handleSend(e); });
+    on(addFileBtn, 'click', () => fileInput.click());
+    on(fileInput, 'change', e => { if (e.target.files[0]) showPreview(e.target.files[0]); });
+    on(previewArea, 'click', e => { if (e.target.id === 'remove-preview-btn') clearPreview(); });
+
+    on(document, 'DOMContentLoaded', async () => {
+      try {
+        const response = await fetch('/api/get-speech-token');
+        const data = await response.json();
+        const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
+        speechConfig.speechRecognitionLanguage = 'ko-KR';
+        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+        recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+        sttBtn.disabled = false;
+      } catch {
+        sttBtn.innerHTML = '⚠️';
+      }
+    });
+
+    on(sttBtn, 'click', () => {
+      if (!recognizer) return;
+      sttBtn.disabled = true;
+      sttBtn.innerHTML = '👂';
+      userInput.value = '';
+      recognizer.recognizeOnceAsync(result => {
+        userInput.value = result.text;
+        sttBtn.disabled = false;
+        sttBtn.innerHTML = '🎤';
+      });
+    });
+
+    generateImageBtn.addEventListener('click', async () => {
+      const prompt = userInput.value.trim();
+      if (!prompt) return;
+
+      addLine('나', prompt);
+      userInput.value = '';
+      sendBtn.disabled = true;
+
+      const API_BASE = "https://n8n.koreacentral.cloudapp.azure.com";
+      addLine('시스템', '🎨 이미지 생성 요청 중...');
 
       try {
         const res = await fetch(`${API_BASE}/api/generate-image`, {
@@ -60,68 +230,43 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt })
         });
-        const data = await res.json();
-        taskId = data.task_id;
+        const { task_id } = await res.json();
 
         const checkStatus = async () => {
-          const resp = await fetch(`${API_BASE}/api/result/${taskId}`);
+          const resp = await fetch(`${API_BASE}/api/result/${task_id}`);
           const result = await resp.json();
-
           if (result.status === "PENDING") {
-            status.textContent = "이미지 생성 중...";
+            addLine('시스템', '🕒 이미지 생성 중...');
             setTimeout(checkStatus, 2000);
           } else if (result.status === "SUCCESS") {
-            status.textContent = "완료!";
-            resultImage.src = result.png_url;
-            resultImage.style.display = "block";
-
-            psdUrl = result.psd_url;
-            psdLink.style.display = "inline-block";  // PSD 다운로드 버튼 표시
-
-            // 다운로드 버튼 클릭 시 PSD 파일 다운로드 트리거
-            psdLink.onclick = () => {
-              const a = document.createElement('a');
-              a.href = psdUrl;
-              a.download = `${taskId}.psd`;  // 다운로드 파일 이름 설정
-              document.body.appendChild(a);
-              a.click();  // 다운로드 트리거
-              document.body.removeChild(a);  // 링크 요소 제거
+            addLine('시스템', '✅ 생성 완료!');
+            addLine('AI 이미지', `<img src="${result.png_url}" width="300">`, true);
+            addLine('시스템', `<a href="${result.psd_url}" download="${task_id}.psd">📁 PSD 다운로드</a>`, true);
+            const btn = document.createElement('button');
+            btn.textContent = '💻 PSD 자동 실행';
+            btn.onclick = async () => {
+              const psdRes = await fetch("http://localhost:5001/download-and-open-psd", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: result.psd_url, filename: `${task_id}.psd` })
+              });
+              const psdData = await psdRes.json();
+              if (psdData.status === "fail") alert("실행 실패 또는 PSD 없음");
             };
-
-            openPsdBtn.style.display = "inline-block";  // 자동 실행 버튼 표시
+            chatbox.appendChild(btn);
+            chatbox.scrollTop = chatbox.scrollHeight;
           } else {
-            status.textContent = "에러 발생!";
+            addLine('시스템', '❌ 에러 발생!');
           }
         };
 
         checkStatus();
       } catch (err) {
-        status.textContent = "요청 실패: " + err.message;
+        addLine('시스템', `⚠️ 요청 실패: ${err.message}`);
+      } finally {
+        sendBtn.disabled = false;
       }
-    };
-
-    // ▶ PSD 자동 실행 버튼 클릭 시 실행기 서버 호출
-    openPsdBtn.onclick = async () => {
-      if (!taskId || !psdUrl) return;
-
-      try {
-        const res = await fetch("http://localhost:5001/download-and-open-psd", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            url: psdUrl,
-            filename: `${taskId}.psd`
-          })
-        });
-
-        const data = await res.json();
-        if (data.status === "fail") {
-          alert("PSD 파일이 존재하지 않습니다. 다운로드 완료 후 실행해주세요.");
-        }
-      } catch (err) {
-        alert("PSD 실행기 프로그램이 실행 중이 아닙니다. 설치 후 실행해주세요.");
-      }
-    };
+    });
   </script>
 </body>
 </html>
