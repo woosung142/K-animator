@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 
 app = FastAPI()
 
+BASE_DIR = Path(__file__).resolve().parent
+
 # Blob Storage 환경변수
 AZURE_STORAGE_ACCOUNT_NAME = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
 AZURE_STORAGE_ACCOUNT_KEY = os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
@@ -27,7 +29,7 @@ blob_service_client = BlobServiceClient(
 # 메인 페이지
 @app.get("/")
 async def root():
-    return FileResponse("web/index.html") 
+    return FileResponse(BASE_DIR / "web" / "index.html")
 
 # 이미지 업로드 API
 @app.post("/upload-image")
