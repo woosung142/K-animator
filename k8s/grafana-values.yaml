@@ -1,0 +1,17 @@
+grafana:
+  #--- Grafana 관리자 비밀번호 직접설정 ---
+
+  #--- Ingress 설정 ---
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    hosts:
+      - grafana.prtest.shop # Grafana 접속에 사용할 도메인
+    tls:
+      - secretName: grafana-prtest-shop-tls
+        hosts:
+          - grafana.prtest.shop
