@@ -74,16 +74,3 @@ async def get_speech_token():
         return JSONResponse({'token': response.text, 'region': SPEECH_REGION})
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-# 메시지 전송 API (에코 형식)
-@app.post("/send-message")
-async def send_message(request: Request):
-    data = await request.json()
-    messages = data.get("messages")
-    session_id = data.get("sessionId")
-
-    if not messages or not session_id:
-        raise HTTPException(status_code=400, detail="메시지 또는 세션 ID가 없습니다.")
-
-    print("[사용자 입력]", messages)
-    return JSONResponse(content={"text": f"'{messages}' 메시지를 잘 받았습니다."})
