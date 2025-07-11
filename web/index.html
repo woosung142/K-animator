@@ -136,7 +136,7 @@
     <button type="button" id="addFileBtn">+</button> <!-- 이미지 파일 추가 -->
     <input id="userInput" type="text" placeholder="프롬프트를 입력하세요…" />
     <button type="button" id="generateImageBtn">🎨</button> <!-- 이미지 생성 버튼 -->
-    <button type="button" id="sttBtn">🎤</button> <!-- 음성 인식 버튼 -->
+    <button type="submit" id="sttBtn">🎤</button> <!-- 음성 인식 버튼 -->
     <input type="file" id="fileInput" accept="image/*" style="display: none;" />
   </form>
 
@@ -205,6 +205,12 @@
       uploadedImageUrl = null;
       previewArea.innerHTML = '';
     };
+  
+    // Enter 키로 form이 submit될 때 새로고침 막음
+    on(form, 'submit', e => {
+      e.preventDefault();               
+      generateImageBtn.click();       
+    });
 
     // 파일 추가 버튼 동작
     on(addFileBtn, 'click', () => fileInput.click());
