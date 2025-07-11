@@ -5,9 +5,9 @@ metadata:
   namespace: argocd
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-  #  nginx.ingress.kubernetes.io/ssl-redirect: "true"
-  #  nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-  #  nginx.ingress.kubernetes.io/backend-protocol: "HTTPS" # Ingress와 Argo CD 서버 간의 통신을 HTTPS로 설정
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS" # Ingress와 Argo CD 서버 간의 통신을 HTTPS로 설정
 spec:
   ingressClassName: nginx
   tls:
