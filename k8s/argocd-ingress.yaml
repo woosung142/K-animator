@@ -27,13 +27,14 @@ spec:
                 name: argocd-server
                 port:
                   number: 443
-    - host: n8n.koreacentral.cloudapp.azure.com
+  # --- 2. 웹 서버 접속 규칙
+    - host: www.prtest.shop
       http:
         paths:
           - path: /argocd
             pathType: Prefix
             backend:
               service:
-                name: argocd-server
+                name: model-worker
                 port:
                   number: 80
