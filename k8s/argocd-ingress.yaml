@@ -31,7 +31,7 @@ spec:
     - host: www.prtest.shop
       http:
         paths:
-          - path: /argocd
+          - path: /
             pathType: Prefix
             backend:
               service:
