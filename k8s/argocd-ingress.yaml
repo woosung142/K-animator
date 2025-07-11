@@ -13,8 +13,7 @@ spec:
   tls:
     - hosts:
         - argocd.prtest.shop #argocd용
-        - www.prtest.shop #웹 서버 용
-      secretName: argocd-prtest-shop-tls # 두 도메인 인증서 저장될 곳
+      secretName: argocd-prtest-shop-tls
   rules:
   # --- 1. Argo CD 접속 규칙 ---
     - host: argocd.prtest.shop
@@ -27,14 +26,3 @@ spec:
                 name: argocd-server
                 port:
                   number: 443
-  # --- 2. 웹 서버 접속 규칙
-    - host: www.prtest.shop
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: model-worker
-                port:
-                  number: 80
