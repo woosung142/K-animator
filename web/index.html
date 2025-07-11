@@ -78,6 +78,13 @@
       color: #9ca3af;
       cursor: pointer;
     }
+    #extras {
+      margin-top: 1rem;
+      max-width: 600px;
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -88,12 +95,17 @@
 
   <form id="chat-form" autocomplete="off">
     <button type="button" id="addFileBtn">+</button>
-    <input id="userInput" type="text" placeholder="메시지를 입력하세요…" />
+    <input id="userInput" type="text" placeholder="프롬프트를 입력하세요…" />
     <button type="button" id="sttBtn">🎤</button>
-    <button type="submit">전송</button>
     <button type="button" id="generateImageBtn">🎨</button>
     <input type="file" id="fileInput" accept="image/*" style="display: none;" />
   </form>
+
+  <div id="extras">
+    <button id="downloadPsdBtn" style="display: none;">.PSD 다운로드</button>
+    <button id="openPsdBtn" style="display: none;">PSD 자동 실행</button>
+    <button id="exeDownloadBtn">실행기(.zip) 다운로드</button>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
   <script>
@@ -104,15 +116,20 @@
     const chatbox = qs('#chatbox');
     const userInput = qs('#userInput');
     const form = qs('#chat-form');
-    const sendBtn = qs('button[type="submit"]', form);
     const sttBtn = qs('#sttBtn');
     const addFileBtn = qs('#addFileBtn');
     const fileInput = qs('#fileInput');
     const previewArea = qs('#preview-area');
     const generateImageBtn = qs('#generateImageBtn');
 
+    const downloadPsdBtn = qs('#downloadPsdBtn');
+    const openPsdBtn = qs('#openPsdBtn');
+    const exeDownloadBtn = qs('#exeDownloadBtn');
+
     let fileToSend = null;
-    let recognizer;
+    let uploadedImageUrl = null;
+    let psdUrl = null;
+    let taskId = null;
     let sessionId = sessionStorage.getItem('chatSessionId') || `web-user-${Date.now()}`;
     sessionStorage.setItem('chatSessionId', sessionId);
 
@@ -128,144 +145,101 @@
       fileToSend = file;
       const reader = new FileReader();
       reader.onload = (e) => {
-        previewArea.innerHTML = `
-          <img src="${e.target.result}" alt="미리보기">
-          <button type="button" id="remove-preview-btn">×</button>
-        `;
-        userInput.disabled = true;
+        previewArea.innerHTML = `<img src="${e.target.result}" alt="미리보기"><button type="button" id="remove-preview-btn">×</button>`;
       };
       reader.readAsDataURL(file);
     };
 
     const clearPreview = () => {
       fileToSend = null;
+      uploadedImageUrl = null;
       previewArea.innerHTML = '';
-      userInput.disabled = false;
-      userInput.focus();
     };
 
-    const handleSend = async (ev) => {
-      ev?.preventDefault();
-      const msg = userInput.value.trim();
-      if (!msg && !fileToSend) return;
-
-      if (fileToSend) {
-        addLine('나', `<img src="${URL.createObjectURL(fileToSend)}" width="200">`, true);
-        sendBtn.disabled = true;
+    on(addFileBtn, 'click', () => fileInput.click());
+    on(fileInput, 'change', async e => {
+      if (e.target.files[0]) {
+        showPreview(e.target.files[0]);
         const formData = new FormData();
-        formData.append('image_file', fileToSend);
-        clearPreview();
+        formData.append('image_file', e.target.files[0]);
         const res = await fetch('/upload-image', { method: 'POST', body: formData });
         const result = await res.json();
-        const imageUrl = result.image_url;
-        const n8nRes = await fetch('/send-message', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: `이미지 전송됨: ${imageUrl}`, sessionId })
-        });
-        const { text } = await n8nRes.json();
-        addLine('생성봇', text);
-        sendBtn.disabled = false;
-      } else {
-        addLine('나', msg);
-        userInput.value = '';
-        sendBtn.disabled = true;
-        const res = await fetch('/send-message', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: msg, sessionId })
-        });
-        const { text } = await res.json();
-        addLine('생성봇', text);
-        sendBtn.disabled = false;
+        uploadedImageUrl = result.image_url;
       }
-    };
+    });
 
-    on(form, 'submit', handleSend);
-    on(userInput, 'keydown', e => { if (e.key === 'Enter' && !e.shiftKey) handleSend(e); });
-    on(addFileBtn, 'click', () => fileInput.click());
-    on(fileInput, 'change', e => { if (e.target.files[0]) showPreview(e.target.files[0]); });
     on(previewArea, 'click', e => { if (e.target.id === 'remove-preview-btn') clearPreview(); });
 
-    on(document, 'DOMContentLoaded', async () => {
-      try {
-        const response = await fetch('/api/get-speech-token');
-        const data = await response.json();
-        const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
-        speechConfig.speechRecognitionLanguage = 'ko-KR';
-        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-        recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-        sttBtn.disabled = false;
-      } catch {
-        sttBtn.innerHTML = '⚠️';
-      }
-    });
-
-    on(sttBtn, 'click', () => {
-      if (!recognizer) return;
-      sttBtn.disabled = true;
-      sttBtn.innerHTML = '👂';
-      userInput.value = '';
-      recognizer.recognizeOnceAsync(result => {
-        userInput.value = result.text;
-        sttBtn.disabled = false;
-        sttBtn.innerHTML = '🎤';
-      });
-    });
-
-    generateImageBtn.addEventListener('click', async () => {
+    on(generateImageBtn, 'click', async () => {
       const prompt = userInput.value.trim();
       if (!prompt) return;
-
       addLine('나', prompt);
       userInput.value = '';
-      sendBtn.disabled = true;
 
-      const API_BASE = "https://n8n.koreacentral.cloudapp.azure.com";
-      addLine('시스템', '🎨 이미지 생성 요청 중...');
+      downloadPsdBtn.style.display = "none";
+      openPsdBtn.style.display = "none";
+      psdUrl = null;
 
       try {
-        const res = await fetch(`${API_BASE}/api/generate-image`, {
+        const res = await fetch('/api/generate-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt })
+          body: JSON.stringify({ prompt, image_url: uploadedImageUrl })
         });
         const { task_id } = await res.json();
+        taskId = task_id;
 
         const checkStatus = async () => {
-          const resp = await fetch(`${API_BASE}/api/result/${task_id}`);
+          const resp = await fetch(`/api/result/${task_id}`);
           const result = await resp.json();
-          if (result.status === "PENDING") {
-            addLine('시스템', '🕒 이미지 생성 중...');
+          if (result.status === 'PENDING') {
             setTimeout(checkStatus, 2000);
-          } else if (result.status === "SUCCESS") {
-            addLine('시스템', '✅ 생성 완료!');
+          } else if (result.status === 'SUCCESS') {
             addLine('AI 이미지', `<img src="${result.png_url}" width="300">`, true);
-            addLine('시스템', `<a href="${result.psd_url}" download="${task_id}.psd">📁 PSD 다운로드</a>`, true);
-            const btn = document.createElement('button');
-            btn.textContent = '💻 PSD 자동 실행';
-            btn.onclick = async () => {
-              const psdRes = await fetch("http://localhost:5001/download-and-open-psd", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ url: result.psd_url, filename: `${task_id}.psd` })
-              });
-              const psdData = await psdRes.json();
-              if (psdData.status === "fail") alert("실행 실패 또는 PSD 없음");
-            };
-            chatbox.appendChild(btn);
-            chatbox.scrollTop = chatbox.scrollHeight;
+            addLine('다운로드', `<a href="${result.psd_url}" download>PSD 파일</a>`, true);
+
+            psdUrl = result.psd_url;
+            downloadPsdBtn.style.display = "inline-block";
+            openPsdBtn.style.display = "inline-block";
           } else {
-            addLine('시스템', '❌ 에러 발생!');
+            addLine('에러', '이미지 생성 실패');
           }
         };
-
         checkStatus();
       } catch (err) {
         addLine('시스템', `⚠️ 요청 실패: ${err.message}`);
-      } finally {
-        sendBtn.disabled = false;
       }
+    });
+
+    on(downloadPsdBtn, 'click', () => {
+      if (!psdUrl || !taskId) return;
+      const a = document.createElement('a');
+      a.href = psdUrl;
+      a.download = `${taskId}.psd`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+
+    on(openPsdBtn, 'click', async () => {
+      if (!psdUrl || !taskId) return;
+      try {
+        const res = await fetch("http://localhost:5001/download-and-open-psd", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: psdUrl, filename: `${taskId}.psd` })
+        });
+        const data = await res.json();
+        if (data.status === "fail") {
+          alert("PSD 파일이 존재하지 않습니다.");
+        }
+      } catch (err) {
+        alert("실행기가 실행 중이 아닙니다. 설치 후 다시 시도해주세요.");
+      }
+    });
+
+    on(exeDownloadBtn, 'click', () => {
+      window.location.href = "https://user20storage.blob.core.windows.net/psd-download/psd_launcher.zip";
     });
   </script>
 </body>

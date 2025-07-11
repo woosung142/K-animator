@@ -8,8 +8,6 @@ services:
     container_name: web
     ports:
       - "8080:80"
-    depends_on:
-      - model-api
     env_file:
       - .env  # 현재 디렉토리에 있으므로 상대경로 아님
 

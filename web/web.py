@@ -1,45 +1,64 @@
 from fastapi import FastAPI, Request, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
 import os
 import requests
 from pathlib import Path
 import uuid
-
+from datetime import datetime, timedelta
 
 app = FastAPI()
 BASE_DIR = Path(__file__).resolve().parent
 
-# uploads 폴더를 정적 파일 경로로 마운트
-app.mount("/uploads", StaticFiles(directory=BASE_DIR / "uploads"), name="uploads")
+# Blob Storage 환경변수
+AZURE_STORAGE_ACCOUNT_NAME = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
+AZURE_STORAGE_ACCOUNT_KEY = os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
+AZURE_CONTAINER_NAME = "user-uploads"
+
+# Blob 클라이언트 초기화
+blob_service_client = BlobServiceClient(
+    account_url=f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net",
+    credential=AZURE_STORAGE_ACCOUNT_KEY
+)
+
+# 정적 파일 서빙 디렉토리 마운트
+# app.mount("/static", StaticFiles(directory=BASE_DIR / "templates"), name="static")
+
+# 메인 페이지
+@app.get("/")
+async def root():
+    return FileResponse(BASE_DIR / "web" / "index.html")
 
 # 이미지 업로드 API
 @app.post("/upload-image")
 async def upload_image(image_file: UploadFile = File(...)):
     unique_id = uuid.uuid4().hex
     file_extension = Path(image_file.filename).suffix
-    unique_filename = f"{unique_id}{file_extension}"
-    file_path = Path("uploads") / unique_filename
+    blob_name = f"{unique_id}{file_extension}"
 
     try:
-        with open(file_path, "wb") as buffer:
-            buffer.write(await image_file.read())
-        return {"image_url": f"/uploads/{unique_filename}"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"이미지 저장 실패: {e}")
+        blob_client = blob_service_client.get_blob_client(container=AZURE_CONTAINER_NAME, blob=blob_name)
+        await blob_client.upload_blob(image_file.file, overwrite=True)
 
-# Azure Speech Service 환경 변수
+        # SAS URL 생성 (유효기간 10분)
+        sas_token = generate_blob_sas(
+            account_name=AZURE_STORAGE_ACCOUNT_NAME,
+            container_name=AZURE_CONTAINER_NAME,
+            blob_name=blob_name,
+            account_key=AZURE_STORAGE_ACCOUNT_KEY,
+            permission=BlobSasPermissions(read=True),
+            expiry=datetime.utcnow() + timedelta(minutes=10)
+        )
+        blob_url = f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{blob_name}?{sas_token}"
+        return {"image_url": blob_url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Blob 업로드 실패: {e}")
+
+# Azure 인증 토큰 발급 API
 SPEECH_KEY = os.getenv("SPEECH_KEY")
 SPEECH_REGION = os.getenv("SPEECH_REGION")
 
-# 정적 파일 서빙 디렉토리 마운트
-app.mount("/static", StaticFiles(directory=BASE_DIR / "templates"), name="static")
-
-@app.get("/")
-async def root():
-    return FileResponse(BASE_DIR / "web" / "index.html")
-
-# Azure 인증 토큰 발급 API
 @app.get("/api/get-speech-token")
 async def get_speech_token():
     if not SPEECH_KEY or not SPEECH_REGION:

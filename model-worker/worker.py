@@ -2,12 +2,13 @@ from celery import Celery
 from io import BytesIO
 from PIL import Image
 import requests
-from azure.storage.blob import BlobServiceClient
+from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
 import uuid
 import os
 import subprocess
 from dotenv import load_dotenv
 from openai import AzureOpenAI
+from datetime import datetime, timedelta
 
 # .env 로딩
 load_dotenv()
@@ -15,12 +16,12 @@ load_dotenv()
 # Azure OpenAI 설정
 AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_VERSION = "2024-05-01-preview"  # 필요 시 버전 고정
+AZURE_OPENAI_VERSION = "2024-05-01-preview"
 
 client = AzureOpenAI(
     api_key=AZURE_OPENAI_KEY,
     azure_endpoint=AZURE_OPENAI_ENDPOINT,
-    api_version="2024-05-01-preview"
+    api_version=AZURE_OPENAI_VERSION
 )
 
 # Azure Blob 설정
@@ -38,6 +39,18 @@ AZURE_CONNECTION_STRING = (
 blob_service = BlobServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
 container_client = blob_service.get_container_client(AZURE_CONTAINER_NAME)
 
+# SAS URL 생성 함수
+def generate_sas_url(account_name, account_key, container_name, blob_name, expiry_minutes=10):
+    sas_token = generate_blob_sas(
+        account_name=account_name,
+        container_name=container_name,
+        blob_name=blob_name,
+        account_key=account_key,
+        permission=BlobSasPermissions(read=True),
+        expiry=datetime.utcnow() + timedelta(minutes=expiry_minutes)
+    )
+    return f"https://{account_name}.blob.core.windows.net/{container_name}/{blob_name}?{sas_token}"
+
 # Celery 설정
 celery_app = Celery(
     'worker',
@@ -46,42 +59,47 @@ celery_app = Celery(
 )
 
 @celery_app.task(name="generate_image", bind=True)
-def generate_image(self, prompt: str) -> dict:
+def generate_image(self, prompt: str, image_url: str | None = None) -> dict:
     try:
         task_id = self.request.id
 
-        # Azure OpenAI에 이미지 생성 요청
+        # DALL·E API 요청 (현재는 image_url 사용 불가이므로 프롬프트만 전달)
         response = client.images.generate(
             model="dall-e-3",
             prompt=prompt,
             size="1024x1024",
             n=1
         )
-        image_url = response.data[0].url
+        dalle_image_url = response.data[0].url
 
-        # 이미지 다운로드
-        image_data = requests.get(image_url).content
-        img = Image.open(BytesIO(image_data))
+        # DALL·E 생성 이미지 다운로드
+        dalle_image_data = requests.get(dalle_image_url).content
+        dalle_img = Image.open(BytesIO(dalle_image_data))
 
-        # PNG 저장 및 업로드
+        # PNG 저장 → Azure 업로드
         png_buffer = BytesIO()
-        img.save(png_buffer, format="PNG")
+        dalle_img.save(png_buffer, format="PNG")
         png_buffer.seek(0)
         filename_png = f"{task_id}.png"
         container_client.upload_blob(name=filename_png, data=png_buffer, overwrite=True)
-        png_url = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{filename_png}"
+
+        # SAS URL로 PNG 접근 주소 생성
+        png_url = generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_png)
 
         # PSD 저장 (ImageMagick 이용)
         temp_png_path = f"/tmp/{task_id}.png"
         temp_psd_path = f"/tmp/{task_id}.psd"
-        img.save(temp_png_path, format="PNG")
+        dalle_img.save(temp_png_path, format="PNG")
         subprocess.run(["convert", temp_png_path, temp_psd_path], check=True)
 
         # PSD 업로드
         with open(temp_psd_path, "rb") as f:
             container_client.upload_blob(name=f"{task_id}.psd", data=f, overwrite=True)
-        psd_url = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{task_id}.psd"
 
+        # SAS URL로 PSD 접근 주소 생성
+        psd_url = generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, f"{task_id}.psd")
+
+        # 임시파일 삭제
         os.remove(temp_png_path)
         os.remove(temp_psd_path)
 

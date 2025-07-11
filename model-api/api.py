@@ -21,14 +21,15 @@ CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
 celery_app = Celery("model-api", broker=CELERY_BROKER_URL)
 celery_app.conf.result_backend = CELERY_BROKER_URL
 
-# 입력값 정의
+# 입력값 정의 (prompt + image_url 동시 수신)
 class PromptRequest(BaseModel):
     prompt: str
+    image_url: str | None = None
 
 # 이미지 생성 요청 → 비동기 Task로 전달
 @app.post("/api/generate-image")
 async def generate_image(request: PromptRequest):
-    task = celery_app.send_task("generate_image", args=[request.prompt])
+    task = celery_app.send_task("generate_image", args=[request.prompt, request.image_url])
     return {"task_id": task.id}
 
 # 이미지 생성 상태 확인
