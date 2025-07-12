@@ -46,3 +46,4 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+    - ServerSideApply=true #어노테이션 문제로 추가
