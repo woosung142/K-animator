@@ -1,0 +1,19 @@
+# test-alert.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: test-alert-rule
+  namespace: monitoring
+  labels:
+    release: prometheus-stack
+spec:
+  groups:
+  - name: test-alert-group
+    rules:
+    - alert: TestAlert
+      expr: vector(1)
+      labels:
+        severity: testing
+      annotations:
+        summary: "테스트 알림입니다."
+        description: "Alertmanager와 슬랙 연동이 성공적으로 설정되었습니다."
