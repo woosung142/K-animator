@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cpu-usage-alert
+  namespace: monitoring
+  labels:
+    release: prometheus-stack
+spec:
+  groups:
+  - name: high-cpu-usage
+    rules:
+    - alert: HighCpuUsage
+      #알림 조건 정의
+      expr: (1 - (rate(node_cpu_seconds_total{mode="idle"}[2m]) / on(instance) group_left(mode) (count_on_right(instance) (node_cpu_seconds_total[2m])))) * 100 > 80
+      for: 1m
+      labels:
+        severity: warning
+      #알림 메시지 내용
+      annotations:
+        summary: "노드 {{ $labels.instance }} 에서 높은 CPU 사용량 감지"
+        description: "노드 {{ $labels.instance }} 의 CPU 사용량이 지난 1분 동안 80%를 초과했습니다. 현재 값: {{ $value | printf `%.2f` }}%."
