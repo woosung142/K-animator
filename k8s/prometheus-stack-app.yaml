@@ -35,14 +35,7 @@ spec:
             tls:
               - secretName: grafana-prtest-shop-tls
                 hosts:
-                  - grafana.prtest.shop
-        # --- 이 부분을 추가합니다 ---
-        prometheus:
-          prometheusSpec:
-            # 이 설정은 웹 UI의 경로를 올바르게 생성하는 데 도움을 줍니다.
-            externalUrl: http://localhost:9090
-            # 이 옵션이 인증 프록시를 비활성화하는 데 도움을 줍니다.
-            enableRemoteWriteReceiver: true                  
+                  - grafana.prtest.shop                 
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
