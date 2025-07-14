@@ -9,6 +9,11 @@ spec:
     repoURL: https://grafana.github.io/helm-charts
     chart: loki
     targetRevision: 6.7.2 # 원하는 차트 버전
+    helm:
+      values: |
+        loki:
+          storage:
+            type: 'filesystem'
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
