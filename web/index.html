@@ -121,7 +121,7 @@
         }
 
         /* 텍스트 입력 필드 스타일 */
-        input[type="text"] {
+        input#userInput {
             flex: 1;
             padding: .65rem .9rem;
             font-size: 1rem;
@@ -152,17 +152,19 @@
             padding: 0 .5rem .5rem;
             display: flex;
             align-items: center;
+            gap: 0.5rem;
         }
         #preview-area img {
             max-height: 80px;
             border-radius: var(--radius);
         }
-        #preview-area button {
+        #preview-area button#remove-preview-btn {
             background: none;
             border: none;
-            font-size: 1.5rem;
-            color: #9ca3af;
+            font-size: 1.2rem;
+            color: var(--dark-gray);
             cursor: pointer;
+            padding: 0;
         }
 
         /* 추가 기능 버튼 영역 */
@@ -200,7 +202,7 @@
     <div id="preview-area"></div>
 
     <form id="chat-form" autocomplete="off">
-        <button type="button" id="addFileBtn">+</button> <input id="userInput" type="text" placeholder="키워드를 입력하세요… (필수)" />
+        <button type="button" id="addFileBtn">+</button> <input id="userInput" type="text" placeholder="키워드를 입력하거나 이미지를 붙여넣으세요… (필수)" />
         <button type="submit" id="generateImageBtn">🎨</button> <button type="button" id="sttBtn">🎤</button> <input type="file" id="fileInput" accept="image/*" style="display: none;" />
     </form>
 
@@ -236,7 +238,7 @@
         const layerGroup = qs('#layer-group');
 
         // --- 상태 관리 변수 ---
-        let fileToSend = null;
+        let fileToSend = null; // 서버로 보낼 파일 객체
         let uploadedImageUrl = null;
         let psdUrl = null;
         let taskId = null;
@@ -248,14 +250,12 @@
         let sessionId = sessionStorage.getItem('chatSessionId') || `web-user-${Date.now()}`;
         sessionStorage.setItem('chatSessionId', sessionId);
 
-        // --- 이벤트 리스너 ---
+        // --- 이벤트 리스너 및 함수 ---
 
         // 카테고리 버튼 클릭 (단일 선택)
         on(categoryGroup, 'click', e => {
             if (e.target.tagName !== 'BUTTON') return;
-            // 모든 버튼의 'selected' 클래스 제거
             qsa('button', categoryGroup).forEach(btn => btn.classList.remove('selected'));
-            // 클릭된 버튼에 'selected' 클래스 추가
             e.target.classList.add('selected');
             selectedCategory = e.target.dataset.value;
         });
@@ -265,9 +265,7 @@
             if (e.target.tagName !== 'BUTTON') return;
             const button = e.target;
             const layerValue = button.dataset.value;
-            // 'selected' 클래스 토글
             button.classList.toggle('selected');
-            // 선택된 레이어 배열 업데이트
             if (selectedLayers.includes(layerValue)) {
                 selectedLayers = selectedLayers.filter(l => l !== layerValue);
             } else {
@@ -284,9 +282,9 @@
             chatbox.scrollTop = chatbox.scrollHeight;
         };
 
-        // 이미지 미리보기
+        // 이미지 미리보기 표시
         const showPreview = (file) => {
-            fileToSend = file;
+            fileToSend = file; // 보낼 파일 객체 저장
             const reader = new FileReader();
             reader.onload = (e) => {
                 previewArea.innerHTML = `<img src="${e.target.result}" alt="미리보기"><button type="button" id="remove-preview-btn">×</button>`;
@@ -299,43 +297,27 @@
             fileToSend = null;
             uploadedImageUrl = null;
             previewArea.innerHTML = '';
-            fileInput.value = ''; // input 값 초기화
+            fileInput.value = ''; // 파일 input 초기화
         };
-    
-        // Enter 키로 form이 submit될 때 새로고침 막음
-        on(form, 'submit', e => {
-            e.preventDefault();
-            generateImageBtn.click();
-        });
 
-        // 파일 추가 버튼 동작
+        // 파일 추가 버튼(+) 클릭 시 파일 입력창 열기
         on(addFileBtn, 'click', () => fileInput.click());
 
-        // 이미지 업로드 시 서버에 전송
-        on(fileInput, 'change', async e => {
-            if (e.target.files[0]) {
+        // 파일 다이얼로그에서 파일 선택 시
+        on(fileInput, 'change', e => {
+            if (e.target.files && e.target.files.length > 0) {
                 showPreview(e.target.files[0]);
-                const formData = new FormData();
-                formData.append('image_file', e.target.files[0]);
-                try {
-                    const res = await fetch('/upload-image', { method: 'POST', body: formData });
-                    if (!res.ok) throw new Error('Image upload failed');
-                    const result = await res.json();
-                    uploadedImageUrl = result.image_url;
-                } catch (err) {
-                    addLine('시스템', '⚠️ 이미지 업로드에 실패했습니다.');
-                    clearPreview();
-                }
             }
         });
 
-        // 미리보기 제거 버튼 동작
+        // 미리보기 제거 버튼(X) 동작
         on(previewArea, 'click', e => {
             if (e.target.id === 'remove-preview-btn') clearPreview();
         });
 
-        // 이미지 생성 요청 및 결과 확인
-        on(generateImageBtn, 'click', async () => {
+        // 폼 제출(전송 버튼 클릭 또는 Enter) 시
+        on(form, 'submit', async (e) => {
+            e.preventDefault(); // 기본 동작 방지
             const keywords = userInput.value.trim();
 
             // --- 유효성 검사 ---
@@ -347,32 +329,58 @@
                 alert('하나 이상의 레이어를 선택해주세요.');
                 return;
             }
-            if (!keywords) {
-                alert('하나 이상의 키워드를 입력해주세요.');
+            if (!keywords && !fileToSend) {
+                alert('키워드를 입력하거나 이미지를 추가해주세요.');
                 return;
             }
 
-            // 프롬프트 조합
-            const fullPrompt = `카테고리: ${selectedCategory}, 레이어: ${selectedLayers.join(', ')}, 키워드: ${keywords}`;
-            
-            addLine('나', fullPrompt);
+            // 사용자 입력 표시
+            let userMessage = keywords;
+            if (fileToSend) {
+                userMessage += ' (이미지 첨부)';
+            }
+            addLine('나', userMessage);
             userInput.value = '';
 
+            // 버튼 비활성화 및 상태 초기화
+            generateImageBtn.disabled = true;
             downloadPsdBtn.style.display = "none";
             openPsdBtn.style.display = "none";
             psdUrl = null;
+            uploadedImageUrl = null;
 
+            // 1. 첨부된 파일이 있으면 서버에 업로드
+            if (fileToSend) {
+                const formData = new FormData();
+                formData.append('image_file', fileToSend);
+                try {
+                    addLine('시스템', '이미지를 업로드하는 중...');
+                    const uploadRes = await fetch('/upload-image', { method: 'POST', body: formData });
+                    if (!uploadRes.ok) throw new Error('Image upload failed');
+                    const uploadResult = await uploadRes.json();
+                    uploadedImageUrl = uploadResult.image_url;
+                    addLine('시스템', '이미지 업로드 완료.');
+                } catch (error) {
+                    addLine('시스템', '⚠️ 이미지 업로드에 실패했습니다.');
+                    generateImageBtn.disabled = false;
+                    return;
+                }
+            }
+
+            // 2. 이미지 생성 API 호출
             try {
+                const fullPrompt = `카테고리: ${selectedCategory}, 레이어: ${selectedLayers.join(', ')}, 키워드: ${keywords}`;
                 const res = await fetch('/api/generate-image', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt: fullPrompt, image_url: uploadedImageUrl })
                 });
+                if (!res.ok) throw new Error('Failed to start image generation');
                 const { task_id } = await res.json();
                 taskId = task_id;
                 addLine('시스템', '이미지 생성을 시작했습니다. 잠시만 기다려주세요...');
 
-                // 주기적으로 상태 확인
+                // 3. 결과 주기적으로 확인
                 const checkStatus = async () => {
                     const resp = await fetch(`/api/result/${task_id}`);
                     const result = await resp.json();
@@ -384,13 +392,29 @@
                         psdUrl = result.psd_url;
                         downloadPsdBtn.style.display = "inline-block";
                         openPsdBtn.style.display = "inline-block";
+                        clearPreview(); // 생성 완료 후 미리보기 제거
+                        generateImageBtn.disabled = false;
                     } else {
-                        addLine('에러', '이미지 생성에 실패했습니다.');
+                        throw new Error('Image generation failed on server');
                     }
                 };
                 checkStatus();
             } catch (err) {
-                addLine('시스템', `⚠️ 요청 실패: 서비스가 불안정합니다`);
+                addLine('시스템', `⚠️ 요청 실패: ${err.message}`);
+                generateImageBtn.disabled = false;
+            }
+        });
+
+        // 클립보드 이미지 붙여넣기 처리
+        on(userInput, 'paste', e => {
+            const items = (e.clipboardData || window.clipboardData).items;
+            for (const item of items) {
+                if (item.type.startsWith('image/')) {
+                    const file = item.getAsFile();
+                    showPreview(file);
+                    e.preventDefault(); // 텍스트 필드에 파일 경로 등이 붙여넣어지는 것 방지
+                    break;
+                }
             }
         });
 
@@ -401,7 +425,7 @@
             a.href = psdUrl;
             a.download = `${taskId}.psd`;
             document.body.appendChild(a);
-            a.click();
+a.click();
             document.body.removeChild(a);
         });
 
@@ -409,19 +433,13 @@
         on(openPsdBtn, 'click', async () => {
             if (!psdUrl || !taskId) return;
             try {
-                const res = await fetch("http://localhost:5001/download-and-open-psd", {
+                await fetch("http://localhost:5001/download-and-open-psd", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ url: psdUrl, filename: `${taskId}.psd` })
                 });
-                const data = await res.json();
-                if (data.status === "fail") {
-                    alert("PSD 파일이 존재하지 않습니다.");
-                } else {
-                    alert("PSD 파일을 자동으로 엽니다.");
-                }
             } catch (err) {
-                alert("실행기가 실행 중이 아닙니다. 설치 후 다시 시도해주세요.");
+                alert("실행기가 실행 중이 아니거나 통신에 실패했습니다. 설치 후 다시 시도해주세요.");
             }
         });
 
