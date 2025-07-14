@@ -12,7 +12,12 @@ spec:
     helm:
       values: |
         deploymentMode: single-binary
-        
+        write:
+          enabled: false
+        read:
+          enabled: false
+        backend:
+          enabled: false
         loki:
           storage:
             type: 'filesystem'
