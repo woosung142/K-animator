@@ -29,26 +29,28 @@
             flex-direction: column;
             align-items: center;
             padding: var(--gap);
-            min-height: 100vh;
+            height: 100vh; /* min-height에서 height로 변경하여 높이 고정 */
+            overflow: hidden; /* body 자체의 스크롤 방지 */
         }
 
         /* 제목 스타일 */
         h1 {
             margin: .25rem 0 1rem;
             font-size: 1.4rem;
+            flex-shrink: 0; /* 높이가 줄어들지 않도록 고정 */
         }
 
         /* 채팅창 스타일 */
         #chatbox {
-            flex: 1 1 auto;
+            flex: 1 1 auto; /* 남은 공간을 모두 차지하도록 설정 */
             width: 100%;
             max-width: 600px;
             background: #fff;
             border: 1px solid var(--light-gray);
             border-radius: var(--radius);
             padding: var(--gap);
-            overflow-y: auto;
-            min-height: 200px; /* 최소 높이 지정 */
+            overflow-y: auto; /* 내용이 많아지면 내부 스크롤 생성 */
+            min-height: 100px; /* 최소 높이 지정 */
         }
 
         /* 메시지 한 줄 스타일 */
@@ -76,6 +78,7 @@
             background-color: #fff;
             border: 1px solid var(--light-gray);
             border-radius: var(--radius);
+            flex-shrink: 0;
         }
 
         .selection-group {
@@ -118,6 +121,7 @@
             max-width: 600px;
             margin-top: var(--gap);
             align-items: stretch;
+            flex-shrink: 0;
         }
 
         /* 텍스트 입력 필드 스타일 */
@@ -153,6 +157,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            flex-shrink: 0;
         }
         #preview-area img {
             max-height: 80px;
@@ -174,6 +179,7 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
+            flex-shrink: 0;
         }
     </style>
 </head>
@@ -214,13 +220,13 @@
 
     <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
     <script>
-        // --- 유틸 함수 ---
+        // 유틸 함수
         const qs = (sel, scope = document) => scope.querySelector(sel);
         const qsa = (sel, scope = document) => scope.querySelectorAll(sel);
         const on = (el, type, cb) => el.addEventListener(type, cb);
         const escapeHTML = str => str.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
-        // --- 주요 요소 선택 ---
+        // 주요 요소 선택
         const chatbox = qs('#chatbox');
         const userInput = qs('#userInput');
         const form = qs('#chat-form');
@@ -233,11 +239,11 @@
         const openPsdBtn = qs('#openPsdBtn');
         const exeDownloadBtn = qs('#exeDownloadBtn');
 
-        // --- 선택 버튼 관련 요소 ---
+        // 선택 버튼 관련 요소
         const categoryGroup = qs('#category-group');
         const layerGroup = qs('#layer-group');
 
-        // --- 상태 관리 변수 ---
+        // 상태 관리 변수
         let fileToSend = null; // 서버로 보낼 파일 객체
         let uploadedImageUrl = null;
         let psdUrl = null;
@@ -250,7 +256,7 @@
         let sessionId = sessionStorage.getItem('chatSessionId') || `web-user-${Date.now()}`;
         sessionStorage.setItem('chatSessionId', sessionId);
 
-        // --- 이벤트 리스너 및 함수 ---
+        // 이벤트 리스너 및 함수
 
         // 카테고리 버튼 클릭 (단일 선택)
         on(categoryGroup, 'click', e => {
@@ -320,7 +326,7 @@
             e.preventDefault(); // 기본 동작 방지
             const keywords = userInput.value.trim();
 
-            // --- 유효성 검사 ---
+            // 유효성 검사
             if (!selectedCategory) {
                 alert('카테고리를 선택해주세요.');
                 return;
@@ -425,7 +431,7 @@
             a.href = psdUrl;
             a.download = `${taskId}.psd`;
             document.body.appendChild(a);
-a.click();
+            a.click();
             document.body.removeChild(a);
         });
 
