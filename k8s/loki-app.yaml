@@ -11,6 +11,8 @@ spec:
     targetRevision: 6.7.2 # 원하는 차트 버전
     helm:
       values: |
+        deploymentMode: single-binary
+        
         loki:
           storage:
             type: 'filesystem'
