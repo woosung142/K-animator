@@ -8,19 +8,23 @@ spec:
   source:
     repoURL: https://grafana.github.io/helm-charts
     chart: loki
-    targetRevision: 6.7.2 # 원하는 차트 버전
+    targetRevision: 6.7.2
     helm:
       values: |
-        deploymentMode: single-binary
-        write:
-          enabled: false
-        read:
-          enabled: false
-        backend:
-          enabled: false
         loki:
+          # 스토리지 설정을 azure로 변경
           storage:
-            type: 'filesystem'
+            type: 'azure'
+            azure:
+              containerName: akslog # Blob 컨테이너 이름
+              accountName:
+                secretKeyRef:
+                  name: loki-storage-secret
+                  key: AZURE_STORAGE_ACCOUNT_NAME
+              accountKey:
+                secretKeyRef:
+                  name: loki-storage-secret
+                  key: AZURE_STORAGE_ACCOUNT_KEY
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
