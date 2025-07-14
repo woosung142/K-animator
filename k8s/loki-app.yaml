@@ -12,6 +12,7 @@ spec:
     helm:
       values: |
         loki:
+          useTestSchema: true
           # 스토리지 설정을 azure로 변경
           storage:
             type: 'azure'
