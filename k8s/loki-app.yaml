@@ -12,24 +12,27 @@ spec:
     helm:
       values: |
         loki:
-          useTestSchema: true
-          # 스토리지 설정을 azure로 변경
           storage:
-            type: 'azure'
+            type: azure
             azure:
-              containerName: akslog # Blob 컨테이너 이름
-              accountName:
+              containerName: akslog
+              accountName: ${AZURE_STORAGE_ACCOUNT_NAME}
+              accountKey: ${AZURE_STORAGE_ACCOUNT_KEY}
+            bucketNames:
+              chunks: akslog
+              ruler: akslog
+              admin: akslog
+          env:
+            - name: AZURE_STORAGE_ACCOUNT_NAME
+              valueFrom:
                 secretKeyRef:
                   name: loki-storage-secret
                   key: AZURE_STORAGE_ACCOUNT_NAME
-              accountKey:
+            - name: AZURE_STORAGE_ACCOUNT_KEY
+              valueFrom:
                 secretKeyRef:
                   name: loki-storage-secret
                   key: AZURE_STORAGE_ACCOUNT_KEY
-            bucketNames:
-              chunks: akslog # 로그 데이터를 저장할 컨테이너
-              ruler: akslog # 알림 규칙을 저장할 컨테이너
-              admin: akslog # 관리자용 데이터를 저장할 컨테이너
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
@@ -38,5 +41,5 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
-    - ServerSideApply=true
+      - CreateNamespace=true
+      - ServerSideApply=true
