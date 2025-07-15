@@ -432,6 +432,7 @@
                 addLine('시스템', `⚠️ 요청 실패: ${err.message}`);
                 generateImageBtn.disabled = false;
             }
+            qs('#captionInput').value = '';  // ✅ 장면 설명 입력란 비우기
         });
 
         // 클립보드 이미지 붙여넣기 처리
@@ -446,7 +447,13 @@
                 }
             }
         });
-
+        // 키워드 입력란에서도 Enter 시 폼 제출
+        on(userInput, 'keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();  // 기본 동작(줄바꿈 등) 막기
+                form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+            }
+        });
         // PSD 파일 다운로드
         on(downloadPsdBtn, 'click', () => {
             if (!psdUrl || !taskId) return;
@@ -501,14 +508,17 @@
             if (!recognizer) return;
             sttBtn.disabled = true;
             sttBtn.innerHTML = '👂';
-            userInput.value = '';
-            userInput.placeholder = '말씀하세요...';
+
+            const captionInput = qs('#captionInput');
+            captionInput.value = '';
+            captionInput.placeholder = '말씀해주세요...';
 
             recognizer.recognizeOnceAsync(result => {
                 if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-                    userInput.value = result.text.replace(/[.]$/, ''); // 마지막 온점 제거
+                    captionInput.value = result.text.replace(/[.]$/, '');
+                    captionInput.placeholder = '장면 설명을 입력하세요';
                 } else {
-                    userInput.placeholder = '음성 인식 실패. 다시 시도하세요.';
+                    captionInput.placeholder = '음성 인식 실패. 다시 시도하세요.';
                 }
                 sttBtn.disabled = false;
                 sttBtn.innerHTML = '🎤';
