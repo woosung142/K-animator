@@ -83,7 +83,7 @@ def show_info(icon, item):
 
 # 트레이 메뉴에서 '웹사이트 열기' 클릭 시 브라우저 실행
 def open_website(icon, item):
-    webbrowser.open("https://n8n.koreacentral.cloudapp.azure.com")
+    webbrowser.open("https://www.prtest.shop")
 
 # 트레이 아이콘 생성 및 메뉴 구성
 def create_icon():
