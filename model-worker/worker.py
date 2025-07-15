@@ -75,7 +75,7 @@ def generate_sas_url(account_name, account_key, container_name, blob_name, expir
 
 # 메인 태스크
 @celery_app.task(name="generate_image", bind=True)
-def generate_image(self, caption_input: str | None = None, category: str, layer: str, tag: str, image_url: str | None = None) -> dict:
+def generate_image(self, category: str, layer: str, tag: str, caption_input: str | None = None, image_url: str | None = None) -> dict:
     try:
         task_id = self.request.id
 
