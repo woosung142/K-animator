@@ -119,7 +119,7 @@
             gap: .5rem;
             width: 100%;
             max-width: 600px;
-            margin-top: var(--gap);
+            margin-top: 0;
             align-items: stretch;
             flex-shrink: 0;
         }
@@ -187,14 +187,14 @@
     <h1>한국풍 웹툰 배경 이미지 생성기</h1>
 
     <div id="chatbox" aria-live="polite" aria-label="대화 내용"></div>
-
-    <div class="selection-container">
+        <div class="selection-container">
         <div class="selection-group" id="category-group">
             <strong>카테고리 *</strong>
             <button class="selection-btn" data-value="명소">명소</button>
             <button class="selection-btn" data-value="음식">음식</button>
             <button class="selection-btn" data-value="문화">문화</button>
         </div>
+
         <div class="selection-group" id="layer-group">
             <strong>레이어 *</strong>
             <button class="selection-btn" data-value="콘티">콘티</button>
@@ -203,13 +203,31 @@
             <button class="selection-btn" data-value="채색(명암)">채색(명암)</button>
             <button class="selection-btn" data-value="배경">배경</button>
         </div>
-    </div>
 
+        <!-- ✅ 추가: 키워드 입력도 selection-group 형식으로 통일 -->
+        <div class="selection-group">
+            <strong>키워드 *</strong>
+            <input
+            id="userInput"
+            type="text"
+            placeholder="키워드를 입력하세요 (필수)"
+            style="padding: .5rem .75rem; font-size: 1rem; border: 1px solid #d1d5db; border-radius: .75rem;"
+            />
+        </div>
+        </div>
     <div id="preview-area"></div>
 
-    <form id="chat-form" autocomplete="off">
-        <button type="button" id="addFileBtn">+</button> <input id="userInput" type="text" placeholder="키워드를 입력하거나 이미지를 붙여넣으세요… (필수)" />
-        <button type="submit" id="generateImageBtn">🎨</button> <button type="button" id="sttBtn">🎤</button> <input type="file" id="fileInput" accept="image/*" style="display: none;" />
+    <form id="chat-form" autocomplete="off" style="display: flex; flex-direction: column; gap: .5rem; width: 100%; max-width: 600px;">
+    <div style="display: flex; gap: .5rem;">
+        <button type="button" id="addFileBtn">+</button>
+        <input id="captionInput" type="text" placeholder="장면 설명을 입력하세요"
+            style="flex: 1; padding: .5rem .75rem; font-size: 1rem;
+                    border: 1px solid #d1d5db; border-radius: .75rem;" />
+        <button type="submit" id="generateImageBtn">🎨</button>
+        <button type="button" id="sttBtn">🎤</button>
+        <input type="file" id="fileInput" accept="image/*" style="display: none;" />
+    </div>
+
     </form>
 
     <div id="extras">
@@ -379,7 +397,13 @@
                 const res = await fetch('/api/generate-image', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: fullPrompt, image_url: uploadedImageUrl })
+                    body: JSON.stringify({
+                            caption_input: qs('#captionInput').value.trim() || null,    // 장면 설명
+                            category: selectedCategory,                                 // 단일 선택
+                            layer: selectedLayers.join(', '),                           // 콤마로 연결된 다중 선택
+                            tag: keywords,                                              // 키워드
+                            image_url: uploadedImageUrl || null                         // 업로드된 이미지 URL 또는 null
+                        })
                 });
                 if (!res.ok) throw new Error('Failed to start image generation');
                 const { task_id } = await res.json();
