@@ -12,6 +12,7 @@ spec:
     helm:
       values: |
         loki:
+          useTestSchema: true        
           storage:
             type: azure
             azure:
