@@ -12,27 +12,25 @@ spec:
     helm:
       values: |
         loki:
+          useTestSchema: true
           storage:
             type: azure
             azure:
               containerName: akslog
-              accountName: ${AZURE_STORAGE_ACCOUNT_NAME}
-              accountKey: ${AZURE_STORAGE_ACCOUNT_KEY}
+              accountName:
+                valueFrom:
+                  secretKeyRef:
+                    name: loki-storage-secret
+                    key: AZURE_STORAGE_ACCOUNT_NAME
+              accountKey:
+                valueFrom:
+                  secretKeyRef:
+                    name: loki-storage-secret
+                    key: AZURE_STORAGE_ACCOUNT_KEY
             bucketNames:
               chunks: akslog
               ruler: akslog
               admin: akslog
-          env:
-            - name: AZURE_STORAGE_ACCOUNT_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: loki-storage-secret
-                  key: AZURE_STORAGE_ACCOUNT_NAME
-            - name: AZURE_STORAGE_ACCOUNT_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: loki-storage-secret
-                  key: AZURE_STORAGE_ACCOUNT_KEY
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
@@ -41,5 +39,5 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true
+    - CreateNamespace=true
+    - ServerSideApply=true
