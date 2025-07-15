@@ -16,9 +16,8 @@ spec:
           storage:
             type: azure
             azure:
-              containerName: akslog
-              accountName: ${AZURE_STORAGE_ACCOUNT_NAME}
-              accountKey: ${AZURE_STORAGE_ACCOUNT_KEY}
+              connection_string: ${AZURE_STORAGE_CONNECTION_STRING}
+              container_name: akslog
             bucketNames:
               chunks: akslog
               ruler: akslog
@@ -28,21 +27,15 @@ spec:
             storage:
               type: azure
               azure:
-                containerName: akslog
-                accountName: ${AZURE_STORAGE_ACCOUNT_NAME}
-                accountKey: ${AZURE_STORAGE_ACCOUNT_KEY}
+                connection_string: ${AZURE_STORAGE_CONNECTION_STRING}
+                container_name: akslog
 
           env:
-            - name: AZURE_STORAGE_ACCOUNT_NAME
+            - name: AZURE_STORAGE_CONNECTION_STRING
               valueFrom:
                 secretKeyRef:
                   name: loki-storage-secret
-                  key: AZURE_STORAGE_ACCOUNT_NAME
-            - name: AZURE_STORAGE_ACCOUNT_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: loki-storage-secret
-                  key: AZURE_STORAGE_ACCOUNT_KEY
+                  key: AZURE_STORAGE_CONNECTION_STRING
 
           serviceAccount:
             create: true
