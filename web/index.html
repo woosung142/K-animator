@@ -284,17 +284,17 @@
             selectedCategory = e.target.dataset.value;
         });
 
-        // 레이어 버튼 클릭 (다중 선택)
+        // 레이어 버튼 클릭 (단일 선택으로 변경)
         on(layerGroup, 'click', e => {
             if (e.target.tagName !== 'BUTTON') return;
-            const button = e.target;
-            const layerValue = button.dataset.value;
-            button.classList.toggle('selected');
-            if (selectedLayers.includes(layerValue)) {
-                selectedLayers = selectedLayers.filter(l => l !== layerValue);
-            } else {
-                selectedLayers.push(layerValue);
+
+            const buttons = layerGroup.querySelectorAll('button');
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('selected');
             }
+
+            e.target.classList.add('selected');
+            selectedLayers = [e.target.dataset.value];  // 단일 값만 저장
         });
 
         // 채팅창에 메시지 추가
@@ -393,15 +393,14 @@
 
             // 2. 이미지 생성 API 호출
             try {
-                const fullPrompt = `카테고리: ${selectedCategory}, 레이어: ${selectedLayers.join(', ')}, 키워드: ${keywords}`;
                 const res = await fetch('/api/generate-image', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                            caption_input: qs('#captionInput').value.trim() || null,    // 장면 설명
                             category: selectedCategory,                                 // 단일 선택
                             layer: selectedLayers.join(', '),                           // 콤마로 연결된 다중 선택
                             tag: keywords,                                              // 키워드
+                            caption_input: qs('#captionInput').value.trim() || null,    // 장면 설명
                             image_url: uploadedImageUrl || null                         // 업로드된 이미지 URL 또는 null
                         })
                 });

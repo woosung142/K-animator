@@ -22,10 +22,10 @@ celery_app.conf.result_backend = CELERY_BROKER_URL
 
 # 입력값 스키마
 class PromptRequest(BaseModel):
-    caption_input: str | None = None
     category: str
     layer: str
     tag: str
+    caption_input: str | None = None
     image_url: str | None = None  # 현재 미사용, 확장 대비 포함
 
 @app.post("/api/generate-image")
@@ -33,11 +33,11 @@ async def generate_image(request: PromptRequest):
     task = celery_app.send_task(
         "generate_image",
         args=[
-            request.caption_input,
-            request.category,
+            request.category,       
             request.layer,
             request.tag,
-            request.image_url 
+            request.caption_input,
+            request.image_url
         ]
     )
     return {"task_id": task.id}
