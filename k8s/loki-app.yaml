@@ -12,44 +12,38 @@ spec:
     helm:
       values: |
         loki:
-          useTestSchema: true        
+          auth_enabled: false
+          schema_config:
+            configs:
+              - from: "2024-01-01"
+                store: tsdb
+                object_store: azure
+                schema: v12
+                index:
+                  prefix: loki_index_
+                  period: 24h
           storage:
-            type: azure
+            type: 'azure'
             azure:
-              connection_string: ${AZURE_STORAGE_CONNECTION_STRING}
-              container_name: akslog
+              containerName: akslog
+              accountName:
+                valueFrom:
+                  secretKeyRef:
+                    name: loki-storage-secret
+                    key: AZURE_STORAGE_ACCOUNT_NAME
+              accountKey:
+                valueFrom:
+                  secretKeyRef:
+                    name: loki-storage-secret
+                    key: AZURE_STORAGE_ACCOUNT_KEY
             bucketNames:
               chunks: akslog
               ruler: akslog
               admin: akslog
-
-          rulerConfig:
-            storage:
-              type: azure
-              azure:
-                connection_string: ${AZURE_STORAGE_CONNECTION_STRING}
-                container_name: akslog
-
-          env:
-            - name: AZURE_STORAGE_CONNECTION_STRING
-              valueFrom:
-                secretKeyRef:
-                  name: loki-storage-secret
-                  key: AZURE_STORAGE_CONNECTION_STRING
-
-          serviceAccount:
-            create: true
-            name: loki
-          rbac:
-            create: true
-
+  
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true
+  - CreateNamespace=true
+  - ServerSideApply=true
