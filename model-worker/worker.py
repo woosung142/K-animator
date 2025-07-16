@@ -73,18 +73,52 @@ def generate_sas_url(account_name, account_key, container_name, blob_name, expir
     )
     return f"https://{account_name}.blob.core.windows.net/{container_name}/{blob_name}?{sas_token}"
 
+
+layer_descriptions = {
+    "콘티": "A rough, gray pencil storyboard-style sketch focusing on layout and composition. "
+            "Forms are simplified with minimal detail and overlapping sketch lines are acceptable. "
+            "No color or shading is applied — the emphasis is solely on spatial arrangement and rough structure.",
+    "스케치": "A clean line drawing with clearly defined black outlines. "
+              "All main elements are visible with refined contours and accurate proportions. "
+              "No coloring or shading — just detailed, precise edges on a white background.",
+    "채색 기본": "A flat-colored illustration where base colors are applied to each element. "
+                 "No shadows, highlights, or gradients are used — the focus is on color separation and clarity. "
+                 "Shapes should be filled with solid tones to indicate material or category.",
+    "채색 명암": "A fully colored illustration with realistic shading, highlights, and lighting direction. "
+                 "Depth, form, and texture are emphasized using shadows and color intensity. "
+                 "Contrast between light and dark areas should reflect real-world perception.",
+    "배경": "A complete and polished scene with a coherent background, ambient lighting, and environmental context. "
+           "All elements should be fully rendered with consistent perspective and atmosphere. "
+           "The composition feels complete, as if prepared for publication or final output."
+}
+
+def get_wikipedia_main_image(tag):
+    try:
+        search_url = f"https://en.wikipedia.org/w/api.php?action=query&titles={tag}&prop=pageimages&format=json&pithumbsize=500"
+        response = requests.get(search_url)
+        data = response.json()
+        pages = data.get("query", {}).get("pages", {})
+        for page in pages.values():
+            thumbnail = page.get("thumbnail", {})
+            if "source" in thumbnail:
+                return thumbnail["source"]
+    except Exception as e:
+        print(f"[ERROR] Wikipedia 이미지 검색 실패: {e}")
+    return None
+
+
 # 메인 태스크
 @celery_app.task(name="generate_image", bind=True)
 def generate_image(self, category: str, layer: str, tag: str, caption_input: str | None = None, image_url: str | None = None) -> dict:
     try:
         task_id = self.request.id
 
-        # 1. KoCLIP 임베딩, 빈값일때 기본값으로 설정
-        text_to_embed = caption_input if caption_input else f"{tag}가 포함된 한국풍의 장면을 그려줘"
+        # 1. KoCLIP 임베딩
+        text_to_embed = caption_input if caption_input else f"{tag}가 포함된 한국 웹툰 이미지를 그려주세요."
         embedding_vector = embed_text_koclip(text_to_embed)
         vector_str = "[" + ",".join([str(x) for x in embedding_vector]) + "]"
 
-        # 2. DB 유사 이미지 검색
+        # 2. DB 유사 이미지 최대 2장
         conn = psycopg2.connect(host=PG_HOST, port=PG_PORT, dbname=PG_DBNAME, user=PG_USER, password=PG_PASSWORD)
         cursor = conn.cursor()
         cursor.execute(
@@ -92,7 +126,7 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
             SELECT file_name FROM korea_image_data
             WHERE category = %s AND layer = %s AND tag ILIKE %s
             ORDER BY vec_caption <-> %s::vector
-            LIMIT 3;
+            LIMIT 2;
             """,
             (category, layer, f"%{tag}%", vector_str)
         )
@@ -100,15 +134,14 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
         cursor.close()
         conn.close()
 
-        if not results:
-            return {"status": "FAILURE", "error": "No similar images found in DB"}
-
-        # 3. Blob에서 base64 이미지 로딩
         images_content = []
+
+        # 3. Blob에서 base64 이미지 로딩 (DB 1~2장)
         for row in results:
             file_name = row[0]
             image_b64 = get_blob_base64_image("img", file_name)
             if image_b64:
+                print(f"[INFO] DB 이미지 사용: {file_name}")
                 images_content.append({
                     "type": "image_url",
                     "image_url": {
@@ -116,18 +149,42 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
                     }
                 })
 
-        if not images_content:
-            return {"status": "FAILURE", "error": "No matching image files found in Blob Storage"}
+        # 4. Wikipedia 이미지 1장 추가 시도
+        if len(images_content) < 2:
+            wiki_image_url = get_wikipedia_main_image(tag)
+            if wiki_image_url:
+                print(f"[INFO] Wikipedia 이미지 사용: {wiki_image_url}")
+                images_content.append({
+                    "type": "image_url",
+                    "image_url": {"url": wiki_image_url}
+                })
+            else:
+                print("[INFO] Wikipedia 이미지 없음")
 
-        # 4. GPT-4o 프롬프트 생성
+        if not images_content:
+            return {"status": "FAILURE", "error": "No usable images from DB or Wikipedia"}
+
+        # 5. GPT-4o 프롬프트 생성
+        prompt_text = (
+            "이 이미지들을 참고해서,\n"
+            "- 한국적인 분위기가 느껴지는 웹툰 스타일의 배경 이미지를,\n"
+            "- 인물은 제외하고,\n"
+            "- 주요 객체를 단순하고 직관적으로 표현해줘.\n"
+            "- 참고한 이미지들의 구도나 위치, 객체의 모양 등을 설명해줘.\n"
+            "- 그림은 DALL·E 3에 사용할 영어 프롬프트 형식으로 만들어줘.\n\n"
+            f"추가 설명: 사용자는 다섯 단계 중 '{layer}' 스타일을 원하며, 이 단계에 맞는 스타일 가이드는 다음과 같다:\n"
+            f"{layer_descriptions.get(layer, '')}\n\n"
+            f"원래 설명: \"{caption_input}\""
+        )
+
         messages = [{
             "role": "user",
-            "content": [{"type": "text", "text": "다음 여러 이미지를 바탕으로, 한국적인 분위기를 살린 그림처럼 묘사된 장면을 DALL·E 3에 전달할 수 있도록 영어로 프롬프트를 작성해줘. 너무 세밀하게 표현하지 말고 간단한 웹툰 그림으로 그릴 수 있게 요청해줘"}] + images_content
+            "content": [{"type": "text", "text": prompt_text}] + images_content
         }]
         response = client.chat.completions.create(model="gpt-4o", messages=messages, max_tokens=800, temperature=0.7)
         dalle_prompt = response.choices[0].message.content.strip()
 
-        # 5. DALL·E 3 이미지 생성
+        # 6. DALL·E 3 이미지 생성
         dalle_response = client.images.generate(model="dall-e-3", prompt=dalle_prompt, size="1024x1024", n=1)
         image_url = dalle_response.data[0].url
         dalle_image_data = requests.get(image_url).content
