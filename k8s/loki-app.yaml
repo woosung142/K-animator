@@ -11,36 +11,27 @@ spec:
     targetRevision: 6.7.2 # Loki v3.1.0을 포함하는 차트 버전
     helm:
       values: |
-        # 1. 분산 모드를 위한 컴포넌트들을 명시적으로 활성화합니다.
-        write:
-          replicas: 2
-        read:
-          replicas: 2
-        backend:
-          replicas: 2
+        # --- 이 부분을 수정합니다 ---
 
-        # 2. loki.config 아래에 모든 설정을 문자열로 정의합니다.
+        # 1. 모든 Loki 컴포넌트(write, read, backend)에
+        #    loki-storage-secret의 내용을 환경 변수로 주입합니다.
+        extraEnvFrom:
+          - secretRef:
+              name: loki-storage-secret
+
+        # 2. loki.config는 인증 정보를 제외하고 순수하게 구조만 정의합니다.
+        #    Loki는 AZURE_STORAGE_ACCOUNT_NAME 같은 환경 변수를 자동으로 인식합니다.
         loki:
-          config: |
+          structuredConfig:
             auth_enabled: false
             
-            server:
-              http_listen_port: 3100
-
             ingester:
               lifecycler:
-                address: {{ .Release.Name }}-ingester-headless
                 ring:
                   kvstore:
                     store: memberlist
                   replication_factor: 1
-              final_sleep: 0s
-              chunk_idle_period: 1h
-              max_chunk_age: 1h
-              chunk_target_size: 2097152
-              chunk_retain_period: 1m
-              max_transfer_retries: 0
-
+            
             schema_config:
               configs:
                 - from: "2024-01-01"
@@ -54,18 +45,7 @@ spec:
             storage_config:
               azure:
                 container_name: akslog
-                # Secret의 값을 직접 참조하도록 valueFrom을 사용합니다.
-                account_name:
-                  valueFrom:
-                    secretKeyRef:
-                      name: loki-storage-secret
-                      key: AZURE_STORAGE_ACCOUNT_NAME
-                account_key:
-                  valueFrom:
-                    secretKeyRef:
-                      name: loki-storage-secret
-                      key: AZURE_STORAGE_ACCOUNT_KEY
-  
+
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
