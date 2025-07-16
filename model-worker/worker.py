@@ -121,15 +121,17 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
         # 2. DB 유사 이미지 최대 2장
         conn = psycopg2.connect(host=PG_HOST, port=PG_PORT, dbname=PG_DBNAME, user=PG_USER, password=PG_PASSWORD)
         cursor = conn.cursor()
-        cursor.execute(
-            """
+
+        # tag를 공백 기준으로 나눠서 여러 단어로 검색 확장
+        keywords = [f"%{word.strip()}%" for word in tag.split()]
+        sql = """
             SELECT file_name FROM korea_image_data
-            WHERE category = %s AND layer = %s AND tag ILIKE %s
+            WHERE category = %s AND layer = %s
+              AND tag ILIKE ANY (%s)
             ORDER BY vec_caption <-> %s::vector
             LIMIT 2;
-            """,
-            (category, layer, f"%{tag}%", vector_str)
-        )
+        """
+        cursor.execute(sql, (category, layer, keywords, vector_str))
         results = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -161,10 +163,11 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
             else:
                 print("[INFO] Wikipedia 이미지 없음")
 
+        # 5. 이미지가 없어도 텍스트로만 프롬프트 생성
         if not images_content:
-            return {"status": "FAILURE", "error": "No usable images from DB or Wikipedia"}
+            print("[INFO] 이미지 없이 텍스트만으로 프롬프트 생성")
 
-        # 5. GPT-4o 프롬프트 생성
+        # 6. GPT-4o 프롬프트 생성
         prompt_text = (
             "이 이미지들을 참고해서,\n"
             "- 한국적인 분위기가 느껴지는 웹툰 스타일의 배경 이미지를,\n"
