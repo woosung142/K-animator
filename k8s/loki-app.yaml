@@ -8,48 +8,40 @@ spec:
   source:
     repoURL: https://grafana.github.io/helm-charts
     chart: loki
-    targetRevision: 6.7.2 # Loki v3.1.0을 포함하는 차트 버전
+    targetRevision: 6.7.2
     helm:
       values: |
-        # --- 이 부분을 수정합니다 ---
-
-        # 1. 모든 Loki 컴포넌트(write, read, backend)에
-        #    loki-storage-secret의 내용을 환경 변수로 주입합니다.
+        # 모든 Loki 파드에 Secret의 내용을 환경 변수로 주입합니다.
         extraEnvFrom:
           - secretRef:
               name: loki-storage-secret
 
-        # 2. loki.config는 인증 정보를 제외하고 순수하게 구조만 정의합니다.
-        #    Loki는 AZURE_STORAGE_ACCOUNT_NAME 같은 환경 변수를 자동으로 인식합니다.
+        # Loki의 핵심 설정을 가장 단순한 구조로 정의합니다.
         loki:
-          structuredConfig:
-            auth_enabled: false
+          # auth_enabled, schema_config, storage_config를 같은 레벨에 둡니다.
+          auth_enabled: false
+
+          schema_config:
+            configs:
+              - from: "2024-01-01"
+                store: tsdb
+                object_store: azure
+                schema: v12
+                index:
+                  prefix: loki_index_
+                  period: 24h
+
+          storage_config:
+            azure:
+              container_name: akslog
             
-            ingester:
-              lifecycler:
-                ring:
-                  kvstore:
-                    store: memberlist
-                  replication_factor: 1
-            
-            schema_config:
-              configs:
-                - from: "2024-01-01"
-                  store: tsdb
-                  object_store: azure
-                  schema: v12
-                  index:
-                    prefix: loki_index_
-                    period: 24h
-            
-            storage_config:
-              azure:
-                container_name: akslog
+            # bucketNames는 이 구조에서는 필요 없습니다.
+            # azure 섹션이 자동으로 처리합니다.
 
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
-  
+
   syncPolicy:
     automated:
       prune: true
