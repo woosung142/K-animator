@@ -12,37 +12,44 @@ spec:
     helm:
       values: |
         loki:
-          # 복잡한 schema_config 대신, 테스트용 스키마를 사용하도록 설정합니다.
           useTestSchema: true
-          
-          # 스토리지 설정은 그대로 유지합니다.
+
           storage:
-            type: 'azure'
+            type: azure
             azure:
               containerName: akslog
-              accountName:
-                valueFrom:
-                  secretKeyRef:
-                    name: loki-storage-secret
-                    key: ${AZURE_STORAGE_ACCOUNT_NAME}
-              accountKey:
-                valueFrom:
-                  secretKeyRef:
-                    name: loki-storage-secret
-                    key: ${AZURE_STORAGE_ACCOUNT_KEY}
+              accountName: ${AZURE_STORAGE_ACCOUNT_NAME}
+              accountKey: ${AZURE_STORAGE_ACCOUNT_KEY}
             bucketNames:
               chunks: akslog
               ruler: akslog
               admin: akslog
-  
+
+          env:
+            - name: AZURE_STORAGE_ACCOUNT_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: loki-storage-secret
+                  key: AZURE_STORAGE_ACCOUNT_NAME
+            - name: AZURE_STORAGE_ACCOUNT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: loki-storage-secret
+                  key: AZURE_STORAGE_ACCOUNT_KEY
+
+          serviceAccount:
+            create: true
+            name: loki
+          rbac:
+            create: true
+
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
-  
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
-    - ServerSideApply=true
+      - CreateNamespace=true
+      - ServerSideApply=true
