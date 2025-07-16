@@ -12,16 +12,10 @@ spec:
     helm:
       values: |
         loki:
-          auth_enabled: false
-          schema_config:
-            configs:
-              - from: "2024-01-01"
-                store: tsdb
-                object_store: azure
-                schema: v12
-                index:
-                  prefix: loki_index_
-                  period: 24h
+          # 복잡한 schema_config 대신, 테스트용 스키마를 사용하도록 설정합니다.
+          useTestSchema: true
+          
+          # 스토리지 설정은 그대로 유지합니다.
           storage:
             type: 'azure'
             azure:
@@ -40,9 +34,11 @@ spec:
               chunks: akslog
               ruler: akslog
               admin: akslog
+  
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
+  
   syncPolicy:
     automated:
       prune: true
