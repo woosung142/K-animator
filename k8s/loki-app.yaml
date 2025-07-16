@@ -24,12 +24,12 @@ spec:
                 valueFrom:
                   secretKeyRef:
                     name: loki-storage-secret
-                    key: AZURE_STORAGE_ACCOUNT_NAME
+                    key: ${AZURE_STORAGE_ACCOUNT_NAME}
               accountKey:
                 valueFrom:
                   secretKeyRef:
                     name: loki-storage-secret
-                    key: AZURE_STORAGE_ACCOUNT_KEY
+                    key: ${AZURE_STORAGE_ACCOUNT_KEY}
             bucketNames:
               chunks: akslog
               ruler: akslog
