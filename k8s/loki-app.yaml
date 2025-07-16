@@ -40,10 +40,13 @@ spec:
               chunks: akslog
               ruler: akslog
               admin: akslog
-  
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
   syncPolicy:
-  - CreateNamespace=true
-  - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
