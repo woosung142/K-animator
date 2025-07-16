@@ -133,6 +133,10 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
         """
         cursor.execute(sql, (category, layer, keywords, vector_str))
         results = cursor.fetchall()
+        
+        # DB에서 가져온 결과 로그 찍기
+        print(f"[DEBUG] DB 검색 결과 file_name 리스트: {results}")
+
         cursor.close()
         conn.close()
 
