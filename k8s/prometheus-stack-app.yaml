@@ -12,6 +12,8 @@ spec:
     helm:
       values: |
         alertmanager:
+          service:
+            type: LoadBalancer
           # config 대신, 기존 Secret을 사용하라고 알려줍니다.
           config:
             existingSecret:
