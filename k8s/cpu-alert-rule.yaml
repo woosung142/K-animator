@@ -18,5 +18,5 @@ spec:
         severity: warning
       #알림 메시지 내용
       annotations:
-        summary: "노드 {{ $labels.instance }} 에서 높은 CPU 사용량 감지"
-        description: "노드 {{ $labels.instance }} 의 CPU 사용량이 지난 1분 동안 80%를 초과했습니다. 현재 값: {{ $value | printf `%.2f` }}%."
+        summary: "asd {{ $labels.instance }} asdads"
+        description: "asad {{ $labels.instance }} Cdasdadasd: {{ $value | printf `%.2f` }}%."
