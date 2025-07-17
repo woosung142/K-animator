@@ -11,18 +11,36 @@ spec:
     targetRevision: 58.0.0
     helm:
       values: |
+        # ----------------- Alertmanager 설정 -----------------
         alertmanager:
+          # [추가] Alertmanager가 자신의 외부 URL을 알도록 설정
+          alertmanagerSpec:
+            externalUrl: http://alertmanager.prtest.shop
+          # [수정] 서비스 타입을 ClusterIP로 변경
           service:
-            type: LoadBalancer
-          # config 대신, 기존 Secret을 사용하라고 알려줍니다.
+            type: ClusterIP
           config:
             existingSecret:
               name: alertmanager-config-secret
               key: alertmanager.yaml
+          # [추가] Alertmanager Ingress 활성화
+          ingress:
+            enabled: true
+            ingressClassName: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            hosts:
+              - alertmanager.prtest.shop
+            paths:
+              - /
+            tls:
+              - secretName: alertmanager-prtest-shop-tls
+                hosts:
+                  - alertmanager.prtest.shop
+
+        # ----------------- Grafana 설정 -----------------
         grafana:
-          # 이 설정은 다른 부분에서 참조할 수 있으므로 유지합니다.
           existingSecret: "grafana-admin-credentials"
-          # Grafana의 admin 계정 설정을 명확히 지정합니다.
           admin:
             existingSecret: "grafana-admin-credentials"
             userKey: adminUser
@@ -38,9 +56,30 @@ spec:
               - secretName: grafana-prtest-shop-tls
                 hosts:
                   - grafana.prtest.shop
+
+        # ----------------- Prometheus 설정 -----------------
         prometheus:
+          # [추가] Prometheus가 자신의 외부 URL을 알도록 설정
+          prometheusSpec:
+            externalUrl: http://prometheus.prtest.shop
+          # [수정] 서비스 타입을 ClusterIP로 변경
           service:
-            type: LoadBalancer                 
+            type: ClusterIP
+          # [추가] Prometheus Ingress 활성화
+          ingress:
+            enabled: true
+            ingressClassName: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            hosts:
+              - prometheus.prtest.shop
+            paths:
+              - /
+            tls:
+              - secretName: prometheus-prtest-shop-tls
+                hosts:
+                  - prometheus.prtest.shop
+
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
@@ -50,4 +89,4 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
-    - ServerSideApply=true #어노테이션 문제로 추가
+    - ServerSideApply=true
