@@ -256,6 +256,7 @@
         const downloadPsdBtn = qs('#downloadPsdBtn');
         const openPsdBtn = qs('#openPsdBtn');
         const exeDownloadBtn = qs('#exeDownloadBtn');
+        const MAX_MB = 10; // 최대 파일 크기 (MB 단위)
 
         // 선택 버튼 관련 요소
         const categoryGroup = qs('#category-group');
@@ -269,6 +270,7 @@
         let recognizer = null;
         let selectedCategory = '';
         let selectedLayers = [];
+        
 
         // 세션 ID 설정
         let sessionId = sessionStorage.getItem('chatSessionId') || `web-user-${Date.now()}`;
@@ -352,6 +354,12 @@
             }
             if (e.target.files && e.target.files.length > 0) {
                 const file = e.target.files[0];
+                if (file.size > MAX_MB * 1024 * 1024) {
+                    alert("10MB 이하의 이미지만 업로드할 수 있습니다.");
+                    clearPreview();
+                    fileInput.value = "";  
+                    return;
+                }
                 if (!file.type.startsWith('image/')) {
                     alert('이미지 파일만 업로드할 수 있습니다.');
                     fileInput.value = '';
@@ -477,6 +485,10 @@
             for (const item of items) {
                 if (item.type.startsWith('image/')) {
                     const file = item.getAsFile();
+                    if (file.size > MAX_MB * 1024 * 1024) {
+                        alert("붙여넣은 이미지가 10MB를 초과합니다.");
+                        return;
+                    }
                     fileToSend = file;
                     showPreview(file);
                     e.preventDefault(); // 텍스트 필드에 파일 경로 등이 붙여넣어지는 것 방지

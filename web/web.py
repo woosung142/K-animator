@@ -20,7 +20,6 @@ blob_service_client = BlobServiceClient(
     account_url=f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net",
     credential=AZURE_STORAGE_ACCOUNT_KEY
 )
-
 # 정적 파일 서빙 디렉토리 마운트
 # app.mount("/static", StaticFiles(directory=BASE_DIR / "templates"), name="static")
 
@@ -30,7 +29,7 @@ async def root():
     return FileResponse("index.html")
 
 # 이미지 업로드 API
-@app.post("/upload-image")
+
 @app.post("/upload-image")
 async def upload_image(image_file: UploadFile = File(...)):
     unique_id = uuid.uuid4().hex
@@ -38,9 +37,17 @@ async def upload_image(image_file: UploadFile = File(...)):
     blob_name = f"{unique_id}{file_extension}"
 
     try:
-        # 비동기로 파일을 읽기
         contents = await image_file.read()
-        blob_client = blob_service_client.get_blob_client(container=AZURE_CONTAINER_NAME, blob=blob_name)
+
+        # 파일 크기 제한 검사
+        if len(contents) > MAX_SIZE:
+            raise HTTPException(status_code=413, detail=f"이미지 크기는 최대 {MAX_MB}MB까지 허용됩니다.")
+
+        # Blob 업로드
+        blob_client = blob_service_client.get_blob_client(
+            container=AZURE_CONTAINER_NAME,
+            blob=blob_name
+        )
         blob_client.upload_blob(contents, overwrite=True)
 
         # SAS URL 생성
@@ -53,7 +60,11 @@ async def upload_image(image_file: UploadFile = File(...)):
             expiry=datetime.utcnow() + timedelta(minutes=10)
         )
         blob_url = f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{blob_name}?{sas_token}"
+
         return {"image_url": blob_url}
+
+    except HTTPException:
+        raise  # 그대로 다시 raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Blob 업로드 실패: {e}")
 
