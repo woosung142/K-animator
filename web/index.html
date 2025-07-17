@@ -270,14 +270,19 @@
         let recognizer = null;
         let selectedCategory = '';
         let selectedLayers = [];
-        
+        let pasteBlocked = false;
 
         // 세션 ID 설정
         let sessionId = sessionStorage.getItem('chatSessionId') || `web-user-${Date.now()}`;
         sessionStorage.setItem('chatSessionId', sessionId);
 
         // 이벤트 리스너 및 함수
-
+        // 붙여넣기 방지 로직
+        document.addEventListener('paste', (e) => {
+            if (pasteBlocked) {
+                e.preventDefault();
+            }
+        });
         // 카테고리 버튼 클릭 (단일 선택)
         on(categoryGroup, 'click', e => {
             if (e.target.tagName !== 'BUTTON') return;
@@ -367,6 +372,7 @@
                     clearPreview();
                     return;
                 }
+                fileToSend = file;
                 showPreview(file);
             } else {
                 clearPreview();
@@ -405,52 +411,48 @@
             addLine('나', userMessage);
             userInput.value = '';
 
-            // 버튼 비활성화 및 상태 초기화
+            // 버튼 및 입력 비활성화
             generateImageBtn.disabled = true;
+            fileInput.disabled = true;
+            pasteBlocked = true;
+
             downloadPsdBtn.style.display = "none";
             openPsdBtn.style.display = "none";
             psdUrl = null;
             uploadedImageUrl = null;
-
-            // 1. 첨부된 파일이 있으면 서버에 업로드
-            if (fileToSend) {
-                const formData = new FormData();
-                formData.append('image_file', fileToSend);
-                try {
+            try {
+                // 1. 첨부된 파일이 있으면 서버에 업로드
+                if (fileToSend) {
+                    const formData = new FormData();
+                    formData.append('image_file', fileToSend);
                     addLine('시스템', '이미지를 업로드하는 중...');
                     const uploadRes = await fetch('/upload-image', { method: 'POST', body: formData });
                     if (!uploadRes.ok) throw new Error('Image upload failed');
                     const uploadResult = await uploadRes.json();
                     uploadedImageUrl = uploadResult.image_url;
                     addLine('시스템', '이미지 업로드 완료.', false, fileToSend);
-                    clearPreview();  // 썸네일 제거 또는 직접 DOM 조작 
-                    fileToSend = null; // 상태 초기화
-                } catch (error) {
-                    addLine('시스템', '⚠️ 이미지 업로드에 실패했습니다.');
-                    generateImageBtn.disabled = false;
-                    return;
+                    clearPreview();
+                    fileToSend = null;
                 }
-            }
 
-            // 2. 이미지 생성 API 호출
-            try {
+                // 2. 이미지 생성 요청
                 const res = await fetch('/api/generate-image', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                            category: selectedCategory,                                 // 단일 선택
-                            layer: selectedLayers.join(', '),                           // 콤마로 연결된 다중 선택
-                            tag: keywords,                                              // 키워드
-                            caption_input: qs('#captionInput').value.trim() || null,    // 장면 설명
-                            image_url: uploadedImageUrl || null                         // 업로드된 이미지 URL 또는 null
-                        })
+                        category: selectedCategory,
+                        layer: selectedLayers.join(', '),
+                        tag: keywords,
+                        caption_input: qs('#captionInput').value.trim() || null,
+                        image_url: uploadedImageUrl || null
+                    })
                 });
                 if (!res.ok) throw new Error('Failed to start image generation');
+
                 const { task_id } = await res.json();
                 taskId = task_id;
                 addLine('시스템', '이미지 생성을 시작했습니다. 잠시만 기다려주세요...');
 
-                // 3. 결과 주기적으로 확인
                 const checkStatus = async () => {
                     const resp = await fetch(`/api/result/${task_id}`);
                     const result = await resp.json();
@@ -462,18 +464,23 @@
                         psdUrl = result.psd_url;
                         downloadPsdBtn.style.display = "inline-block";
                         openPsdBtn.style.display = "inline-block";
-                        clearPreview(); // 생성 완료 후 미리보기 제거
-                        generateImageBtn.disabled = false;
+                        clearPreview();
                     } else {
                         throw new Error('Image generation failed on server');
                     }
+                    generateImageBtn.disabled = false;
+                    fileInput.disabled = false;
+                    pasteBlocked = false;
                 };
                 checkStatus();
             } catch (err) {
                 addLine('시스템', `⚠️ 요청 실패: ${err.message}`);
                 generateImageBtn.disabled = false;
+                fileInput.disabled = false;
+                pasteBlocked = false;
             }
-            qs('#captionInput').value = '';  // ✅ 장면 설명 입력란 비우기
+
+            qs('#captionInput').value = '';
         });
 
         // 클립보드 이미지 붙여넣기 처리
