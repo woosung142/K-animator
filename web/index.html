@@ -298,12 +298,28 @@
         });
 
         // 채팅창에 메시지 추가
-        const addLine = (who, content, isHtml = false) => {
+        const addLine = (who, content, isHtml = false, imageFile = null) => {
             const p = document.createElement('p');
             p.className = 'msg';
             p.innerHTML = `<strong>${who}:</strong> ${isHtml ? content : escapeHTML(content)}`;
-            chatbox.appendChild(p);
-            chatbox.scrollTop = chatbox.scrollHeight;
+
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = '업로드 이미지 썸네일';
+                    img.style.maxWidth = '300px';
+                    img.style.marginTop = '0.5rem';
+                    p.appendChild(img);
+                    chatbox.appendChild(p);
+                    chatbox.scrollTop = chatbox.scrollHeight;
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                chatbox.appendChild(p);
+                chatbox.scrollTop = chatbox.scrollHeight;
+            }
         };
 
         // 이미지 미리보기 표시
@@ -383,7 +399,9 @@
                     if (!uploadRes.ok) throw new Error('Image upload failed');
                     const uploadResult = await uploadRes.json();
                     uploadedImageUrl = uploadResult.image_url;
-                    addLine('시스템', '이미지 업로드 완료.');
+                    addLine('시스템', '이미지 업로드 완료.', false, fileToSend);
+                    clearPreview();  // 썸네일 제거 또는 직접 DOM 조작 
+                    fileToSend = null; // 상태 초기화
                 } catch (error) {
                     addLine('시스템', '⚠️ 이미지 업로드에 실패했습니다.');
                     generateImageBtn.disabled = false;
