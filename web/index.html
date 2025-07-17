@@ -362,6 +362,11 @@
             fileInput.value = ''; // 파일 input 초기화
         };
 
+        // 미리보기 제거 버튼(X) 동작
+        on(previewArea, 'click', e => {
+            if (e.target.id === 'remove-preview-btn') clearPreview();
+        });
+
         // 파일 추가 버튼(+) 클릭 시 파일 입력창 열기
         on(addFileBtn, 'click', () => fileInput.click());
 
@@ -375,6 +380,7 @@
             if (e.target.files && e.target.files.length > 0) {
                 const file = e.target.files[0];
                 if (file.size > MAX_MB * 1024 * 1024) {
+                    console.log('선택한 파일 크기:', file.size, 'bytes');
                     alert("10MB 이하의 이미지만 업로드할 수 있습니다.");
                     clearPreview();
                     fileInput.value = "";  
@@ -386,15 +392,34 @@
                     clearPreview();
                     return;
                 }
+                fileToSend = file; 
                 showPreview(file);
             } else {
                 clearPreview();
             }
         });
 
-        // 미리보기 제거 버튼(X) 동작
-        on(previewArea, 'click', e => {
-            if (e.target.id === 'remove-preview-btn') clearPreview();
+                // 클립보드 이미지 붙여넣기 처리
+        on(captionInput, 'paste', e => {
+            if (fileToSend) {
+                alert("이미 이미지가 첨부되어 있습니다. 기존 이미지를 제거하고 다시 시도하세요.");
+                return;
+            }
+            const items = (e.clipboardData || window.clipboardData).items;
+            for (const item of items) {
+                if (item.type.startsWith('image/')) {
+                    const file = item.getAsFile();
+                    if (file.size > MAX_MB * 1024 * 1024) {
+                        console.log('선택한 파일 크기:', file.size, 'bytes');
+                        alert("붙여넣은 이미지가 10MB를 초과합니다.");
+                        return;
+                    }
+                    fileToSend = file; 
+                    showPreview(file);
+                    e.preventDefault(); // 텍스트 필드에 파일 경로 등이 붙여넣어지는 것 방지
+                    break;
+                }
+            }
         });
 
         // 폼 제출(전송 버튼 클릭 또는 Enter) 시
@@ -494,27 +519,6 @@
                 fileInput.disabled = false;
                 pasteBlocked = false;
                 clearPreview();
-            }
-        });
-
-        // 클립보드 이미지 붙여넣기 처리
-        on(captionInput, 'paste', e => {
-            if (fileToSend) {
-                alert("이미 이미지가 첨부되어 있습니다. 기존 이미지를 제거하고 다시 시도하세요.");
-                return;
-            }
-            const items = (e.clipboardData || window.clipboardData).items;
-            for (const item of items) {
-                if (item.type.startsWith('image/')) {
-                    const file = item.getAsFile();
-                    if (file.size > MAX_MB * 1024 * 1024) {
-                        alert("붙여넣은 이미지가 10MB를 초과합니다.");
-                        return;
-                    }
-                    showPreview(file);
-                    e.preventDefault(); // 텍스트 필드에 파일 경로 등이 붙여넣어지는 것 방지
-                    break;
-                }
             }
         });
 
