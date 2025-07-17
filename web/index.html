@@ -309,13 +309,21 @@
         on(userInput, 'keydown', e => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                if (generateImageBtn.disabled) return; // 중복 방지
+                generateImageBtn.disabled = true;      // 즉시 비활성화
+                fileInput.disabled = true;
+                pasteBlocked = true;
+                form.requestSubmit();                  // 안전한 폼 제출
             }
         });
 
         // 버튼 클릭시 입력
         on(generateImageBtn, 'click', () => {
-            form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+            if (generateImageBtn.disabled) return;  // 중복 클릭 방지
+            generateImageBtn.disabled = true; // 버튼 즉시 비활성화
+            fileInput.disabled = true;
+            pasteBlocked = true;      
+            form.requestSubmit();                   // 안전한 폼 제출
         });
 
         // 채팅창에 메시지 추가
