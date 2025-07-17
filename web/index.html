@@ -509,14 +509,17 @@
                         downloadPsdBtn.style.display = "inline-block";
                         openPsdBtn.style.display = "inline-block";
                         clearPreview();
-                    } else {
-                        throw new Error('서버에서 이미지 생성 실패');
-                    }
 
-                    // 마지막에 UI 다시 활성화
-                    generateImageBtn.disabled = false;
-                    fileInput.disabled = false;
-                    pasteBlocked = false;
+                        // 완료시 버튼 활성화
+                        generateImageBtn.disabled = false;
+                        fileInput.disabled = false;
+                        pasteBlocked = false;
+                    } else {
+                        addLine('시스템', '⚠️ 이미지 생성에 실패했습니다.');
+                        generateImageBtn.disabled = false;
+                        fileInput.disabled = false;
+                        pasteBlocked = false;
+                    }
                 };
                 checkStatus();
             } catch (err) {
