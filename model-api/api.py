@@ -26,10 +26,17 @@ class PromptRequest(BaseModel):
     layer: str
     tag: str
     caption_input: str | None = None
-    image_url: str | None = None  # 현재 미사용, 확장 대비 포함
+    image_url: str | None = None  
 
 @app.post("/api/generate-image")
 async def generate_image(request: PromptRequest):
+    print(f"[REQUEST] POST /api/generate-image")
+    print(f"[DATA] category: {request.category}")
+    print(f"[DATA] layer: {request.layer}")
+    print(f"[DATA] tag: {request.tag}")
+    print(f"[DATA] caption_input: {request.caption_input}")
+    print(f"[DATA] image_url: {request.image_url}")
+
     task = celery_app.send_task(
         "generate_image",
         args=[
@@ -40,20 +47,27 @@ async def generate_image(request: PromptRequest):
             request.image_url
         ]
     )
+    print(f"[TASK] Celery task 전송 완료 - task_id: {task.id}")
     return {"task_id": task.id}
 
 @app.get("/api/result/{task_id}")
 async def get_result(task_id: str):
+    print(f"[REQUEST] GET /api/result/{task_id}")
     result = celery_app.AsyncResult(task_id)
+    print(f"[INFO] 현재 상태: {result.state}")
+
     if result.state == "PENDING":
         return {"status": "PENDING"}
     elif result.state == "SUCCESS":
+        print(f"[SUCCESS] 결과 수신 완료: {result.result}")
         return {
             "status": "SUCCESS",
             "png_url": result.result.get("png_url"),
             "psd_url": result.result.get("psd_url")
         }
     elif result.state == "FAILURE":
+        print(f"[ERROR] Celery 태스크 실패: {result.result}")
         raise HTTPException(status_code=500, detail="Task failed")
     else:
+        print(f"[INFO] 기타 상태: {result.state}")
         return {"status": result.state}
