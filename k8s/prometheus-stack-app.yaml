@@ -19,10 +19,6 @@ spec:
           # [수정] 서비스 타입을 ClusterIP로 변경
           service:
             type: ClusterIP
-          config:
-            existingSecret:
-              name: alertmanager-config-secret
-              key: alertmanager.yaml
           # [추가] Alertmanager Ingress 활성화
           ingress:
             enabled: true
