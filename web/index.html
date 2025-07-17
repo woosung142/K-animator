@@ -467,15 +467,12 @@
                     const formData = new FormData();
                     formData.append('image_file', fileToSend);
 
-                    console.log('[업로드 시작]');
                     const uploadRes = await fetch('/upload-image', {
                         method: 'POST',
                         body: formData
                     });
                     if (!uploadRes.ok) throw new Error('이미지 업로드 실패');
-                    console.log('[업로드 완료 응답 도착]');
                     const uploadResult = await uploadRes.json();
-                    console.log('[파싱된 결과]', uploadResult);
                     if (!uploadResult.image_url) throw new Error('업로드 결과에 image_url이 없습니다.');
 
                     uploadedImageUrl = uploadResult.image_url;
