@@ -408,6 +408,10 @@
             if (fileToSend) {
                 userMessage += ' (이미지 첨부)';
             }
+            // 장면 설명 있으면 줄바꿈 후 따로 추가
+            if (caption) {
+                userMessage += '\n(장면 설명: ' + caption + ')';
+            }
             addLine('나', userMessage);
             userInput.value = '';
 
@@ -425,12 +429,10 @@
                 if (fileToSend) {
                     const formData = new FormData();
                     formData.append('image_file', fileToSend);
-                    addLine('시스템', '이미지를 업로드하는 중...');
                     const uploadRes = await fetch('/upload-image', { method: 'POST', body: formData });
                     if (!uploadRes.ok) throw new Error('Image upload failed');
                     const uploadResult = await uploadRes.json();
                     uploadedImageUrl = uploadResult.image_url;
-                    addLine('시스템', '이미지 업로드 완료.', false, fileToSend);
                     clearPreview();
                     fileToSend = null;
                 }
