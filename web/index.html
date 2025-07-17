@@ -305,6 +305,19 @@
             selectedLayers = [e.target.dataset.value];  // 단일 값만 저장
         });
 
+        // 입력란에서 Enter 키로 폼 제출
+        on(userInput, 'keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+            }
+        });
+
+        // 버튼 클릭시 입력
+        on(generateImageBtn, 'click', () => {
+            form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        });
+
         // 채팅창에 메시지 추가
         const addLine = (who, content, isHtml = false, imageFile = null) => {
             const p = document.createElement('p');
@@ -373,7 +386,6 @@
                     clearPreview();
                     return;
                 }
-                fileToSend = file;
                 showPreview(file);
             } else {
                 clearPreview();
@@ -389,7 +401,7 @@
         on(form, 'submit', async (e) => {
             e.preventDefault(); // 기본 동작 방지
             const keywords = userInput.value.trim();
-
+            const caption = captionInput.value.trim();
             // 유효성 검사
             if (!selectedCategory) {
                 alert('카테고리를 선택해주세요.');
@@ -400,7 +412,7 @@
                 return;
             }
             if (!keywords) {
-                alert('키워드를 입력하거나 이미지를 추가해주세요.');
+                alert('키워드를 입력해주세요.');
                 return;
             }
 
@@ -410,14 +422,12 @@
                 userMessage += ' (이미지 첨부)';
             }
             // 장면 설명 있으면 줄바꿈 후 따로 추가
-            const caption = captionInput.value.trim();
             if (caption) {
-                userMessage += '<br>(장면 설명: ' + caption + ')';
+                userMessage += '<br>(장면 설명: ' + escapeHTML(caption) + ')';
             }
-            addLine('나', userMessage);
+            addLine('나', userMessage, true, fileToSend);
             userInput.value = '';
             captionInput.value = '';
-
             // 버튼 및 입력 비활성화
             generateImageBtn.disabled = true;
             fileInput.disabled = true;
@@ -448,7 +458,7 @@
                         category: selectedCategory,
                         layer: selectedLayers.join(', '),
                         tag: keywords,
-                        caption_input: qs('#captionInput').value.trim() || null,
+                        caption_input: caption || null,
                         image_url: uploadedImageUrl || null
                     })
                 });
@@ -483,9 +493,8 @@
                 generateImageBtn.disabled = false;
                 fileInput.disabled = false;
                 pasteBlocked = false;
+                clearPreview();
             }
-
-            qs('#captionInput').value = '';
         });
 
         // 클립보드 이미지 붙여넣기 처리
@@ -509,13 +518,7 @@
                 }
             }
         });
-        // 키워드 입력란에서도 Enter 시 폼 제출
-        on(userInput, 'keydown', e => {
-            if (e.key === 'Enter') {
-                e.preventDefault();  // 기본 동작(줄바꿈 등) 막기
-                form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-            }
-        });
+
         // PSD 파일 다운로드
         on(downloadPsdBtn, 'click', () => {
             if (!psdUrl || !taskId) return;
