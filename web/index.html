@@ -272,6 +272,7 @@
         let selectedCategory = '';
         let selectedLayers = [];
         let pasteBlocked = false;
+        let inputLocked = false; 
 
         // 세션 ID 설정
         let sessionId = sessionStorage.getItem('chatSessionId') || `web-user-${Date.now()}`;
@@ -308,8 +309,11 @@
         // 입력란에서 Enter 키로 폼 제출
         on(userInput, 'keydown', e => {
             if (e.key === 'Enter') {
+                if (generateImageBtn.disabled) {
+                    e.preventDefault();  // 버튼 비활성화시 엔터 입력 막기
+                    return;
+                }
                 e.preventDefault();
-                if (generateImageBtn.disabled) return; // 중복 방지
                 generateImageBtn.disabled = true;
                 fileInput.disabled = true;
                 pasteBlocked = true;
