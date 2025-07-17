@@ -410,13 +410,14 @@
                 userMessage += ' (이미지 첨부)';
             }
             // 장면 설명 있으면 줄바꿈 후 따로 추가
-            if (captionInput) {
-                userMessage += '\n(장면 설명: ' + captionInput + ')';
+            const caption = captionInput.value.trim();
+            if (caption) {
+                userMessage += '\n(장면 설명: ' + caption + ')';
             }
             addLine('나', userMessage);
             userInput.value = '';
             captionInput.value = '';
-            
+
             // 버튼 및 입력 비활성화
             generateImageBtn.disabled = true;
             fileInput.disabled = true;
@@ -570,9 +571,8 @@
             sttBtn.disabled = true;
             sttBtn.innerHTML = '👂';
 
-            const captionInput = qs('#captionInput');
             captionInput.value = '';
-            captionInput.placeholder = '말씀해주세요...';
+            captionInput.placeholder = '말씀해주세요';
 
             recognizer.recognizeOnceAsync(result => {
                 if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
