@@ -20,5 +20,12 @@ spec:
         name: alertmanager-slack-secret
       channel: '#monitoring-alerts'
       sendResolved: true
-      title: '[{{ .Status | toUpper }}] {{ .CommonAnnotations.summary }}'
-      text: '{{ .CommonAnnotations.description }}'
+    title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname | default "알림 발생" }}'
+    text: >-
+      {{ range .Alerts -}}
+      *요약 (Summary):* {{ .Annotations.summary }}
+      *상세 (Description):* {{ .Annotations.description }}
+      *발생 위치 (Instance):* `{{ .Labels.instance }}`
+      *로그 확인:* <{{ .GeneratorURL }}|Prometheus Graph>
+      ------------------------------------
+      {{ end }}
