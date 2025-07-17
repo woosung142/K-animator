@@ -310,9 +310,11 @@
             if (e.key === 'Enter') {
                 e.preventDefault();
                 if (generateImageBtn.disabled) return; // 중복 방지
-                generateImageBtn.disabled = true;      // 즉시 비활성화
+                generateImageBtn.disabled = true;
                 fileInput.disabled = true;
                 pasteBlocked = true;
+                userInput.readOnly = true;
+                captionInput.readOnly = true;
                 form.requestSubmit();                  // 안전한 폼 제출
             }
         });
@@ -320,9 +322,11 @@
         // 버튼 클릭시 입력
         on(generateImageBtn, 'click', () => {
             if (generateImageBtn.disabled) return;  // 중복 클릭 방지
-            generateImageBtn.disabled = true; // 버튼 즉시 비활성화
+            generateImageBtn.disabled = true;
             fileInput.disabled = true;
-            pasteBlocked = true;      
+            pasteBlocked = true;
+            userInput.readOnly = true;
+            captionInput.readOnly = true;  
             form.requestSubmit();                   // 안전한 폼 제출
         });
 
@@ -441,10 +445,12 @@
             if (selectedLayers.length === 0) return alert('하나 이상의 레이어를 선택해주세요.');
             if (!keywords) return alert('키워드를 입력해주세요.');
 
-            // === UI 비활성화 (딱 한 번만 전체 흐름에서) ===
+            // === UI 비활성화 ===
             generateImageBtn.disabled = true;
             fileInput.disabled = true;
             pasteBlocked = true;
+            userInput.readOnly = true;
+            captionInput.readOnly = true;
 
             // === 사용자 입력 표시 ===
             let userMessage = keywords;
@@ -519,11 +525,15 @@
                         generateImageBtn.disabled = false;
                         fileInput.disabled = false;
                         pasteBlocked = false;
+                        userInput.readOnly = false;
+                        captionInput.readOnly = false;
                     } else {
                         addLine('시스템', '⚠️ 이미지 생성에 실패했습니다.');
                         generateImageBtn.disabled = false;
                         fileInput.disabled = false;
                         pasteBlocked = false;
+                        userInput.readOnly = false;
+                        captionInput.readOnly = false;
                     }
                 };
                 checkStatus();
@@ -533,6 +543,8 @@
                 generateImageBtn.disabled = false;
                 fileInput.disabled = false;
                 pasteBlocked = false;
+                userInput.readOnly = false;
+                captionInput.readOnly = false;
                 clearPreview();
             }
         });
