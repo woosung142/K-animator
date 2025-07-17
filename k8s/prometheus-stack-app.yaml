@@ -35,7 +35,10 @@ spec:
             tls:
               - secretName: grafana-prtest-shop-tls
                 hosts:
-                  - grafana.prtest.shop                 
+                  - grafana.prtest.shop
+        prometheus:
+          service:
+            type: LoadBalancer                 
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
