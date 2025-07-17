@@ -345,6 +345,11 @@
 
         // 파일 다이얼로그에서 파일 선택 시
         on(fileInput, 'change', e => {
+            if (fileToSend) {
+                alert("이미 이미지가 첨부되어 있습니다. 기존 이미지를 제거하고 다시 시도하세요.");
+                fileInput.value = ''; // 선택값 초기화
+                return;
+            }
             if (e.target.files && e.target.files.length > 0) {
                 showPreview(e.target.files[0]);
             }
@@ -455,6 +460,10 @@
 
         // 클립보드 이미지 붙여넣기 처리
         on(captionInput, 'paste', e => {
+            if (fileToSend) {
+                alert("이미 이미지가 첨부되어 있습니다. 기존 이미지를 제거하고 다시 시도하세요.");
+                return;
+            }
             const items = (e.clipboardData || window.clipboardData).items;
             for (const item of items) {
                 if (item.type.startsWith('image/')) {
