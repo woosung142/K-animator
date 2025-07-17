@@ -424,58 +424,57 @@
 
         // 폼 제출(전송 버튼 클릭 또는 Enter) 시
         on(form, 'submit', async (e) => {
-            e.preventDefault(); // 기본 동작 방지
+            e.preventDefault();
+
+            // === 입력값 유효성 검사 ===
             const keywords = userInput.value.trim();
             const caption = captionInput.value.trim();
-            // 유효성 검사
-            if (!selectedCategory) {
-                alert('카테고리를 선택해주세요.');
-                return;
-            }
-            if (selectedLayers.length === 0) {
-                alert('하나 이상의 레이어를 선택해주세요.');
-                return;
-            }
-            if (!keywords) {
-                alert('키워드를 입력해주세요.');
-                return;
-            }
 
-            // 사용자 입력 표시
-            let userMessage = keywords;
-            if (fileToSend) {
-                userMessage += ' (이미지 첨부)';
-            }
-            // 장면 설명 있으면 줄바꿈 후 따로 추가
-            if (caption) {
-                userMessage += '<br>(장면 설명: ' + escapeHTML(caption) + ')';
-            }
-            addLine('나', userMessage, true, fileToSend);
-            userInput.value = '';
-            captionInput.value = '';
-            // 버튼 및 입력 비활성화
+            if (!selectedCategory) return alert('카테고리를 선택해주세요.');
+            if (selectedLayers.length === 0) return alert('하나 이상의 레이어를 선택해주세요.');
+            if (!keywords) return alert('키워드를 입력해주세요.');
+
+            // === UI 비활성화 (딱 한 번만 전체 흐름에서) ===
             generateImageBtn.disabled = true;
             fileInput.disabled = true;
             pasteBlocked = true;
 
+            // === 사용자 입력 표시 ===
+            let userMessage = keywords;
+            if (fileToSend) userMessage += ' (이미지 첨부)';
+            if (caption) userMessage += '<br>(장면 설명: ' + escapeHTML(caption) + ')';
+            addLine('나', userMessage, true, fileToSend);
+            userInput.value = '';
+            captionInput.value = '';
+
+            // === 초기화
             downloadPsdBtn.style.display = "none";
             openPsdBtn.style.display = "none";
             psdUrl = null;
             uploadedImageUrl = null;
+
             try {
-                // 1. 첨부된 파일이 있으면 서버에 업로드
+                // ✅ 이미지 업로드
                 if (fileToSend) {
+                    addLine('시스템', '🟡 이미지를 업로드 중입니다...');
                     const formData = new FormData();
                     formData.append('image_file', fileToSend);
-                    const uploadRes = await fetch('/upload-image', { method: 'POST', body: formData });
-                    if (!uploadRes.ok) throw new Error('Image upload failed');
+
+                    const uploadRes = await fetch('/upload-image', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!uploadRes.ok) throw new Error('이미지 업로드 실패');
                     const uploadResult = await uploadRes.json();
+                    if (!uploadResult.image_url) throw new Error('업로드 결과에 image_url이 없습니다.');
+
                     uploadedImageUrl = uploadResult.image_url;
                     clearPreview();
                     fileToSend = null;
+                    addLine('시스템', '✅ 이미지 업로드 완료');
                 }
 
-                // 2. 이미지 생성 요청
+                // 이미지 생성 요청
                 const res = await fetch('/api/generate-image', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -487,15 +486,17 @@
                         image_url: uploadedImageUrl || null
                     })
                 });
-                if (!res.ok) throw new Error('Failed to start image generation');
+                if (!res.ok) throw new Error('이미지 생성 요청 실패');
 
                 const { task_id } = await res.json();
                 taskId = task_id;
                 addLine('시스템', '이미지 생성을 시작했습니다. 잠시만 기다려주세요...');
 
+                // 상태 체크
                 const checkStatus = async () => {
                     const resp = await fetch(`/api/result/${task_id}`);
                     const result = await resp.json();
+
                     if (result.status === 'PENDING') {
                         setTimeout(checkStatus, 2000);
                     } else if (result.status === 'SUCCESS') {
@@ -506,14 +507,17 @@
                         openPsdBtn.style.display = "inline-block";
                         clearPreview();
                     } else {
-                        throw new Error('Image generation failed on server');
+                        throw new Error('서버에서 이미지 생성 실패');
                     }
+
+                    // 마지막에 UI 다시 활성화
                     generateImageBtn.disabled = false;
                     fileInput.disabled = false;
                     pasteBlocked = false;
                 };
                 checkStatus();
             } catch (err) {
+                console.error('[요청 실패]', err);
                 addLine('시스템', `⚠️ 요청 실패: ${err.message}`);
                 generateImageBtn.disabled = false;
                 fileInput.disabled = false;
