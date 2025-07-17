@@ -14,7 +14,7 @@ spec:
         - severity: 'warning'
   receivers:
   - name: 'slack-notifications'
-    slackConfigs:
+    slack_Configs:
     - apiURL:
         key: slackUrl
         name: alertmanager-slack-secret
