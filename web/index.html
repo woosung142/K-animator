@@ -436,11 +436,12 @@
         });
 
         // 클립보드 이미지 붙여넣기 처리
-        on(userInput, 'paste', e => {
+        on(captionInput, 'paste', e => {
             const items = (e.clipboardData || window.clipboardData).items;
             for (const item of items) {
                 if (item.type.startsWith('image/')) {
                     const file = item.getAsFile();
+                    fileToSend = file;
                     showPreview(file);
                     e.preventDefault(); // 텍스트 필드에 파일 경로 등이 붙여넣어지는 것 방지
                     break;
