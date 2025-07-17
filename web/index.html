@@ -256,6 +256,7 @@
         const downloadPsdBtn = qs('#downloadPsdBtn');
         const openPsdBtn = qs('#openPsdBtn');
         const exeDownloadBtn = qs('#exeDownloadBtn');
+        const captionInput = qs('#captionInput');
         const MAX_MB = 10; // 최대 파일 크기 (MB 단위)
 
         // 선택 버튼 관련 요소
@@ -409,12 +410,13 @@
                 userMessage += ' (이미지 첨부)';
             }
             // 장면 설명 있으면 줄바꿈 후 따로 추가
-            if (caption) {
-                userMessage += '\n(장면 설명: ' + caption + ')';
+            if (captionInput) {
+                userMessage += '\n(장면 설명: ' + captionInput + ')';
             }
             addLine('나', userMessage);
             userInput.value = '';
-
+            captionInput.value = '';
+            
             // 버튼 및 입력 비활성화
             generateImageBtn.disabled = true;
             fileInput.disabled = true;
