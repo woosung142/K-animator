@@ -31,16 +31,19 @@ async def root():
 
 # 이미지 업로드 API
 @app.post("/upload-image")
+@app.post("/upload-image")
 async def upload_image(image_file: UploadFile = File(...)):
     unique_id = uuid.uuid4().hex
     file_extension = Path(image_file.filename).suffix
     blob_name = f"{unique_id}{file_extension}"
 
     try:
+        # 비동기로 파일을 읽기
+        contents = await image_file.read()
         blob_client = blob_service_client.get_blob_client(container=AZURE_CONTAINER_NAME, blob=blob_name)
-        await blob_client.upload_blob(image_file.file, overwrite=True)
+        blob_client.upload_blob(contents, overwrite=True)
 
-        # SAS URL 생성 (유효기간 10분)
+        # SAS URL 생성
         sas_token = generate_blob_sas(
             account_name=AZURE_STORAGE_ACCOUNT_NAME,
             container_name=AZURE_CONTAINER_NAME,
@@ -53,6 +56,7 @@ async def upload_image(image_file: UploadFile = File(...)):
         return {"image_url": blob_url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Blob 업로드 실패: {e}")
+
 
 # Azure 인증 토큰 발급 API
 SPEECH_KEY = os.getenv("SPEECH_KEY")
