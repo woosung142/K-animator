@@ -11,8 +11,8 @@ spec:
     rules:
     - alert: HighCpuUsage
       #알림 조건 정의
-      expr: |
-        100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 10 #쿼리문 수정
+      expr: vector(1)
+        #100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 10 #쿼리문 수정
       for: 1m
       labels:
         severity: warning
