@@ -489,6 +489,7 @@
                         image_url: uploadedImageUrl || null
                     })
                 });
+                console.log('[generate-image 요청 res]', res);
                 if (!res.ok) throw new Error('이미지 생성 요청 실패');
 
                 const { task_id } = await res.json();
