@@ -167,11 +167,19 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
             else:
                 print("[INFO] Wikipedia 이미지 없음")
 
-        # 5. 이미지가 없어도 텍스트로만 프롬프트 생성
+        # 5. 사용자가 업로드한 이미지 추가 
+        if image_url:
+            print(f"[INFO] 사용자 업로드 이미지 추가: {image_url}")
+            images_content.append({
+                "type": "image_url",
+                "image_url": {"url": image_url}
+            })
+
+        # 6. 이미지가 없어도 텍스트로만 프롬프트 생성
         if not images_content:
             print("[INFO] 이미지 없이 텍스트만으로 프롬프트 생성")
 
-        # 6. GPT-4o 프롬프트 생성
+        # 7. GPT-4o 프롬프트 생성
         prompt_text = (
             "이 이미지들을 참고해서,\n"
             "- 한국적인 분위기가 느껴지는 웹툰 스타일의 배경 이미지를,\n"
@@ -191,13 +199,13 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
         response = client.chat.completions.create(model="gpt-4o", messages=messages, max_tokens=800, temperature=0.7)
         dalle_prompt = response.choices[0].message.content.strip()
 
-        # 6. DALL·E 3 이미지 생성
+        # 8. DALL·E 3 이미지 생성
         dalle_response = client.images.generate(model="dall-e-3", prompt=dalle_prompt, size="1024x1024", n=1)
         image_url = dalle_response.data[0].url
         dalle_image_data = requests.get(image_url).content
         dalle_img = Image.open(BytesIO(dalle_image_data))
 
-        # 6. Blob 저장: png/ 하위에 저장
+        # 9. Blob 저장: png/ 하위에 저장
         png_buffer = BytesIO()
         dalle_img.save(png_buffer, format="PNG")
         png_buffer.seek(0)
@@ -205,7 +213,7 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
         container_client.upload_blob(name=filename_png, data=png_buffer, overwrite=True)
         png_url = generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_png)
 
-        # 7. PSD 변환 후 psd/ 하위에 저장
+        # 10. PSD 변환 후 psd/ 하위에 저장
         temp_png_path = f"/tmp/{task_id}.png"
         temp_psd_path = f"/tmp/{task_id}.psd"
         dalle_img.save(temp_png_path, format="PNG")

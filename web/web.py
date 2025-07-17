@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
+from PIL import Image
+import io
 import os
 import requests
 from pathlib import Path
@@ -15,40 +17,53 @@ AZURE_STORAGE_ACCOUNT_NAME = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
 AZURE_STORAGE_ACCOUNT_KEY = os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
 AZURE_CONTAINER_NAME = "user-uploads"
 
+# 업로드 최대 허용 용량
+MAX_MB = 10
+MAX_SIZE = MAX_MB * 1024 * 1024
+
 # Blob 클라이언트 초기화
 blob_service_client = BlobServiceClient(
     account_url=f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net",
     credential=AZURE_STORAGE_ACCOUNT_KEY
 )
-# 정적 파일 서빙 디렉토리 마운트
-# app.mount("/static", StaticFiles(directory=BASE_DIR / "templates"), name="static")
 
-# 메인 페이지
 @app.get("/")
 async def root():
     return FileResponse("index.html")
 
-# 이미지 업로드 API
-
+# 이미지 업로드 및 리사이징 API
 @app.post("/upload-image")
 async def upload_image(image_file: UploadFile = File(...)):
     unique_id = uuid.uuid4().hex
     file_extension = Path(image_file.filename).suffix
-    blob_name = f"{unique_id}{file_extension}"
+    blob_name = f"{unique_id}.png"  # 통일된 확장자 사용
 
     try:
         contents = await image_file.read()
-
-        # 파일 크기 제한 검사
+        
+        # 파일 크기 체크
         if len(contents) > MAX_SIZE:
             raise HTTPException(status_code=413, detail=f"이미지 크기는 최대 {MAX_MB}MB까지 허용됩니다.")
+
+        # PIL 이미지 열기 및 리사이즈 (최대 1024px)
+        image = Image.open(io.BytesIO(contents))
+        image = image.convert("RGB")
+        image.thumbnail((1024, 1024))
+
+        # PNG로 저장 (압축)
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG", optimize=True)
+        buffer.seek(0)
 
         # Blob 업로드
         blob_client = blob_service_client.get_blob_client(
             container=AZURE_CONTAINER_NAME,
             blob=blob_name
         )
-        blob_client.upload_blob(contents, overwrite=True)
+        blob_client.upload_blob(buffer.getvalue(), overwrite=True)
+
+        # 버퍼 초기화 (리소스 해제 목적)
+        buffer.close()
 
         # SAS URL 생성
         sas_token = generate_blob_sas(
@@ -64,12 +79,11 @@ async def upload_image(image_file: UploadFile = File(...)):
         return {"image_url": blob_url}
 
     except HTTPException:
-        raise  # 그대로 다시 raise
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Blob 업로드 실패: {e}")
 
-
-# Azure 인증 토큰 발급 API
+# Azure Speech 토큰 발급 API
 SPEECH_KEY = os.getenv("SPEECH_KEY")
 SPEECH_REGION = os.getenv("SPEECH_REGION")
 
