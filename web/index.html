@@ -223,7 +223,7 @@
         <input id="captionInput" type="text" placeholder="장면 설명을 입력하세요"
             style="flex: 1; padding: .5rem .75rem; font-size: 1rem;
                     border: 1px solid #d1d5db; border-radius: .75rem;" />
-        <button type="submit" id="generateImageBtn">🎨</button>
+        <button type="button" id="generateImageBtn">🎨</button>
         <button type="button" id="sttBtn">🎤</button>
         <input type="file" id="fileInput" accept="image/*" style="display: none;" />
     </div>
@@ -399,7 +399,7 @@
                 alert('하나 이상의 레이어를 선택해주세요.');
                 return;
             }
-            if (!keywords && !fileToSend) {
+            if (!keywords) {
                 alert('키워드를 입력하거나 이미지를 추가해주세요.');
                 return;
             }
@@ -412,7 +412,7 @@
             // 장면 설명 있으면 줄바꿈 후 따로 추가
             const caption = captionInput.value.trim();
             if (caption) {
-                userMessage += '\n(장면 설명: ' + caption + ')';
+                userMessage += '<br>(장면 설명: ' + caption + ')';
             }
             addLine('나', userMessage);
             userInput.value = '';
