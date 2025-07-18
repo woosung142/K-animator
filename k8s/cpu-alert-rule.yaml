@@ -12,11 +12,11 @@ spec:
     - alert: HighCpuUsage
       #알림 조건 정의
       expr: |
-        100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 10 #쿼리문 수정
+        100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 1 #쿼리문 수정
       for: 1m
       labels:
         severity: warning
       #알림 메시지 내용
       annotations:
-        summary: "asd {{ $labels.instance }} asdads"
-        description: "asad {{ $labels.instance }} Cdasdadasd: {{ $value | printf `%.2f` }}%."
+        summary: "인스턴스 {{ $labels.instance }} CPU 사용량 높음"
+        description: "인스턴스 {{ $labels.instance }}의 CPU 사용량이 임계치를 초과했습니다. 현재 사용량: {{ $value | printf `%.2f` }}%"
