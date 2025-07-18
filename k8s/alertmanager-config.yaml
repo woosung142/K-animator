@@ -23,7 +23,7 @@ spec:
         name: alertmanager-slack-secret
       channel: '#monitoring-alerts'
       sendResolved: true
-      title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname | default "알림 발생" }}'
+      title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ if .CommonLabels.alertname }}{{ .CommonLabels.alertname }}{{ else }}알림 발생{{ end }}'
       text: >-
         {{ range .Alerts -}}
         *요약 (Summary):* {{ .Annotations.summary }}
