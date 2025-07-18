@@ -13,8 +13,7 @@ spec:
       values: |
         crds:
           enabled: false
-
-        prometheusOperator:
+        prometheus-operator:
           enabled: true
         # ----------------- Alertmanager 설정 -----------------
         alertmanager:
