@@ -11,9 +11,9 @@ spec:
   route:
     # 모든 알림을 이 리시버로 보냅니다.
     receiver: 'slack-notifications'
-    repeat_interval: 5m
     # 하위 규칙을 비워서 모든 알림이 위 리시버로 가도록 합니다.
     routes: []
+  repeat_interval: 5m  
 
   receivers:
   - name: 'slack-notifications'
