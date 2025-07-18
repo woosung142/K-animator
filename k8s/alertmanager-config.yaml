@@ -16,7 +16,7 @@ spec:
 
   receivers:
   - name: 'slack-notifications'
-    slack_configs:
+    slackConfigs:
     - apiURL:
         # Slack Webhook URL이 저장된 Secret을 가리킵니다.
         key: slackUrl

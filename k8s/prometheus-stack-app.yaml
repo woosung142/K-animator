@@ -11,6 +11,8 @@ spec:
     targetRevision: 58.0.0
     helm:
       values: |
+        prometheusOperator:
+          enabled: true
         # ----------------- Alertmanager 설정 -----------------
         alertmanager:
           alertmanagerSpec:
