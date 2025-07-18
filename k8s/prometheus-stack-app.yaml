@@ -17,7 +17,16 @@ spec:
           enabled: true
         # ----------------- Alertmanager 설정 -----------------
         alertmanager:
+          config:
+            global:
+              resolve_timeout: 5m
           alertmanagerSpec:
+            alertmanagerConfigSelector:
+              matchLabels:
+                alertmanagerConfig: main  # ← AlertmanagerConfig의 labels와 동일해야 함
+          alertmanagerConfigNamespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring  # ← AlertmanagerConfig가 있는 namespace
             externalUrl: http://alertmanager.prtest.shop
           # [수정] 서비스 타입을 ClusterIP로 변경
           service:

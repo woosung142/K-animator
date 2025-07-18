@@ -4,6 +4,8 @@ metadata:
   name: slack-config
   namespace: monitoring
   labels:
+    alertmanagerConfig: main  # AlertmanagerConfig의 라벨
+    # 이 라벨은 Alertmanager가 이 설정을 인식하도록 합니다.
     # 이 라벨이 있어야 Operator가 설정을 자동으로 불러옵니다.
     # ArgoCD의 릴리즈 이름과 일치해야 합니다.
     release: prometheus-stack
