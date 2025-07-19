@@ -5,7 +5,7 @@ metadata:
   namespace: monitoring
   labels:
     # Operator가 이 설정을 선택하도록 하는 라벨입니다.
-    alertmanagerConfig: slack
+    alertmanagerConfig: main
 spec:
   route:
     # 모든 알림의 기본 수신자
