@@ -16,7 +16,7 @@ spec:
     matchers:
       - name: warning
         value: main
-        matchType:"="
+        matchType: "="
 
     # 하위 규칙은 비워둠
     routes: []
