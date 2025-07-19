@@ -9,16 +9,16 @@ metadata:
 spec:
   route:
     # 모든 알림의 기본 수신자
-    receiver: 'slack-notifications'
+    receiver: "slack-notifications"
 
     # 5분마다 알림을 반복하도록 설정 (route 내부에 위치해야 함)
-    repeat_interval: 5m
+    repeatInterval: 5m
 
     # 하위 규칙은 비워둠
     routes: []
 
   receivers:
-  - name: 'slack-notifications'
+  - name: "slack-notifications"
     slackConfigs:
     - apiURL:
         key: slackUrl
