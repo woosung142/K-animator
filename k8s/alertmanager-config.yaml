@@ -13,14 +13,7 @@ spec:
 
     # 5분마다 알림을 반복하도록 설정 (route 내부에 위치해야 함)
     repeatInterval: 5m
-    matchers:
-      - name: warning
-        value: main
-        matchType: "="
-
-    # 하위 규칙은 비워둠
-    routes: []
-
+    
   receivers:
   - name: "slack"
     slackConfigs:
