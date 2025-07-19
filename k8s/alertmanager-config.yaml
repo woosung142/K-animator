@@ -4,24 +4,23 @@ metadata:
   name: slack-config
   namespace: monitoring
   labels:
-    alertmanagerConfig: main  # AlertmanagerConfig의 라벨
-    # 이 라벨은 Alertmanager가 이 설정을 인식하도록 합니다.
-    # 이 라벨이 있어야 Operator가 설정을 자동으로 불러옵니다.
-    # ArgoCD의 릴리즈 이름과 일치해야 합니다.
-    release: prometheus-stack
+    # Operator가 이 설정을 선택하도록 하는 라벨입니다.
+    alertmanagerConfig: slack
 spec:
   route:
-    # 모든 알림을 이 리시버로 보냅니다.
+    # 모든 알림의 기본 수신자
     receiver: 'slack-notifications'
-    # 하위 규칙을 비워서 모든 알림이 위 리시버로 가도록 합니다.
+
+    # 5분마다 알림을 반복하도록 설정 (route 내부에 위치해야 함)
+    repeatInterval: 5m
+
+    # 하위 규칙은 비워둠
     routes: []
-    repeatInterval: 5m  
 
   receivers:
   - name: 'slack-notifications'
     slackConfigs:
     - apiURL:
-        # Slack Webhook URL이 저장된 Secret을 가리킵니다.
         key: slackUrl
         name: alertmanager-slack-secret
       channel: '#monitoring-alerts'
