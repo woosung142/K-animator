@@ -12,21 +12,61 @@ spec:
     helm:
       values: |
         crds:
-          enabled: false
+          enabled: true
         prometheus-operator:
           enabled: true
         # ----------------- Alertmanager 설정 -----------------
         alertmanager:
+          # --- Slack 알림을 위한 config 섹션 추가 ---
           config:
             global:
               resolve_timeout: 5m
+            route:
+              receiver: 'slack-notifications'
+              groupBy: ['alertname', 'job']
+              group_wait: 30s
+              group_interval: 5m
+              repeat_interval: 5m
+            receivers:
+            - name: 'slack-notifications'
+              slack_configs:
+              - api_url_secret:
+                  name: alertmanager-slack-secret
+                  key: slackUrl
+                channel: '#monitoring-alerts'
+                send_resolved: true
+                title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ if .CommonLabels.alertname }}{{ .CommonLabels.alertname }}{{ else }}알림 발생{{ end }}'
+                text: >-
+                  {{ range .Alerts -}}
+                  *요약 (Summary):* {{ .Annotations.summary }}
+                  *상세 (Description):* {{ .Annotations.description }}
+                  *발생 위치 (Instance):* `{{ .Labels.instance }}`
+                  *로그 확인:* <{{ .GeneratorURL }}|Prometheus Graph>
+                  ------------------------------------
+                  {{ end }}
+          # --------------------------------------------
           alertmanagerSpec:
-            alertmanagerConfigSelector:
-              matchLabels:
-                alertmanagerConfig: main  # ← AlertmanagerConfig의 labels와 동일해야 함
-          alertmanagerConfigNamespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: monitoring  # ← AlertmanagerConfig가 있는 namespace
+            configSecret: alertmanager-prometheus-stack-kube-prom-alertmanager-generated
+            externalUrl: http://alertmanager.prtest.shop
+          # [수정] 서비스 타입을 ClusterIP로 변경
+          service:
+            type: ClusterIP
+          # [추가] Alertmanager Ingress 활성화
+          ingress:
+            enabled: true
+            ingressClassName: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            hosts:
+              - alertmanager.prtest.shop
+            paths:
+              - /
+            tls:
+              - secretName: alertmanager-prtest-shop-tls
+                hosts:
+                  - alertmanager.prtest.shop
+          
+          alertmanagerSpec:
             externalUrl: http://alertmanager.prtest.shop
           # [수정] 서비스 타입을 ClusterIP로 변경
           service:
