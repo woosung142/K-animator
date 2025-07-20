@@ -7,14 +7,14 @@ metadata:
     alertmanagerConfig: main
 spec:
   route:
-    receiver: 'slack-notifications' # 1. 이름 단순화
+    receiver: "slack-notifications" # 1. 이름 단순화
     groupBy: ['alertname', 'job'] # 2. 그룹핑 기준 추가
     groupWait: 30s
     groupInterval: 5m
     repeatInterval: 1h
     
   receivers:
-  - name: 'slack-notifications' # 1. 이름 단순화
+  - name: "slack-notifications" # 1. 이름 단순화
     slackConfigs:
     - apiURL:
         key: slackUrl
