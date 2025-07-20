@@ -12,7 +12,8 @@ spec:
     receiver: slack
 
     # 5분마다 알림을 반복하도록 설정 (route 내부에 위치해야 함)
-    repeatInterval: 5m
+    groupiInterval: 30s
+    repeatInterval: 1m
 
   receivers:
   - name: slack
