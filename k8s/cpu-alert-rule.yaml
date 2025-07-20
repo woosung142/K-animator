@@ -17,5 +17,5 @@ spec:
         severity: warning
       #알림 메시지 내용
       annotations:
-        summary: "인스턴스 {{ $labels.instance }} CPU 사용량 높음"
-        description: "인스턴스 {{ $labels.instance }}의 CPU 사용량이 임계치를 초과했습니다. 현재 사용량: {{ $value | printf `%.2f` }}%"
+        summary: "High CPU usage on instance {{ $labels.instance }}"
+        description: "The CPU usage on instance {{ $labels.instance }} has exceeded the threshold. Current usage: {{ $value | printf `%.2f` }}%"
