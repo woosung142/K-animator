@@ -4,16 +4,17 @@ metadata:
   name: slack-config
   namespace: monitoring
   labels:
-    # Operator가 이 설정을 선택하도록 하는 라벨입니다.
     alertmanagerConfig: main
 spec:
   route:
-    receiver: "monitoring/slack-config/slack"
-    groupInterval: 30s
-    repeatInterval: 1m
-
+    receiver: 'slack-notifications' # 1. 이름 단순화
+    groupBy: ['alertname', 'job'] # 2. 그룹핑 기준 추가
+    groupWait: 30s
+    groupInterval: 5m
+    repeatInterval: 1h
+    
   receivers:
-  - name: "monitoring/slack-config/slack"
+  - name: 'slack-notifications' # 1. 이름 단순화
     slackConfigs:
     - apiURL:
         key: slackUrl
