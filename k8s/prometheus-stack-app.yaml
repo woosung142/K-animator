@@ -82,7 +82,7 @@ spec:
           # [추가] Prometheus가 자신의 외부 URL을 알도록 설정
           prometheusSpec:
             externalUrl: http://prometheus.prtest.shop
-          alertmanagerConfig:
+          alertmanagerConfigSelector:
             matchingLabels:
               alertmanagerConfig: main
           # [수정] 서비스 타입을 ClusterIP로 변경
