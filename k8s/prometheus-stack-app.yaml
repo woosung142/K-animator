@@ -83,7 +83,7 @@ spec:
           prometheusSpec:
             externalUrl: http://prometheus.prtest.shop
           alertmanagerConfigSelector:
-            matchingLabels:
+            matchLabels:
               alertmanagerConfig: main
           # [수정] 서비스 타입을 ClusterIP로 변경
           service:
