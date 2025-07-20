@@ -94,8 +94,9 @@ spec:
               - secretName: prometheus-prtest-shop-tls
                 hosts:
                   - prometheus.prtest.shop
-    server: https://kubernetes.default.svc
+  destination:
     namespace: monitoring
+    server: https://kubernetes.default.svc
   syncPolicy:
     automated:
       prune: true
