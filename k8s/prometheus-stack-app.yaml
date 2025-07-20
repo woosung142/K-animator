@@ -12,14 +12,17 @@ spec:
     helm:
       values: |
         crds:
-          enabled: true
+          enabled: false
         prometheus-operator:
           enabled: true
         # ----------------- Alertmanager 설정 -----------------
         alertmanager:
           alertmanagerSpec:
-            configSecret: alertmanager-prometheus-stack-kube-prom-alertmanager-generated
+            #configSecret: alertmanager-prometheus-stack-kube-prom-alertmanager-generated
             externalUrl: http://alertmanager.prtest.shop
+            alertmanagerConfigSelector:
+              matchLabels:
+                alertmanagerConfig: main
           # [수정] 서비스 타입을 ClusterIP로 변경
           service:
             type: ClusterIP
@@ -37,27 +40,6 @@ spec:
               - secretName: alertmanager-prtest-shop-tls
                 hosts:
                   - alertmanager.prtest.shop
-          
-          alertmanagerSpec:
-            externalUrl: http://alertmanager.prtest.shop
-          # [수정] 서비스 타입을 ClusterIP로 변경
-          service:
-            type: ClusterIP
-          # [추가] Alertmanager Ingress 활성화
-          ingress:
-            enabled: true
-            ingressClassName: nginx
-            annotations:
-              cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            hosts:
-              - alertmanager.prtest.shop
-            paths:
-              - /
-            tls:
-              - secretName: alertmanager-prtest-shop-tls
-                hosts:
-                  - alertmanager.prtest.shop
-
         # ----------------- Grafana 설정 -----------------
         grafana:
           existingSecret: "grafana-admin-credentials"
@@ -82,9 +64,6 @@ spec:
           # [추가] Prometheus가 자신의 외부 URL을 알도록 설정
           prometheusSpec:
             externalUrl: http://prometheus.prtest.shop
-            alertmanagerConfigSelector:
-              matchLabels:
-                alertmanagerConfig: main
           # [수정] 서비스 타입을 ClusterIP로 변경
           service:
             type: ClusterIP
