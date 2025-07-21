@@ -1,7 +1,9 @@
 from fastapi import FastAPI, Request, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
 from PIL import Image
 import io
 import os
@@ -24,6 +26,24 @@ SPEECH_REGION = os.getenv("SPEECH_REGION")
 # 업로드 최대 허용 용량
 MAX_MB = 10
 MAX_SIZE = MAX_MB * 1024 * 1024
+
+# 업로드 크기 제한 해제 미들웨어 정의
+class LimitUploadSizeMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, max_upload_size: int):
+        super().__init__(app)
+        self.max_upload_size = max_upload_size
+
+    async def dispatch(self, request: Request, call_next):
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > self.max_upload_size:
+            return Response(
+                content=f"파일 크기가 너무 큽니다. 최대 {self.max_upload_size // (1024 * 1024)}MB까지 허용됩니다.",
+                status_code=413
+            )
+        return await call_next(request)
+
+# FastAPI 앱에 미들웨어 적용
+app.add_middleware(LimitUploadSizeMiddleware, max_upload_size=MAX_SIZE)
 
 # Blob 클라이언트 초기화
 blob_service_client = BlobServiceClient(
