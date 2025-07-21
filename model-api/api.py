@@ -26,11 +26,15 @@ class PromptRequest(BaseModel):
     layer: str
     tag: str
     caption_input: str | None = None
-    image_url: str | None = None  
+    image_url: str | None = None
 
-@app.post("/api/generate-image")
-async def generate_image(request: PromptRequest):
-    print("[실제 전달받은 요청]", request.dict())
+class FinalPromptRequest(BaseModel):
+    dalle_prompt: str  
+
+@app.post("/api/generate-prompt")
+async def generate_prompt_endpoint(request: PromptRequest):
+    data = await request.json()
+    print("[실제 전달받은 요청 JSON]", data)
     print(f"[REQUEST] POST /api/generate-image")
     print(f"[DATA] category: {request.category}")
     print(f"[DATA] layer: {request.layer}")
@@ -49,6 +53,16 @@ async def generate_image(request: PromptRequest):
         ]
     )
     print(f"[TASK] Celery task 전송 완료 - task_id: {task.id}")
+    return {"task_id": task.id}
+
+@app.post("/api/generate-image-from-prompt")
+async def generate_image_from_prompt(request: FinalPromptRequest):
+    print("[REQUEST] POST /api/generate-image-from-prompt")
+    task = celery_app.send_task(
+        "generate_final_image",
+        args=[request.dalle_prompt]
+    )
+    print(f"[TASK]celery 'generate_final_image' task 전송 완료 - task_id: {task.id}")
     return {"task_id": task.id}
 
 @app.get("/api/result/{task_id}")
