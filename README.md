@@ -1,6 +1,73 @@
-## 아키텍처 구조
+<p align="left">
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white" />
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white" />
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black" />
+  <img src="https://img.shields.io/badge/Microsoft%20Speech%20SDK-0078D7?style=flat&logo=microsoft&logoColor=white" />
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white" />
+  <img src="https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Celery-37814A?style=flat&logo=celery&logoColor=white" />
+  <img src="https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white" />
+  <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=flat&logo=pytorch&logoColor=white" />
+  <img src="https://img.shields.io/badge/HuggingFace-FFD21F?style=flat&logo=huggingface&logoColor=black" />
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/Azure-0078D4?style=flat&logo=microsoftazure&logoColor=white" />
+  <img src="https://img.shields.io/badge/OpenAI-412991?style=flat&logo=openai&logoColor=white" />
+  <img src="https://img.shields.io/badge/Kubernetes-326CE5?style=flat&logo=kubernetes&logoColor=white" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white" />
+  <img src="https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat&logo=githubactions&logoColor=white" />
+  <img src="https://img.shields.io/badge/Argo%20CD-FB8B00?style=flat&logo=argo&logoColor=white" />
+  <img src="https://img.shields.io/badge/Prometheus-E6522C?style=flat&logo=prometheus&logoColor=white" />
+  <img src="https://img.shields.io/badge/Grafana-F46800?style=flat&logo=grafana&logoColor=white" />
+</p>
 
-![아키텍처 구조](./포드.png)
+## 한국풍 웹툰 배경 이미지 생성기
+https://www.prtest.shop/
+
+## 실제 화면 구조
+
+<img src="./실제ui.png" alt="실제 UI" style="width: 50%;" />
+
+## 사용 기술 스택 정리
+
+### 1. 프론트엔드
+- **HTML/CSS**: 사용자 인터페이스 구성 (카테고리, 레이어, 썸네일 등)
+- **JavaScript**: 입력 이벤트 처리, 이미지 첨부/미리보기, API 요청 전송
+- **Microsoft Speech SDK**: 웹 마이크 입력(STT) 기능 구현
+
+### 2. 웹 서버 & API
+- **FastAPI**: RESTful API 구현 (업로드, STT 토큰 발급, Celery 태스크 등록 등)
+- **Pydantic**: 요청 데이터 유효성 검사 및 모델 정의
+- **Pillow (PIL)**: 이미지 리사이징 및 PNG 변환 처리
+- **Azure Blob Storage**: 이미지 파일 저장 및 SAS URL 발급
+
+### 3. 비동기 처리 및 AI 이미지 생성
+- **Celery**: 비동기 태스크 큐 처리 (프롬프트 생성, 이미지 생성 등)
+- **Redis**: 작업 큐 브로커 및 결과 상태 저장소
+- **KoCLIP (Hugging Face Transformers)**: 한국어 문장 임베딩
+- **PyTorch**: KoCLIP 모델 로딩 및 임베딩 계산
+- **PostgreSQL**: 벡터 유사도 기반 유사 이미지 검색 (벡터 DB 기능)
+- **Azure OpenAI GPT-4o**: 프롬프트 자동 생성 (텍스트+이미지 기반)
+- **Azure OpenAI DALL·E 3**: 텍스트 기반 이미지 생성
+- **ImageMagick (`convert`)**: 생성 이미지 PNG → PSD 변환
+
+### 4. 인프라 & 클라우드 환경
+- **Docker**: 컨테이너 기반 서비스 구성
+- **Kubernetes (AKS)**: Azure Kubernetes Service 기반 클러스터 운영
+- **Ingress-NGINX**: 외부 요청을 클러스터 내부 서비스로 라우팅
+- **Azure Blob Storage**: 클라우드 스토리지로 이미지 저장소 구성
+- **Azure OpenAI**: AI 모델 API 호스팅 플랫폼 (GPT-4o, DALL·E 3 포함)
+
+### 5. CI/CD & 배포 자동화
+- **GitHub Actions**: 자동화된 Docker 빌드 및 레지스트리 푸시
+- **Argo CD**: GitOps 기반 Kubernetes 배포 자동화
+
+### 6. 모니터링 & 로깅
+- **Prometheus**: 애플리케이션 및 노드 메트릭 수집
+- **Grafana**: 실시간 리소스 시각화
+
+## Kubernetes 리소스 구조
+
+![Kubernetes 리소스 구조](./포드.png)
 
 ## 사용자 요청 처리 과정
 
@@ -23,9 +90,9 @@
 ```
 ---
 
-## 전체 포드 아키텍처 요약
+## 주요 POD 요약
 
-| 포드 이름          | 설명            | 주요 기능                    | 관련 파일                  |
+| POD 이름          | 설명            | 주요 기능                    | 관련 파일                  |
 | -------------- | ------------- | ------------------------ | ---------------------- |
 | `web`          | 사용자와의 UI 상호작용 | 입력, 이미지 첨부, STT, 결과 표시   | `index.html`, `web.py` |
 | `model-api`    | API 중계        | Celery 작업 요청 및 결과 확인     | `api.py`               |
@@ -36,7 +103,7 @@
 
 ## 웹 프론트엔드 (`web/index.html`) 설명
 
-### 포드 이름: `web`
+### POD 이름: `web`
 
 ### 주요 역할:
 
@@ -53,11 +120,11 @@
 #### 1. **카테고리 & 레이어 선택**
 
 * 사용자가 버튼을 클릭해서 한 가지 카테고리와 한 가지 레이어를 선택
-* `.selection-btn` 클래스와 `selected` 상태로 UI 반영
+
 
 #### 2. **텍스트 입력 (키워드 + 장면 설명)**
 
-* 키워드는 `input#userInput`, 장면 설명은 `textarea#captionInput`
+* 키워드는 `userInput`, 장면 설명은 `captionInput`
 * `Enter` 키를 누르면 이미지 생성 요청 실행
 
 #### 3. **마이크 음성 입력 (STT)**
@@ -67,7 +134,7 @@
 
 #### 4. **이미지 첨부**
 
-* 이미지 드래그, 붙여넣기, 또는 파일 선택으로 업로드 가능
+* 붙여넣기, 파일 선택으로 업로드 가능
 * 최대 10MB 제한, 썸네일 미리보기 UI 포함
 * 서버에 먼저 업로드한 후 URL을 생성해서 API 요청에 포함시킴
 
@@ -76,7 +143,7 @@
 * `/upload-image`: 이미지가 있을 경우 먼저 업로드
 * `/api/generate-image`: 전체 요청 전송
 
-  * `category`, `layer`, `tag`, `caption_input`, `image_url` 포함
+* `category`, `layer`, `tag`, `caption_input`, `image_url` 포함
 * `/api/result/<task_id>`: 결과 조회를 위한 상태 체크
 
 #### 6. **응답 처리**
@@ -87,28 +154,16 @@
 
 ---
 
-### 🧾 이 포드에서 처리하는 전체 흐름
-
-```
-[ 사용자 입력 ]
-   ↓
-[ index.html: UI 처리, 이미지 업로드, API 요청 전송 ]
-   ↓
-[ 결과 수신 → 화면에 이미지 & PSD 다운로드 버튼 표시 ]
-```
-
----
-
 ## 웹 백엔드 (`web/web.py`) 설명
 
-### 포드 이름: `web` (웹 프론트엔드와 같은 포드에 포함)
+### POD 이름: `web` (웹 프론트엔드와 같은 POD에 포함)
 
 ### 주요 역할:
 
 * 사용자가 첨부한 이미지를 **Azure Blob Storage에 업로드**
 * **마이크 입력용 음성 인식 토큰 발급** (Azure Speech API용)
 * 정적 파일 제공 (`index.html`)
-* 이 포드는 프론트엔드와 백엔드를 함께 실행하는 **전체 UI 담당 포드**
+* 이 POD는 프론트엔드와 백엔드를 함께 실행하는 **전체 UI 담당 POD**
 
 ---
 
@@ -119,9 +174,9 @@
 * 사용자가 선택하거나 붙여넣은 이미지 파일을 받음
 * \*\*Pillow(PIL)\*\*로 리사이즈 (최대 1024px, RGB 변환 → PNG 저장)
 * **Azure Blob Storage**에 이미지 업로드
-* **읽기 전용 SAS URL**을 생성해서 클라이언트에 전달
+* **읽기 전용 SAS URL(10분)**을 생성해서 클라이언트에 전달
 
-→ ⚙️ 사용처: `index.html`에서 이미지 첨부 시 호출
+→ 사용처: `index.html`에서 이미지 첨부 시 호출
 
 ---
 
@@ -142,33 +197,9 @@
 
 ---
 
-### 기타 구성 요소
-
-* 환경변수:
-
-  * `AZURE_STORAGE_ACCOUNT_NAME`, `AZURE_STORAGE_ACCOUNT_KEY`: Blob Storage 연결 정보
-  * `SPEECH_KEY`, `SPEECH_REGION`: Azure STT 인증 정보
-* 의존 라이브러리:
-
-  * `fastapi`, `requests`, `Pillow`, `azure-storage-blob`
-
----
-
-### 전체 흐름 내 위치
-
-```
-[ index.html (웹 프론트) ]
-   ↓
-[ web.py (업로드 처리 및 음성 토큰 발급) ]
-   ↓
-[ Azure Blob Storage / Azure Speech API 연동 ]
-```
-
----
-
 ## 모델 API 서버 (`model-api/api.py`) 설명
 
-### 포드 이름: `model-api`
+### POD 이름: `model-api`
 
 ### 주요 역할:
 
@@ -211,32 +242,9 @@
 → 사용처: 프론트엔드에서 생성 완료 여부 확인용
 
 ---
-
-### 기타 설정
-
-* **Celery 연결**: Redis를 브로커 및 백엔드로 사용 (`redis://redis:6379/0`)
-* **CORS 허용**: 개발 편의상 모든 origin 허용(`'*'`)
-
----
-
-### 이 포드의 전체 흐름 내 위치
-
-```
-[ 사용자 입력 API 호출 ]
-   ↓
-[ model-api (FastAPI) - Celery 작업 등록 ]
-   ↓
-[ Celery 워커에서 비동기 처리 → Redis에 결과 저장 ]
-   ↓
-[ model-api가 상태 확인 후 사용자에게 결과 URL 반환 ]
-```
-
----
-
-
 ## 모델 워커 (`model-worker/worker.py`) 설명
 
-### 포드 이름: `model-worker`
+### POD 이름: `model-worker`
 
 ### 주요 역할:
 
@@ -276,20 +284,6 @@
 * `Azure Blob Storage`: 이미지 업로드 및 퍼블릭 URL 제공
 * `psycopg2`: PostgreSQL에서 벡터 유사 이미지 조회
 * `PIL + ImageMagick`: 이미지 리사이징 및 포맷 변환
-
----
-
-### 전체 흐름 내 위치
-
-```
-[ model-api 포드 → Celery에 작업 요청 ]
-   ↓
-[ model-worker 포드가 GPU/모델 기반으로 프롬프트 생성 ]
-   ↓
-[ OpenAI API를 통해 이미지 생성 → Blob에 저장 ]
-   ↓
-[ 결과 URL 반환 → Redis → model-api → 사용자 ]
-```
 
 ---
 
