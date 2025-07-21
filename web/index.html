@@ -252,6 +252,7 @@
                 overflow-y: hidden;
                 resize: none;
                 font-size: 1rem;
+                font-family: inherit;     
                 line-height: 1.5rem;
                 padding: .65rem .75rem;
                 padding-right: 2.75rem;
@@ -316,7 +317,7 @@
     <button id="downloadPsdBtn" style="display: none;">.PSD 다운로드</button>
     <button id="openPsdBtn" style="display: none;">PSD 자동 실행</button>
     </div>
-        <script>
+    <script>
     // 자동 높이 조절
     function autoGrow(el) {
         el.style.height = 'auto';
@@ -350,6 +351,10 @@
         const currentLines = scrollHeight / lineHeight;
         el.style.overflowY = currentLines > maxLines ? 'auto' : 'hidden';
     }
+    window.addEventListener('DOMContentLoaded', () => {
+    const caption = document.getElementById('captionInput');
+    autoGrow(caption);
+    });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
     <script>
