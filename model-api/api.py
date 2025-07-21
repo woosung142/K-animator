@@ -33,7 +33,7 @@ class FinalPromptRequest(BaseModel):
 
 @app.post("/api/generate-prompt")
 async def generate_prompt_endpoint(request: PromptRequest):
-    data = await request.json()
+    #data = await request.json()
     print("[실제 전달받은 요청 JSON]", data)
     print(f"[REQUEST] POST /api/generate-image")
     print(f"[DATA] category: {request.category}")

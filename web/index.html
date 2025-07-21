@@ -613,7 +613,7 @@
             // === 사용자 입력 표시 ===
             let userMessage = keywords;
             if (fileToSend) userMessage += ' (이미지 첨부)';
-            if (caption) userMessage += '<br>(장면 설명: ${escapeHTML(caption)})';
+            if (caption) userMessage += `<br>(장면 설명: ${escapeHTML(caption)})`;
             addLine('나', userMessage, true, fileToSend);
             userInput.value = '';
             captionInput.value = '';
@@ -688,8 +688,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        task_id: dalle_prompt,
-                        prompt: finalPrompt
+                        dalle_prompt: finalPrompt
                     })
                 });
                 if (!res.ok) throw new Error('최종 이미지 생성 요청 실패');
