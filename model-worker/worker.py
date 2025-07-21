@@ -107,13 +107,14 @@ def get_wikipedia_main_image(tag):
     return None
 
 
-@celery_app.task(name="generate_image", bind=True)
-def generate_image(self, category: str, layer: str, tag: str, caption_input: str | None = None, image_url: str | None = None) -> dict:
+# 메인 태스크
+@celery_app.task(name="generate_prompt", bind=True)
+def generate_prompt(self, category: str, layer: str, tag: str, caption_input: str | None = None, image_url: str | None = None) -> dict:
     try:
         task_id = self.request.id
-        print(f"[TASK] generate_image 시작 - task_id: {task_id}")
+        print(f"[TASK] generate_prompt 시작 - task_id: {task_id}")
         print(f"[INPUT] category: {category}, layer: {layer}, tag: {tag}, caption_input: {caption_input}, image_url: {image_url}")
-
+        
         # 1. KoCLIP 임베딩
         text_to_embed = caption_input if caption_input else f"{tag}가 포함된 한국 웹툰 이미지를 그려주세요."
         print(f"[STEP 1] 임베딩 대상 텍스트: {text_to_embed}")
@@ -121,26 +122,28 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
         vector_str = "[" + ",".join([str(x) for x in embedding_vector]) + "]"
         print(f"[STEP 1] 생성된 임베딩 벡터 길이: {len(embedding_vector)}")
 
+        # 이미지 선택 로직
         images_content = []
 
-        # 2. 사용자 업로드 이미지가 있으면 우선 추가
-        if image_url and image_url.strip().lower().startswith("http"):
-            print(f"[STEP 2] 사용자 업로드 이미지 추가: {image_url}")
+        # 2-1. 사용자 업로드 이미지 우선 추가
+        if image_url:
+            print(f"[STEP 2-1] 사용자 업로드 이미지 추가: {image_url}")
             images_content.append({
                 "type": "image_url",
                 "image_url": {"url": image_url}
             })
-        else:
-            print("[STEP 2] 사용자 이미지 없음 또는 무효 → 건너뜀")
 
-        # 3. DB 유사 이미지 (최대 2 - 현재 수)
+        # 2-2. DB에서 최대 (2 - 현재 이미지 수)장 보충
         remaining_slots = 2 - len(images_content)
         if remaining_slots > 0:
-            conn = psycopg2.connect(host=PG_HOST, port=PG_PORT, dbname=PG_DBNAME, user=PG_USER, password=PG_PASSWORD)
+            conn = psycopg2.connect(
+                host=PG_HOST, port=PG_PORT,
+                dbname=PG_DBNAME, user=PG_USER, password=PG_PASSWORD
+            )
             cursor = conn.cursor()
 
             keywords = [f"%{word.strip()}%" for word in tag.split()]
-            print(f"[STEP 3] 태그 키워드 변환: {keywords}")
+            print(f"[STEP 2-2] 태그 키워드 변환: {keywords}")
 
             sql = """
                 SELECT file_name FROM korea_image_data
@@ -151,43 +154,43 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
             """
             cursor.execute(sql, (category, layer, keywords, vector_str, remaining_slots))
             results = cursor.fetchall()
-            print(f"[STEP 3] DB 검색 결과 file_name 리스트: {results}")
-
             cursor.close()
             conn.close()
 
+            print(f"[STEP 2-2] DB 검색 결과 file_name 리스트: {results}")
+
             for row in results:
                 file_name = row[0]
-                print(f"[STEP 3] Blob에서 이미지 로딩 시도: {file_name}")
                 image_b64 = get_blob_base64_image("img", file_name)
                 if image_b64:
-                    print(f"[STEP 3] base64 변환 성공: {file_name}")
+                    print(f"[STEP 2-2] base64 변환 성공: {file_name}")
                     images_content.append({
                         "type": "image_url",
                         "image_url": {
                             "url": f"data:image/png;base64,{image_b64}"
                         }
                     })
-                if len(images_content) >= 2:
-                    break
 
-        # 4. Wikipedia 이미지 (슬롯 남아있을 때만)
+                if len(images_content) >= 2:
+                    break  # 최대 2장 넘으면 종료
+
+        # 2-3. Wikipedia 이미지 추가 시도 (남은 슬롯이 있을 때만)
         if len(images_content) < 2:
             wiki_image_url = get_wikipedia_main_image(tag)
             if wiki_image_url:
-                print(f"[STEP 4] Wikipedia 이미지 추가: {wiki_image_url}")
+                print(f"[STEP 2-3] Wikipedia 이미지 추가: {wiki_image_url}")
                 images_content.append({
                     "type": "image_url",
                     "image_url": {"url": wiki_image_url}
                 })
             else:
-                print(f"[STEP 4] Wikipedia 이미지 없음")
+                print(f"[STEP 2-3] Wikipedia 이미지 없음")
 
-        # 5. 이미지가 없어도 텍스트만으로 프롬프트 생성 허용
+        # 3. 이미지가 전혀 없을 경우
         if not images_content:
-            print(f"[STEP 5] 이미지 없이 텍스트만으로 프롬프트 생성됨")
+            print(f"[STEP 3] 이미지 없이 텍스트만으로 프롬프트 생성됨")
             
-        # 6. GPT-4o 프롬프트 생성
+        # 4. GPT-4o 프롬프트 생성
         prompt_text = (
             "이 이미지들을 참고해서,\n"
             "- 한국적인 분위기가 느껴지는 웹툰 스타일의 배경 이미지를,\n"
@@ -222,14 +225,14 @@ def generate_final_image(self, dalle_prompt: str) -> dict:
         print(f"[TASK] generate_final_image 시작 - task_id: {task_id}")
         print(f"[INPUT] DALL·E 프롬프트: {dalle_prompt}")
 
-        # 7. DALL·E 3 이미지 생성
+        # 5. DALL·E 3 이미지 생성
         dalle_response = client.images.generate(model="dall-e-3", prompt=dalle_prompt, size="1024x1024", n=1)
         image_url = dalle_response.data[0].url
         print(f"[STEP 8] DALL·E 이미지 URL: {image_url}")
         dalle_image_data = requests.get(image_url).content
         dalle_img = Image.open(BytesIO(dalle_image_data))
 
-        # 8. Blob 저장: png/ 하위에 저장
+        # 6. Blob 저장: png/ 하위에 저장
         png_buffer = BytesIO()
         dalle_img.save(png_buffer, format="PNG")
         png_buffer.seek(0)
@@ -239,7 +242,7 @@ def generate_final_image(self, dalle_prompt: str) -> dict:
         print(f"[STEP 9] PNG Blob 저장 완료: {png_url}")
         png_buffer.close()
 
-        # 9. PSD 변환 후 psd/ 하위에 저장
+        # 7. PSD 변환 후 psd/ 하위에 저장
         temp_png_path = f"/tmp/{task_id}.png"
         temp_psd_path = f"/tmp/{task_id}.psd"
         dalle_img.save(temp_png_path, format="PNG")
