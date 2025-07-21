@@ -126,12 +126,14 @@ def generate_prompt(self, category: str, layer: str, tag: str, caption_input: st
         images_content = []
 
         # 2-1. 사용자 업로드 이미지 우선 추가
-        if image_url:
+        if image_url and image_url.strip().lower().startswith("http"):
             print(f"[STEP 2-1] 사용자 업로드 이미지 추가: {image_url}")
             images_content.append({
                 "type": "image_url",
                 "image_url": {"url": image_url}
             })
+        else:
+            print("[STEP 2-1] 사용자 이미지 없음 또는 무효 → 건너뜀")
 
         # 2-2. DB에서 최대 (2 - 현재 이미지 수)장 보충
         remaining_slots = 2 - len(images_content)
