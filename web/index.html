@@ -243,10 +243,12 @@
             id="captionInput"
             placeholder="장면 설명을 입력하세요"
             rows="1"
+            oninput="autoGrow(this)"
+            onkeydown="handleEnterSubmit(event)"
             style="
                 width: 100%;
                 min-height: 2.75rem;
-                max-height: calc(1.5rem * 6 + 1.3rem);  /* 6줄 + 패딩 고려 */
+                max-height: calc(1.5rem * 6 + 1.3rem);
                 overflow-y: hidden;
                 resize: none;
                 font-size: 1rem;
@@ -257,10 +259,7 @@
                 border-radius: .75rem;
                 box-sizing: border-box;
             "
-            oninput="autoGrow(this)"
             ></textarea>
-
-
             <!-- 🎤 버튼 -->
             <button
             type="button"
@@ -317,6 +316,28 @@
     <button id="downloadPsdBtn" style="display: none;">.PSD 다운로드</button>
     <button id="openPsdBtn" style="display: none;">PSD 자동 실행</button>
     </div>
+        <script>
+    // 자동 높이 조절
+    function autoGrow(el) {
+        el.style.height = 'auto';
+        const scrollHeight = el.scrollHeight;
+        const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
+        const maxLines = 6;
+        const currentLines = scrollHeight / lineHeight;
+        el.style.height = scrollHeight + 'px';
+        el.style.overflowY = currentLines > maxLines ? 'auto' : 'hidden';
+    }
+
+    // 엔터 키 입력 감지 → 제출
+    function handleEnterSubmit(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault(); // 줄바꿈 방지
+
+        // 실제 제출 동작: 버튼 클릭 시뮬레이션
+        document.getElementById('generateImageBtn')?.click();
+        }
+    }
+    </script>
     <script>
     function autoGrow(el) {
         el.style.height = 'auto';
