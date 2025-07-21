@@ -108,11 +108,11 @@ def get_wikipedia_main_image(tag):
 
 
 # 메인 태스크
-@celery_app.task(name="generate_image", bind=True)
-def generate_image(self, category: str, layer: str, tag: str, caption_input: str | None = None, image_url: str | None = None) -> dict:
+@celery_app.task(name="generate_prompt", bind=True)
+def generate_prompt(self, category: str, layer: str, tag: str, caption_input: str | None = None, image_url: str | None = None) -> dict:
     try:
         task_id = self.request.id
-        print(f"[TASK] generate_image 시작 - task_id: {task_id}")
+        print(f"[TASK] generate_prompt 시작 - task_id: {task_id}")
         print(f"[INPUT] category: {category}, layer: {layer}, tag: {tag}, caption_input: {caption_input}, image_url: {image_url}")
         
         # 1. KoCLIP 임베딩
@@ -211,6 +211,19 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
         response = client.chat.completions.create(model="gpt-4o", messages=messages, max_tokens=800, temperature=0.7)
         dalle_prompt = response.choices[0].message.content.strip()
         print(f"[STEP 7] GPT 생성 결과:\n{dalle_prompt}")
+
+        return {"status": "SUCCESS", "prompt": dalle_prompt}
+
+    except Exception as e:
+        print(f"[ERROR] 프롬프트 생성 실패: {e}")
+        return {"status": "FAILURE", "error": str(e)}
+
+@celery_app.task(name="generate_final_image", bind=True)
+def generate_final_image(self, dalle_prompt: str) -> dict:
+    try:
+        task_id = self.request.id
+        print(f"[TASK] generate_final_image 시작 - task_id: {task_id}")
+        print(f"[INPUT] DALL·E 프롬프트: {dalle_prompt}")
 
         # 5. DALL·E 3 이미지 생성
         dalle_response = client.images.generate(model="dall-e-3", prompt=dalle_prompt, size="1024x1024", n=1)
