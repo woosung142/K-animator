@@ -384,6 +384,8 @@
         const layerGroup = qs('#layer-group');
 
         // 상태 관리 변수
+        let generationStep = 'prompt';
+        let currentTaskId = null;
         let fileToSend = null; // 서버로 보낼 파일 객체
         let uploadedImageUrl = null;
         let psdUrl = null;
@@ -533,7 +535,6 @@
                 clearPreview();
             }
         });
-
                 // 클립보드 이미지 붙여넣기 처리
         on(captionInput, 'paste', e => {
             if (fileToSend) {
@@ -557,17 +558,50 @@
             }
         });
 
+        const resetUI = () => {
+            generationStep = 'prompt';
+            currentTaskId = null;
+            fileToSend = null;
+            psdUrl = null;
+            uploadedImageUrl = null;
+
+            userInput.value = '';
+            userInput.readOnly = false;
+            captionInput.value = '';
+            captionInput.readOnly = false;
+            captionInput.placeholder = '장면 설명을 입력하세요';
+            qsa('.selection-btn').forEach(btn => btn.disabled = false);
+
+            generateImageBtn.innerHTML = '▶';
+            generateImageBtn.disabled = false;
+            addFileBtn.disabled = false;
+            fileInput.disabled = false;
+            sttBtn.disabled = false;
+
+            downloadPsdBtn.style.display = "none";
+            openPsdBtn.style.display = "none";
+            clearPreview();
+        };
+
         // 폼 제출(전송 버튼 클릭 또는 Enter) 시
         on(form, 'submit', async (e) => {
             e.preventDefault();
 
+            if (generationStep === 'prompt') {
+                await handlePromptGeneration();
+            } else if (generationStep === "image") {
+                await handleImageGeneration();
+            }
+            });
+
             // === 입력값 유효성 검사 ===
+        const handlePromptGeneration = async() => {
             const keywords = userInput.value.trim();
             const caption = captionInput.value.trim();
 
-            if (!selectedCategory) return alert('카테고리를 선택해주세요.');
-            if (selectedLayers.length === 0) return alert('하나 이상의 레이어를 선택해주세요.');
-            if (!keywords) return alert('키워드를 입력해주세요.');
+            if (!selectedCategory || selectedCategory === 0 || !keywords) {
+                return alert("카테고리, 레이어, 키워드는 필수 입력 항목입니다.");
+            }
 
             // === UI 비활성화 ===
             generateImageBtn.disabled = true;
@@ -579,7 +613,7 @@
             // === 사용자 입력 표시 ===
             let userMessage = keywords;
             if (fileToSend) userMessage += ' (이미지 첨부)';
-            if (caption) userMessage += '<br>(장면 설명: ' + escapeHTML(caption) + ')';
+            if (caption) userMessage += '<br>(장면 설명: ${escapeHTML(caption)})';
             addLine('나', userMessage, true, fileToSend);
             userInput.value = '';
             captionInput.value = '';
@@ -612,7 +646,8 @@
                 }
 
                 // 이미지 생성 요청
-                const res = await fetch('/api/generate-image', {
+                addLine('시스템', '🟢 AI가 DALL-E 프롬프트를 생성 중입니다...');
+                const res = await fetch('/api/generate-prompt', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -627,51 +662,95 @@
                 if (!res.ok) throw new Error('이미지 생성 요청 실패');
 
                 const { task_id } = await res.json();
-                taskId = task_id;
-                addLine('시스템', '이미지 생성을 시작했습니다. 잠시만 기다려주세요...');
+                currentTaskId = task_id;
+                checkStatus(currentTaskId, 'prompt');
+
+            } catch (err) {
+                console.error('[1단계 실패]', err);
+                addLine('시스템', `⚠️ 요청 실패: ${err.message}`);
+                resetUI();
+            }
+        };
+
+        const handleImageGeneration = async () => {
+            const finalPrompt = captionInput.value.trim();
+            if(!finalPrompt) {
+                return alert("DALL-E 프롬프트가 비어 있습니다.");
+            }
+
+            addLine('나', '(수정된 프롬프트로 이미지 생성 요청)<br>${escapeHTML(finalPrompt)}', true);
+            addLine('시스템', '🟢 최종 이미지를 생성합니다. 잠시만 기다려주세요...');
+
+            generateImageBtn.disabled = true;
+
+            try {
+                const res = await fetch('/api/generate-image-from-prompt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        task_id: dalle_prompt,
+                        prompt: finalPrompt
+                    })
+                });
+                if (!res.ok) throw new Error('최종 이미지 생성 요청 실패');
+
+                const { task_id } = await res.json();
+                currentTaskId = task_id;
+                checkStatus(currentTaskId, 'image');
+
+            } catch (err) {
+                console.error('[2단계 실패]', err);
+                addLine('시스템', `⚠️ 요청 실패: ${err.message}`);
+                resetUI();
+            }
+        };
 
                 // 상태 체크
-                const checkStatus = async () => {
-                    const resp = await fetch(`/api/result/${task_id}`);
-                    const result = await resp.json();
+        const checkStatus = async (taskId, type) => {
+            try {
+                const resp = await fetch(`/api/result/${task_id}`);
+                const result = await resp.json();
 
-                    if (result.status === 'PENDING') {
-                        setTimeout(checkStatus, 2000);
-                    } else if (result.status === 'SUCCESS') {
+                if (result.status === 'PENDING') {
+                    setTimeout(checkStatus(taskId, type), 2000);
+                } else if (result.status === 'SUCCESS') {
+                    if (type === 'prompt') {
+                        addLine('AI 프롬프트', '아래 프롬프트를 확인하고, 수정 후 버튼을 다시 눌러 이미지를 생성하세요.');
+                        captionInput.value = result.prompt;
+                        captionInput.readOnly = false;
+                        captionInput.placeholder = 'DALL-E 프롬프트를 수정하거나 확정하세요';
+
+                        generationStep = 'image';
+                        generateImageBtn.innerHTML = '▶ 생성';
+                        generateImageBtn.disabled = false;
+
+                        userInput.readOnly = true;
+                        addFileBtn.disabled = true;
+                        qsa('.selection-btn').forEach(btn => btn.disabled = true);
+                    
+                    } else if (type === 'image') {    
                         addLine('AI 이미지', `<img src="${result.png_url}" alt="생성된 이미지">`, true);
                         addLine('다운로드', `<a href="${result.psd_url}" download>PSD 파일</a>`, true);
                         psdUrl = result.psd_url;
                         downloadPsdBtn.style.display = "inline-block";
                         openPsdBtn.style.display = "inline-block";
-                        clearPreview();
-
+                        resetUI();
+                    }
                         // 완료시 버튼 활성화
                         generateImageBtn.disabled = false;
                         fileInput.disabled = false;
                         pasteBlocked = false;
                         userInput.readOnly = false;
                         captionInput.readOnly = false;
-                    } else {
-                        addLine('시스템', '⚠️ 이미지 생성에 실패했습니다.');
-                        generateImageBtn.disabled = false;
-                        fileInput.disabled = false;
-                        pasteBlocked = false;
-                        userInput.readOnly = false;
-                        captionInput.readOnly = false;
-                    }
-                };
-                checkStatus();
+                } else {
+                    
+                    throw new Error(result.detail || '알 수 없는 오류');
+                }
             } catch (err) {
                 console.error('[요청 실패]', err);
-                addLine('시스템', `⚠️ 요청 실패: ${err.message}`);
-                generateImageBtn.disabled = false;
-                fileInput.disabled = false;
-                pasteBlocked = false;
-                userInput.readOnly = false;
-                captionInput.readOnly = false;
-                clearPreview();
+                addLine('시스템', `⚠️ 작업 처리 중 오류 발생: ${err.message}`);
             }
-        });
+        };
 
         // PSD 파일 다운로드
         on(downloadPsdBtn, 'click', () => {
@@ -703,8 +782,13 @@
             window.location.href = "https://user20storage.blob.core.windows.net/psd-download/psd_launcher.zip";
         });
 
+        on(generateImageBtn, 'click', () =>{
+            from.requestSubmit();
+        });
+
         // 음성 인식 초기화 (페이지 로드 시)
         on(document, 'DOMContentLoaded', async () => {
+            resetUI();
             sttBtn.disabled = true;
             try {
                 const response = await fetch('/get-speech-token');
