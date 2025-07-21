@@ -239,30 +239,36 @@
             </button>
             <!-- 🎤 버튼 포함한 입력창 wrapper -->
             <div style="position: relative; flex: 1;">
-            <input
+            <textarea
             id="captionInput"
-            type="text"
             placeholder="장면 설명을 입력하세요"
+            rows="1"
             style="
                 width: 100%;
-                height: 2.75rem;                /* 버튼과 동일한 높이로 강제 지정 */
-                padding: 0 .75rem;
-                padding-right: 2.75rem;        /* 🎤 버튼 공간 */
+                min-height: 2.75rem;
+                max-height: calc(1.5rem * 6 + 1.3rem);  /* 6줄 + 패딩 고려 */
+                overflow-y: hidden;
+                resize: none;
                 font-size: 1rem;
+                line-height: 1.5rem;
+                padding: .65rem .75rem;
+                padding-right: 2.75rem;
                 border: 1px solid #d1d5db;
                 border-radius: .75rem;
                 box-sizing: border-box;
-            " />
+            "
+            oninput="autoGrow(this)"
+            ></textarea>
+
 
             <!-- 🎤 버튼 -->
             <button
-                type="button"
-                id="sttBtn"
-                style="
+            type="button"
+            id="sttBtn"
+            style="
                 position: absolute;
-                top: 50%;
+                top: .375rem;               /* 입력창 padding-top과 비슷한 위치 (상단 고정) */
                 right: .5rem;
-                transform: translateY(-50%);
                 width: 2rem;
                 height: 2rem;
                 background: none;
@@ -274,8 +280,8 @@
                 justify-content: center;
                 line-height: 1;
                 cursor: pointer;
-                ">
-                🎤
+            ">
+            🎤
             </button>
             </div>
             <button type="button" id="generateImageBtn" style="
@@ -299,12 +305,31 @@
 
     </form>
 
-    <div id="extras">
-        <button id="exeDownloadBtn">실행기(.zip) 다운로드</button>
-        <button id="downloadPsdBtn" style="display: none;">.PSD 다운로드</button>
-        <button id="openPsdBtn" style="display: none;">PSD 자동 실행</button>
+    <!-- extras wrapper -->
+    <div id="extras"
+    style="
+        position: sticky;
+        bottom: 1rem;
+        padding-top: .5rem;
+        z-index: 10;
+    ">
+    <button id="exeDownloadBtn">실행기(.zip) 다운로드</button>
+    <button id="downloadPsdBtn" style="display: none;">.PSD 다운로드</button>
+    <button id="openPsdBtn" style="display: none;">PSD 자동 실행</button>
     </div>
+    <script>
+    function autoGrow(el) {
+        el.style.height = 'auto';
+        const scrollHeight = el.scrollHeight;
+        const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
+        const maxLines = 6;  // ← 여기만 바뀜
 
+        el.style.height = scrollHeight + 'px';
+
+        const currentLines = scrollHeight / lineHeight;
+        el.style.overflowY = currentLines > maxLines ? 'auto' : 'hidden';
+    }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
     <script>
         // 유틸 함수
