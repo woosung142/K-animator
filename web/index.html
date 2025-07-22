@@ -707,11 +707,11 @@
                 // 상태 체크
         const checkStatus = async (taskId, type) => {
             try {
-                const resp = await fetch(`/api/result/${task_id}`);
+                const resp = await fetch(`/api/result/${taskId}`);  // 변수명 수정
                 const result = await resp.json();
 
                 if (result.status === 'PENDING') {
-                    setTimeout(checkStatus(taskId, type), 2000);
+                    setTimeout(() => checkStatus(taskId, type), 2000);
                 } else if (result.status === 'SUCCESS') {
                     if (type === 'prompt') {
                         addLine('AI 프롬프트', '아래 프롬프트를 확인하고, 수정 후 버튼을 다시 눌러 이미지를 생성하세요.');

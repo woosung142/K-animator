@@ -62,7 +62,7 @@ async def generate_image_from_prompt(request: FinalPromptRequest):
         "generate_final_image",
         args=[request.dalle_prompt]
     )
-    print(f"[TASK]celery 'generate_final_image' task 전송 완료 - task_id: {task.id}")
+    print(f"[TASK]celery 'generate_final_image' task 전송 완료 - task_id: {task_id}")
     return {"task_id": task.id}
 
 @app.get("/api/result/{task_id}")
