@@ -321,10 +321,16 @@
     // 자동 높이 조절
     function autoGrow(el) {
         el.style.height = 'auto';
+
+        const value = el.value;
+        el.value = '';         // 강제 초기화
+        el.value = value;      // 다시 대입해서 scrollHeight 재계산 유도
+
         const scrollHeight = el.scrollHeight;
         const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
         const maxLines = 6;
         const currentLines = scrollHeight / lineHeight;
+
         el.style.height = scrollHeight + 'px';
         el.style.overflowY = currentLines > maxLines ? 'auto' : 'hidden';
     }
