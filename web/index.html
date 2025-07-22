@@ -112,7 +112,26 @@
             color: var(--primary);
             font-weight: bold;
         }
-
+        .pompt-details{
+            border: 1px solid var(--light-gray);
+            border-radius: .5rem;
+            margin-top: .5rem;
+            background-color: #f9fafb;
+        }
+        .prompt-details summary {
+             padding: .5rem .75rem;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            color: var(--primary);
+        }
+        .prompt-details .prompt-content {
+            padding: 0 .75rem .75rem;
+            border-top: 1px solid var(--light-gray);
+            margin-top: .5rem;
+            color: var(--dark-gray);
+            white-space: pre-wrap; /* 프롬프트의 줄바꿈 유지 */
+        }
         /* 입력 폼 스타일 */
         form {
             display: flex;
@@ -685,7 +704,14 @@
                 return alert("DALL-E 프롬프트가 비어 있습니다.");
             }
 
-            addLine('나', `(수정된 프롬프트로 이미지 생성 요청)<br>${escapeHTML(finalPrompt)}`, true);
+            const messageContent = `
+                (수정된 프롬프트로 이미지 생성 요청)
+                <details class="prompt-details">
+                    <summary>수정된 프롬프트 보기 (클릭)</summary>
+                    <div class="prompt-content">${escapeHTML(finalPrompt)}</div>
+                </details>
+            `;
+            addLine('나', messageContent, true);            
             addLine('시스템', '🟢 최종 이미지를 생성합니다. 잠시만 기다려주세요...');
 
             generateImageBtn.disabled = true;
