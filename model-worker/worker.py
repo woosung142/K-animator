@@ -122,70 +122,73 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
         vector_str = "[" + ",".join([str(x) for x in embedding_vector]) + "]"
         print(f"[STEP 1] 생성된 임베딩 벡터 길이: {len(embedding_vector)}")
 
-        # 2. DB 유사 이미지 최대 2장
-        conn = psycopg2.connect(host=PG_HOST, port=PG_PORT, dbname=PG_DBNAME, user=PG_USER, password=PG_PASSWORD)
-        cursor = conn.cursor()
+        # 2-1. 사용자 업로드 이미지 우선 추가
+        if image_url and image_url.strip().lower().startswith("http"):
+            print(f"[STEP 2-1] 사용자 업로드 이미지 추가: {image_url}")
+            images_content.append({
+                "type": "image_url",
+                "image_url": {"url": image_url}
+            })
+        else:
+            print("[STEP 2-1] 사용자 이미지 없음 또는 무효 → 건너뜀")
 
-        # tag를 공백 기준으로 나눠서 여러 단어로 검색 확장
-        keywords = [f"%{word.strip()}%" for word in tag.split()]
-        print(f"[STEP 2] 태그 키워드 변환: {keywords}")
+        # 2-2. DB에서 최대 (2 - 현재 이미지 수)장 보충
+        remaining_slots = 2 - len(images_content)
+        if remaining_slots > 0:
+            conn = psycopg2.connect(
+                host=PG_HOST, port=PG_PORT,
+                dbname=PG_DBNAME, user=PG_USER, password=PG_PASSWORD
+            )
+            cursor = conn.cursor()
 
-        sql = """
-            SELECT file_name FROM korea_image_data
-            WHERE category = %s AND layer = %s
-              AND tag ILIKE ANY (%s)
-            ORDER BY vec_caption <-> %s::vector
-            LIMIT 2;
-        """
-        cursor.execute(sql, (category, layer, keywords, vector_str))
-        results = cursor.fetchall()
+            keywords = [f"%{word.strip()}%" for word in tag.split()]
+            print(f"[STEP 2-2] 태그 키워드 변환: {keywords}")
 
-        # DB에서 가져온 결과 로그 찍기
-        print(f"[STEP 2] DB 검색 결과 file_name 리스트: {results}")
+            sql = """
+                SELECT file_name FROM korea_image_data
+                WHERE category = %s AND layer = %s
+                  AND tag ILIKE ANY (%s)
+                ORDER BY vec_caption <-> %s::vector
+                LIMIT %s;
+            """
+            cursor.execute(sql, (category, layer, keywords, vector_str, remaining_slots))
+            results = cursor.fetchall()
+            cursor.close()
+            conn.close()
 
-        cursor.close()
-        conn.close()
+            print(f"[STEP 2-2] DB 검색 결과 file_name 리스트: {results}")
 
-        images_content = []
+            for row in results:
+                file_name = row[0]
+                image_b64 = get_blob_base64_image("img", file_name)
+                if image_b64:
+                    print(f"[STEP 2-2] base64 변환 성공: {file_name}")
+                    images_content.append({
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_b64}"
+                        }
+                    })
 
-        # 3. Blob에서 base64 이미지 로딩 (DB 1~2장)
-        for row in results:
-            file_name = row[0]
-            print(f"[STEP 3] Blob에서 이미지 로딩 시도: {file_name}")
-            image_b64 = get_blob_base64_image("img", file_name)
-            if image_b64:
-                print(f"[STEP 3] base64 변환 성공: {file_name}")
-                images_content.append({
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/png;base64,{image_b64}"
-                    }
-                })
+                if len(images_content) >= 2:
+                    break  # 최대 2장 넘으면 종료
 
-        # 4. Wikipedia 이미지 1장 추가 시도
+        # 2-3. Wikipedia 이미지 추가 시도 (남은 슬롯이 있을 때만)
         if len(images_content) < 2:
             wiki_image_url = get_wikipedia_main_image(tag)
             if wiki_image_url:
-                print(f"[STEP 4] Wikipedia 이미지 추가: {wiki_image_url}")
+                print(f"[STEP 2-3] Wikipedia 이미지 추가: {wiki_image_url}")
                 images_content.append({
                     "type": "image_url",
                     "image_url": {"url": wiki_image_url}
                 })
             else:
-                print(f"[STEP 4] Wikipedia 이미지 없음")
+                print(f"[STEP 2-3] Wikipedia 이미지 없음")
 
-        # 5. 사용자가 업로드한 이미지 추가 
-        if image_url:
-            print(f"[STEP 5] 사용자 업로드 이미지 추가: {image_url}")
-            images_content.append({
-                "type": "image_url",
-                "image_url": {"url": image_url}
-            })
-
-        # 6. 이미지가 없어도 텍스트로만 프롬프트 생성
+        # 3. 이미지가 전혀 없을 경우
         if not images_content:
-            print(f"[STEP 6] 이미지없이 텍스트만으로 프롬프트 생성됨")
-
+            print(f"[STEP 3] 이미지 없이 텍스트만으로 프롬프트 생성됨")
+           
             
         # 7. GPT-4o 프롬프트 생성
         prompt_text = (
