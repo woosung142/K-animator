@@ -716,6 +716,7 @@
                     if (type === 'prompt') {
                         addLine('AI 프롬프트', '아래 프롬프트를 확인하고, 수정 후 버튼을 다시 눌러 이미지를 생성하세요.');
                         captionInput.value = result.prompt;
+                        autoGrow(captionInput);
                         captionInput.readOnly = false;
                         captionInput.placeholder = 'DALL-E 프롬프트를 수정하거나 확정하세요';
 
