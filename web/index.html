@@ -321,10 +321,16 @@
     // 자동 높이 조절
     function autoGrow(el) {
         el.style.height = 'auto';
+
+        const value = el.value;
+        el.value = '';         // 강제 초기화
+        el.value = value;      // 다시 대입해서 scrollHeight 재계산 유도
+
         const scrollHeight = el.scrollHeight;
         const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
         const maxLines = 6;
         const currentLines = scrollHeight / lineHeight;
+
         el.style.height = scrollHeight + 'px';
         el.style.overflowY = currentLines > maxLines ? 'auto' : 'hidden';
     }
@@ -570,6 +576,7 @@
             captionInput.value = '';
             captionInput.readOnly = false;
             captionInput.placeholder = '장면 설명을 입력하세요';
+            autoGrow(captionInput);
             qsa('.selection-btn').forEach(btn => btn.disabled = false);
 
             generateImageBtn.innerHTML = '▶';
@@ -617,7 +624,7 @@
             addLine('나', userMessage, true, fileToSend);
             userInput.value = '';
             captionInput.value = '';
-
+            autoGrow(captionInput)
             // === 초기화
             downloadPsdBtn.style.display = "none";
             openPsdBtn.style.display = "none";
@@ -813,6 +820,7 @@
             sttBtn.innerHTML = '👂';
 
             captionInput.value = '';
+            autoGrow(captionInput)
             captionInput.placeholder = '말씀해주세요';
 
             recognizer.recognizeOnceAsync(result => {
