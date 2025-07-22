@@ -1,357 +1,369 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>한국풍 웹툰 배경 이미지 생성기</title>
-    <style>
-        /* 전역 스타일 변수 정의 */
-        :root {
-            --gap: 1rem;
-            --radius: .75rem;
-            --primary: #2563eb;
-            --bg: #f8fafc;
-            --light-gray: #e5e7eb;
-            --dark-gray: #4b5563;
-            --selected-bg: #dbeafe;
-            --selected-border: #60a5fa;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>한국풍 웹툰 배경 이미지 생성기</title>
+  <style>
+    :root {
+      --gap: 1rem;
+      --radius: .75rem;
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --light-gray: #e5e7eb;
+      --dark-gray: #4b5563;
+      --selected-bg: #dbeafe;
+      --selected-border: #60a5fa;
+    }
 
-        /* 모든 요소에 box-sizing 설정 */
-        * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
-        /* 전체 페이지 레이아웃 설정 */
-        body {
-            margin: 0;
-            font-family: system-ui, sans-serif;
-            background: var(--bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: var(--gap);
-            height: 100vh; /* min-height에서 height로 변경하여 높이 고정 */
-            overflow: hidden; /* body 자체의 스크롤 방지 */
-        }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-        /* 제목 스타일 */
-        h1 {
-            margin: .25rem 0 1rem;
-            font-size: 1.4rem;
-            flex-shrink: 0; /* 높이가 줄어들지 않도록 고정 */
-        }
+    #left-panel {
+    width: 560px;
+    min-width: 560px;
+    max-width: 600px;  /* 이건 여유용 */
+    flex-shrink: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 1rem;
+    background: var(--bg);
+    border-right: 1px solid var(--light-gray);
+    }
 
-        /* 채팅창 스타일 */
-        #chatbox {
-            flex: 1 1 auto; /* 남은 공간을 모두 차지하도록 설정 */
-            width: 100%;
-            max-width: 600px;
-            background: #fff;
-            border: 1px solid var(--light-gray);
-            border-radius: var(--radius);
-            padding: var(--gap);
-            overflow-y: auto; /* 내용이 많아지면 내부 스크롤 생성 */
-            min-height: 100px; /* 최소 높이 지정 */
-        }
+    #right-panel {
+      flex: 1;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 1rem;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+    }
 
-        /* 메시지 한 줄 스타일 */
-        .msg {
-            margin-bottom: .6rem;
-            line-height: 1.45;
-            word-wrap: break-word;
-        }
-        .msg strong {
-            color: var(--primary);
-        }
-        .msg img {
-            max-width: 100%;
-            height: auto;
-            border-radius: calc(var(--radius) / 2);
-            margin-top: 0.5rem;
-        }
+    h1 {
+      margin: .25rem 0 1rem;
+      font-size: 1.4rem;
+    }
 
-        /* 선택 그룹 (카테고리, 레이어) 스타일 */
-        .selection-container {
-            width: 100%;
-            max-width: 600px;
-            margin-bottom: 0.75rem;
-            padding: 0.75rem;
-            background-color: #fff;
-            border: 1px solid var(--light-gray);
-            border-radius: var(--radius);
-            flex-shrink: 0;
-        }
+    #chatbox {
+      flex: 1;
+      background: #fff;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--radius);
+      padding: var(--gap);
+      overflow-y: auto;
+      min-height: 100px;
+    }
 
-        .selection-group {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .selection-group:not(:last-child) {
-            margin-bottom: 0.75rem;
-        }
-        .selection-group strong {
-            font-size: 0.9rem;
-            margin-right: 0.5rem;
-            color: var(--dark-gray);
-        }
+    .msg {
+      margin-bottom: .6rem;
+      line-height: 1.45;
+      word-wrap: break-word;
+    }
+    .msg strong {
+      color: var(--primary);
+    }
+    .msg img {
+      max-width: 100%;
+      height: auto;
+      border-radius: calc(var(--radius) / 2);
+      margin-top: 0.5rem;
+    }
 
-        .selection-btn {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.9rem;
-            border: 1px solid var(--light-gray);
-            border-radius: var(--radius);
-            background: #fff;
-            color: var(--dark-gray);
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-        }
-        .selection-btn.selected {
-            background: var(--selected-bg);
-            border-color: var(--selected-border);
-            color: var(--primary);
-            font-weight: bold;
-        }
-        .pompt-details{
-            border: 1px solid var(--light-gray);
-            border-radius: .5rem;
-            margin-top: .5rem;
-            background-color: #f9fafb;
-        }
-        .prompt-details summary {
-             padding: .5rem .75rem;
-            font-weight: 500;
-            cursor: pointer;
-            outline: none;
-            color: var(--primary);
-        }
-        .prompt-details .prompt-content {
-            padding: 0 .75rem .75rem;
-            border-top: 1px solid var(--light-gray);
-            margin-top: .5rem;
-            color: var(--dark-gray);
-            white-space: pre-wrap; /* 프롬프트의 줄바꿈 유지 */
-        }
-        /* 입력 폼 스타일 */
-        form {
-            display: flex;
-            gap: .5rem;
-            width: 100%;
-            max-width: 600px;
-            margin-top: 0;
-            align-items: stretch;
-            flex-shrink: 0;
-        }
+    .selection-container {
+      width: 100%;
+      margin-bottom: 0.75rem;
+      padding: 0.75rem;
+      background-color: #fff;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--radius);
+    }
 
-        /* 텍스트 입력 필드 스타일 */
-        input#userInput {
-            flex: 1;
-            padding: .65rem .9rem;
-            font-size: 1rem;
-            border: 1px solid #d1d5db;
-            border-radius: var(--radius);
-        }
+    .selection-group {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .selection-group:not(:last-child) {
+      margin-bottom: 0.75rem;
+    }
+    .selection-group strong {
+      font-size: 0.9rem;
+      margin-right: 0.5rem;
+      color: var(--dark-gray);
+    }
 
-        /* 버튼 스타일 */
-        button {
-            padding: .65rem 1rem;
-            font-size: 1rem;
-            border: none;
-            border-radius: var(--radius);
-            background: var(--primary);
-            color: #fff;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        button:disabled {
-            opacity: .4;
-            cursor: not-allowed;
-        }
+    .selection-btn {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.9rem;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--dark-gray);
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+    }
+    .selection-btn.selected {
+      background: var(--selected-bg);
+      border-color: var(--selected-border);
+      color: var(--primary);
+      font-weight: bold;
+    }
 
-        /* 이미지 미리보기 영역 스타일 */
-        #preview-area {
-            width: 100%;
-            max-width: 600px;
-            padding: 0 .5rem .5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-shrink: 0;
-        }
-        #preview-area img {
-            max-height: 80px;
-            border-radius: var(--radius);
-        }
-        #preview-area button#remove-preview-btn {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            color: var(--dark-gray);
-            cursor: pointer;
-            padding: 0;
-        }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      width: 100%;
+      max-width: 600px;
+    }
 
-        /* 추가 기능 버튼 영역 */
-        #extras {
-            margin-top: 1rem;
-            max-width: 600px;
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            flex-shrink: 0;
-        }
-    </style>
+    .selection-group input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    input#userInput {
+      flex: 1;
+      width: auto;
+      min-width: 0;
+      padding: .65rem .9rem;
+      font-size: 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: var(--radius);
+    }
+
+    button {
+      padding: .65rem 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    button:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    #preview-area {
+      width: 100%;
+      padding: 0 .5rem .5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    #preview-area img {
+      max-height: 80px;
+      border-radius: var(--radius);
+    }
+    #preview-area button#remove-preview-btn {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: var(--dark-gray);
+      cursor: pointer;
+      padding: 0;
+    }
+
+    #form-controls {
+      display: flex;
+      gap: .5rem;
+      width: 100%;
+      align-items: stretch;
+      margin-bottom: 1rem;
+      min-width: 0;
+    }
+
+    #captionInput {
+    flex: 1;
+    width: 100%;
+    display: block;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    border-radius: .75rem;
+    border: 1px solid var(--light-gray);
+    padding: .65rem .75rem;
+    resize: none;
+    overflow-y: hidden;
+    font-family: inherit;
+    max-height: calc(1.5rem * 6); /* ✅ 줄 수 제한 추가 */
+    }
+
+    #sttBtn, #generateImageBtn, #addFileBtn {
+      width: 2.75rem;
+      height: 2.75rem;
+      font-size: 1.5rem;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: .75rem;
+      border: none;
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+    }
+
+    #sttBtn {
+    background: none;
+    color: var(--dark-gray);
+    position: absolute;
+    top: 50%;
+    right: 0.5rem;
+    transform: translateY(-50%); /* ✅ 세로 중앙 정렬 */
+    }
+
+    #extras {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    @media (max-width: 999px) {
+    body {
+        flex-direction: column-reverse;
+        align-items: center; /* 중앙 정렬 */
+    }
+
+    #left-panel {
+        width: 560px !important;       /* ✅ 고정 너비 */
+        max-width: 100%;
+        height: auto !important;
+        border-right: none;
+        border-top: 1px solid var(--light-gray);
+    }
+
+    #right-panel {
+        width: 560px !important;       /* ✅ 고정 너비 */
+        max-width: 100%;
+        height: 60vh !important;
+        max-height: 70vh !important;
+    }
+    }
+
+    body.stacked {
+    flex-direction: column-reverse;
+    align-items: center; /* ✅ 중앙 정렬 */
+    }
+
+    body.stacked #left-panel {
+    width: 560px !important;
+    max-width: 100%;
+    height: auto !important;
+    border-right: none;
+    border-top: 1px solid var(--light-gray);
+    }
+
+    body.stacked #right-panel {
+    width: 560px !important;
+    max-width: 100%;
+    height: 60vh !important;
+    max-height: 70vh !important;
+    }
+
+  </style>
 </head>
 <body>
+  <div id="left-panel">
     <h1>한국풍 웹툰 배경 이미지 생성기</h1>
+    <div class="selection-container">
+      <div class="selection-group" id="category-group">
+        <strong>카테고리 *</strong>
+        <button class="selection-btn" data-value="국내명소">명소</button>
+        <button class="selection-btn" data-value="음식">음식</button>
+        <button class="selection-btn" data-value="한국문화">문화</button>
+      </div>
+      <div class="selection-group" id="layer-group">
+        <strong>레이어 *</strong>
+        <button class="selection-btn" data-value="콘티">콘티</button>
+        <button class="selection-btn" data-value="스케치">스케치</button>
+        <button class="selection-btn" data-value="채색 기본">채색(기본)</button>
+        <button class="selection-btn" data-value="채색 명암">채색(명암)</button>
+        <button class="selection-btn" data-value="배경">배경</button>
+      </div>
+      <div class="selection-group">
+        <strong>키워드 *</strong>
+        <input id="userInput" type="text" placeholder="키워드를 입력하세요 (필수)" />
+      </div>
+    </div>
 
-    <div id="chatbox" aria-live="polite" aria-label="대화 내용"></div>
-        <div class="selection-container">
-        <div class="selection-group" id="category-group">
-            <strong>카테고리 *</strong>
-            <button class="selection-btn" data-value="국내명소">명소</button>
-            <button class="selection-btn" data-value="음식">음식</button>
-            <button class="selection-btn" data-value="한국문화">문화</button>
+    <form id="chat-form" autocomplete="off">
+      <div id="form-controls">
+        <button type="button" id="addFileBtn">+</button>
+        <div style="position: relative; flex: 1;">
+          <textarea id="captionInput" placeholder="장면 설명을 입력하세요" rows="1" oninput="autoGrow(this)" onkeydown="handleEnterSubmit(event)"></textarea>
+          <button type="button" id="sttBtn">🎤</button>
         </div>
-
-        <div class="selection-group" id="layer-group">
-            <strong>레이어 *</strong>
-            <button class="selection-btn" data-value="콘티">콘티</button>
-            <button class="selection-btn" data-value="스케치">스케치</button>
-            <button class="selection-btn" data-value="채색 기본">채색(기본)</button>
-            <button class="selection-btn" data-value="채색 명암">채색(명암)</button>
-            <button class="selection-btn" data-value="배경">배경</button>
-        </div>
-
-        <!-- ✅ 추가: 키워드 입력도 selection-group 형식으로 통일 -->
-        <div class="selection-group">
-            <strong>키워드 *</strong>
-            <input
-            id="userInput"
-            type="text"
-            placeholder="키워드를 입력하세요 (필수)"
-            style="padding: .5rem .75rem; font-size: 1rem; border: 1px solid #d1d5db; border-radius: .75rem;"
-            />
-        </div>
-        </div>
-    <div id="preview-area"></div>
-
-    <form id="chat-form" autocomplete="off" style="display: flex; flex-direction: column; gap: .5rem; width: 100%; max-width: 600px;">
-    <div style="display: flex; gap: .5rem; width: 100%;">
-        <button type="button" id="addFileBtn"
-            style="
-                background-color: #2563eb;
-                color: white;
-                font-size: 1.5rem;     /* + 크기 */
-                width: 2.75rem;
-                height: 2.75rem;
-                border: none;
-                border-radius: 0.75rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                line-height: 1;
-                padding: 0;
-                cursor: pointer;
-            ">
-            +
-            </button>
-            <!-- 🎤 버튼 포함한 입력창 wrapper -->
-            <div style="position: relative; flex: 1;">
-            <textarea
-            id="captionInput"
-            placeholder="장면 설명을 입력하세요"
-            rows="1"
-            oninput="autoGrow(this)"
-            onkeydown="handleEnterSubmit(event)"
-            style="
-                width: 100%;
-                min-height: 2.75rem;
-                max-height: calc(1.5rem * 6 + 1.3rem);
-                overflow-y: hidden;
-                resize: none;
-                font-size: 1rem;
-                font-family: inherit;     
-                line-height: 1.5rem;
-                padding: .65rem .75rem;
-                padding-right: 2.75rem;
-                border: 1px solid #d1d5db;
-                border-radius: .75rem;
-                box-sizing: border-box;
-            "
-            ></textarea>
-            <!-- 🎤 버튼 -->
-            <button
-            type="button"
-            id="sttBtn"
-            style="
-                position: absolute;
-                top: .375rem;               /* 입력창 padding-top과 비슷한 위치 (상단 고정) */
-                right: .5rem;
-                width: 2rem;
-                height: 2rem;
-                background: none;
-                border: none;
-                font-size: 1.35rem;
-                padding: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                line-height: 1;
-                cursor: pointer;
-            ">
-            🎤
-            </button>
-            </div>
-            <button type="button" id="generateImageBtn" style="
-                background-color: #2563eb;
-                color: white;
-                font-size: 1.5rem;         /* ▶ 크기 키움 */
-                width: 2.75rem;
-                height: 2.75rem;
-                border: none;
-                border-radius: 0.75rem;    /* 라운드 모양 */
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                line-height: 1;
-                padding: 0;
-                cursor: pointer;
-            ">▶</button>
+        <button type="button" id="generateImageBtn">▶</button>
         <input type="file" id="fileInput" accept="image/*" style="display: none;" />
-    </div>
+      </div>
     </form>
 
-    </form>
-
-    <!-- extras wrapper -->
-    <div id="extras"
-    style="
-        position: sticky;
-        bottom: 1rem;
-        padding-top: .5rem;
-        z-index: 10;
-    ">
-    <button id="exeDownloadBtn">실행기(.zip) 다운로드</button>
-    <button id="downloadPsdBtn" style="display: none;">.PSD 다운로드</button>
-    <button id="openPsdBtn" style="display: none;">PSD 자동 실행</button>
+    <div id="extras">
+      <button id="downloadPsdBtn" style="display: none;">.PSD 다운로드</button>
+      <button id="exeDownloadBtn">실행기(.zip) 다운로드</button>
+      <button id="openPsdBtn" style="display: none;">PSD 자동 실행</button>
     </div>
+  </div>
+
+  <div id="right-panel">
+    <div id="chatbox" aria-live="polite" aria-label="대화 내용"></div>
+    <div id="preview-area"></div>
+  </div>
+
+    <script>
+    function adjustLayout() {
+    const body = document.body;
+    const left = document.getElementById('left-panel');
+    const style = getComputedStyle(left);
+
+    const minLeft = Math.ceil(parseFloat(style.minWidth || style.width)); // 반올림 처리
+    const minRight = 400;
+    const gap = Math.ceil(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gap')) || 16);
+
+    const totalNeeded = minLeft + minRight + gap;
+
+    if (window.innerWidth < totalNeeded) {
+        body.classList.add('stacked');
+    } else {
+        body.classList.remove('stacked');
+    }
+    }
+
+    window.addEventListener('DOMContentLoaded', adjustLayout);
+    window.addEventListener('resize', adjustLayout);
+    </script>
+
     <script>
     // 자동 높이 조절
     function autoGrow(el) {
-        el.style.height = 'auto';
+    el.style.height = 'auto';
 
-        const value = el.value;
-        el.value = '';         // 강제 초기화
-        el.value = value;      // 다시 대입해서 scrollHeight 재계산 유도
+    const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
+    const maxLines = 6;
+    const maxHeight = lineHeight * maxLines;
 
-        const scrollHeight = el.scrollHeight;
-        const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
-        const maxLines = 6;
-        const currentLines = scrollHeight / lineHeight;
+    const scrollHeight = el.scrollHeight;
+    const newHeight = Math.min(scrollHeight, maxHeight);
 
-        el.style.height = scrollHeight + 'px';
-        el.style.overflowY = currentLines > maxLines ? 'auto' : 'hidden';
+    el.style.height = newHeight + 'px';
+    el.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
     }
 
     // 엔터 키 입력 감지 → 제출
