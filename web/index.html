@@ -576,6 +576,7 @@
             captionInput.value = '';
             captionInput.readOnly = false;
             captionInput.placeholder = '장면 설명을 입력하세요';
+            autoGrow(captionInput);
             qsa('.selection-btn').forEach(btn => btn.disabled = false);
 
             generateImageBtn.innerHTML = '▶';
