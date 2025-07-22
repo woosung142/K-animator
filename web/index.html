@@ -276,6 +276,28 @@
     height: 60vh !important;
     max-height: 70vh !important;
     }
+    .prompt-details {
+    border: 1px solid var(--light-gray);
+    border-radius: .5rem;
+    margin-top: .5rem;
+    background-color: #f9fafb;
+    }
+
+    .prompt-details summary {
+        padding: .5rem .75rem;
+        font-weight: 500;
+        cursor: pointer;
+        outline: none;
+        color: var(--primary);
+    }
+
+    .prompt-details .prompt-content {
+        padding: 0 .75rem .75rem;
+        border-top: 1px solid var(--light-gray);
+        margin-top: .5rem;
+        color: var(--dark-gray);
+        white-space: pre-wrap; /* 프롬프트의 줄바꿈 유지 */
+    }
 
   </style>
 </head>
@@ -760,8 +782,15 @@
                 } else if (result.status === 'SUCCESS') {
                     if (type === 'prompt') {
                         // ✅ 사용자에게 프롬프트는 채팅창에만 보여줌
-                        addLine('AI 프롬프트', result.prompt);
-
+                        //addLine('AI 프롬프트', result.prompt);
+                        const promptContent = `
+                            <details class="prompt-details">
+                                <summary>생성된 AI 프롬프트 보기 (클릭)</summary>
+                                <div class="prompt-content">${escapeHTML(result.prompt)}</div>
+                            </details>
+                        `;
+                        // 세 번째 인자인 isHtml을 true로 설정하여 HTML로 렌더링합니다.
+                        addLine('AI 프롬프트', promptContent, true);
                         // 입력창에는 넣지 않고 바로 이미지 생성으로 넘어감
                         captionInput.value = '';
                         captionInput.placeholder = '장면 설명을 입력하세요';
