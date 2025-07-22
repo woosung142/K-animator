@@ -624,7 +624,7 @@
             addLine('나', userMessage, true, fileToSend);
             userInput.value = '';
             captionInput.value = '';
-
+            autoGrow(captionInput)
             // === 초기화
             downloadPsdBtn.style.display = "none";
             openPsdBtn.style.display = "none";
@@ -820,6 +820,7 @@
             sttBtn.innerHTML = '👂';
 
             captionInput.value = '';
+            autoGrow(captionInput)
             captionInput.placeholder = '말씀해주세요';
 
             recognizer.recognizeOnceAsync(result => {
