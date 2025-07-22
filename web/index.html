@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>한국풍 웹툰 배경 이미지 생성기</title>
-    <style>
-        /* 전역 스타일 변수 정의 */
-        :root {
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>한국풍 웹툰 배경 이미지 생성기</title>
+        <style>
+            :root {
             --gap: 1rem;
             --radius: .75rem;
             --primary: #2563eb;
@@ -15,13 +14,11 @@
             --dark-gray: #4b5563;
             --selected-bg: #dbeafe;
             --selected-border: #60a5fa;
-        }
+            }
 
-        /* 모든 요소에 box-sizing 설정 */
-        * { box-sizing: border-box; }
+            * { box-sizing: border-box; }
 
-        /* 전체 페이지 레이아웃 설정 */
-        body {
+            body {
             margin: 0;
             font-family: system-ui, sans-serif;
             background: var(--bg);
@@ -29,48 +26,45 @@
             flex-direction: column;
             align-items: center;
             padding: var(--gap);
-            height: 100vh; /* min-height에서 height로 변경하여 높이 고정 */
-            overflow: hidden; /* body 자체의 스크롤 방지 */
-        }
+            min-height: 100vh;
+            height: auto;
+            overflow-y: auto;
+            }
 
-        /* 제목 스타일 */
-        h1 {
+            h1 {
             margin: .25rem 0 1rem;
             font-size: 1.4rem;
-            flex-shrink: 0; /* 높이가 줄어들지 않도록 고정 */
-        }
+            flex-shrink: 0;
+            }
 
-        /* 채팅창 스타일 */
-        #chatbox {
-            flex: 1 1 auto; /* 남은 공간을 모두 차지하도록 설정 */
+            #chatbox {
+            flex: 1 1 auto;
             width: 100%;
             max-width: 600px;
             background: #fff;
             border: 1px solid var(--light-gray);
             border-radius: var(--radius);
             padding: var(--gap);
-            overflow-y: auto; /* 내용이 많아지면 내부 스크롤 생성 */
-            min-height: 100px; /* 최소 높이 지정 */
-        }
+            overflow-y: auto;
+            min-height: 100px;
+            }
 
-        /* 메시지 한 줄 스타일 */
-        .msg {
+            .msg {
             margin-bottom: .6rem;
             line-height: 1.45;
             word-wrap: break-word;
-        }
-        .msg strong {
+            }
+            .msg strong {
             color: var(--primary);
-        }
-        .msg img {
+            }
+            .msg img {
             max-width: 100%;
             height: auto;
             border-radius: calc(var(--radius) / 2);
             margin-top: 0.5rem;
-        }
+            }
 
-        /* 선택 그룹 (카테고리, 레이어) 스타일 */
-        .selection-container {
+            .selection-container {
             width: 100%;
             max-width: 600px;
             margin-bottom: 0.75rem;
@@ -79,24 +73,26 @@
             border: 1px solid var(--light-gray);
             border-radius: var(--radius);
             flex-shrink: 0;
-        }
+            }
 
-        .selection-group {
+            .selection-group {
             display: flex;
             align-items: center;
             flex-wrap: wrap;
             gap: 0.5rem;
-        }
-        .selection-group:not(:last-child) {
+            }
+
+            .selection-group:not(:last-child) {
             margin-bottom: 0.75rem;
-        }
-        .selection-group strong {
+            }
+
+            .selection-group strong {
             font-size: 0.9rem;
             margin-right: 0.5rem;
             color: var(--dark-gray);
-        }
+            }
 
-        .selection-btn {
+            .selection-btn {
             padding: 0.4rem 0.8rem;
             font-size: 0.9rem;
             border: 1px solid var(--light-gray);
@@ -105,36 +101,35 @@
             color: var(--dark-gray);
             cursor: pointer;
             transition: all 0.2s ease-in-out;
-        }
-        .selection-btn.selected {
+            }
+
+            .selection-btn.selected {
             background: var(--selected-bg);
             border-color: var(--selected-border);
             color: var(--primary);
             font-weight: bold;
-        }
+            }
 
-        /* 입력 폼 스타일 */
-        form {
+            form {
             display: flex;
+            flex-wrap: wrap;
             gap: .5rem;
             width: 100%;
             max-width: 600px;
             margin-top: 0;
             align-items: stretch;
             flex-shrink: 0;
-        }
+            }
 
-        /* 텍스트 입력 필드 스타일 */
-        input#userInput {
+            input#userInput {
             flex: 1;
             padding: .65rem .9rem;
             font-size: 1rem;
             border: 1px solid #d1d5db;
             border-radius: var(--radius);
-        }
+            }
 
-        /* 버튼 스타일 */
-        button {
+            button {
             padding: .65rem 1rem;
             font-size: 1rem;
             border: none;
@@ -143,46 +138,58 @@
             color: #fff;
             cursor: pointer;
             flex-shrink: 0;
-        }
-        button:disabled {
+            }
+
+            button:disabled {
             opacity: .4;
             cursor: not-allowed;
-        }
+            }
 
-        /* 이미지 미리보기 영역 스타일 */
-        #preview-area {
+            #preview-area {
             width: 100%;
             max-width: 600px;
             padding: 0 .5rem .5rem;
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             gap: 0.5rem;
             flex-shrink: 0;
-        }
-        #preview-area img {
+            }
+
+            #preview-area img {
             max-height: 80px;
             border-radius: var(--radius);
-        }
-        #preview-area button#remove-preview-btn {
+            }
+
+            #preview-area button#remove-preview-btn {
             background: none;
             border: none;
             font-size: 1.2rem;
             color: var(--dark-gray);
             cursor: pointer;
             padding: 0;
-        }
+            }
 
-        /* 추가 기능 버튼 영역 */
-        #extras {
+            #extras {
             margin-top: 1rem;
             max-width: 600px;
-            display: flex;
-            justify-content: space-between;
             width: 100%;
-            flex-shrink: 0;
-        }
-    </style>
-</head>
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            position: relative;
+            padding-top: .5rem;
+            z-index: 10;
+            }
+
+            @media (max-width: 480px) {
+            #extras button {
+                flex: 1 1 100%;
+            }
+            }
+        </style>
+    </head>
 <body>
     <h1>한국풍 웹툰 배경 이미지 생성기</h1>
 
@@ -712,52 +719,66 @@
         };
 
                 // 상태 체크
-        const checkStatus = async (taskId, type) => {
-            try {
-                const resp = await fetch(`/api/result/${taskId}`);  // 변수명 수정
-                const result = await resp.json();
+                const checkStatus = async (taskId, type) => {
+                    try {
+                        const resp = await fetch(`/api/result/${taskId}`);
+                        const result = await resp.json();
 
-                if (result.status === 'PENDING') {
-                    setTimeout(() => checkStatus(taskId, type), 2000);
-                } else if (result.status === 'SUCCESS') {
-                    if (type === 'prompt') {
-                        addLine('AI 프롬프트', '아래 프롬프트를 확인하고, 수정 후 버튼을 다시 눌러 이미지를 생성하세요.');
-                        captionInput.value = result.prompt;
-                        autoGrow(captionInput);
-                        captionInput.readOnly = false;
-                        captionInput.placeholder = 'DALL-E 프롬프트를 수정하거나 확정하세요';
+                        if (result.status === 'PENDING') {
+                            setTimeout(() => checkStatus(taskId, type), 2000);
+                        } else if (result.status === 'SUCCESS') {
+                            if (type === 'prompt') {
+                                // ✅ 사용자에게 프롬프트는 채팅창에만 보여줌
+                                addLine('AI 프롬프트', result.prompt);
 
-                        generationStep = 'image';
-                        generateImageBtn.innerHTML = '▶';
-                        generateImageBtn.disabled = false;
+                                // 입력창에는 넣지 않고 바로 이미지 생성으로 넘어감
+                                captionInput.value = '';
+                                captionInput.placeholder = '장면 설명을 입력하세요';
+                                autoGrow(captionInput);
 
-                        userInput.readOnly = true;
-                        addFileBtn.disabled = true;
-                        qsa('.selection-btn').forEach(btn => btn.disabled = true);
-                    
-                    } else if (type === 'image') {    
-                        addLine('AI 이미지', `<img src="${result.png_url}" alt="생성된 이미지">`, true);
-                        addLine('다운로드', `<a href="${result.psd_url}" download>PSD 파일</a>`, true);
-                        psdUrl = result.psd_url;
-                        downloadPsdBtn.style.display = "inline-block";
-                        openPsdBtn.style.display = "inline-block";
-                        resetUI();
+                                addLine('시스템', '🟢 프롬프트를 기반으로 바로 이미지를 생성합니다...');
+
+                                try {
+                                    const res2 = await fetch('/api/generate-image-from-prompt', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ dalle_prompt: result.prompt })
+                                    });
+                                    if (!res2.ok) throw new Error('최종 이미지 생성 요청 실패');
+
+                                    const { task_id: newTaskId } = await res2.json();
+                                    currentTaskId = newTaskId;
+                                    checkStatus(currentTaskId, 'image');
+                                } catch (err) {
+                                    console.error('[자동 이미지 생성 실패]', err);
+                                    addLine('시스템', `⚠️ 이미지 생성 실패: ${err.message}`);
+                                    resetUI();
+                                }
+
+                            } else if (type === 'image') {
+                                addLine('AI 이미지', `<img src="${result.png_url}" alt="생성된 이미지">`, true);
+                                addLine('다운로드', `<a href="${result.psd_url}" download>PSD 파일</a>`, true);
+                                psdUrl = result.psd_url;
+                                downloadPsdBtn.style.display = "inline-block";
+                                openPsdBtn.style.display = "inline-block";
+                                resetUI();
+                            }
+
+                            // ✅ 공통 UI 해제
+                            generateImageBtn.disabled = false;
+                            fileInput.disabled = false;
+                            pasteBlocked = false;
+                            userInput.readOnly = false;
+                            captionInput.readOnly = false;
+
+                        } else {
+                            throw new Error(result.detail || '알 수 없는 오류');
+                        }
+                    } catch (err) {
+                        console.error('[요청 실패]', err);
+                        addLine('시스템', `⚠️ 작업 처리 중 오류 발생: ${err.message}`);
                     }
-                        // 완료시 버튼 활성화
-                        generateImageBtn.disabled = false;
-                        fileInput.disabled = false;
-                        pasteBlocked = false;
-                        userInput.readOnly = false;
-                        captionInput.readOnly = false;
-                } else {
-                    
-                    throw new Error(result.detail || '알 수 없는 오류');
-                }
-            } catch (err) {
-                console.error('[요청 실패]', err);
-                addLine('시스템', `⚠️ 작업 처리 중 오류 발생: ${err.message}`);
-            }
-        };
+                };
 
         // PSD 파일 다운로드
         on(downloadPsdBtn, 'click', () => {
