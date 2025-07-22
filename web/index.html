@@ -678,7 +678,7 @@
                 return alert("DALL-E 프롬프트가 비어 있습니다.");
             }
 
-            addLine('나', '(수정된 프롬프트로 이미지 생성 요청)<br>${escapeHTML(finalPrompt)}', true);
+            addLine('나', `(수정된 프롬프트로 이미지 생성 요청)<br>${escapeHTML(finalPrompt)}`, true);
             addLine('시스템', '🟢 최종 이미지를 생성합니다. 잠시만 기다려주세요...');
 
             generateImageBtn.disabled = true;
@@ -688,7 +688,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        dalle_prompt: finalPrompt
+                        // dalle_prompt: finalPrompt
                     })
                 });
                 if (!res.ok) throw new Error('최종 이미지 생성 요청 실패');
