@@ -688,7 +688,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        // dalle_prompt: finalPrompt
+                        dalle_prompt: finalPrompt
                     })
                 });
                 if (!res.ok) throw new Error('최종 이미지 생성 요청 실패');
