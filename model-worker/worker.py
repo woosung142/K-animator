@@ -182,16 +182,25 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
 
         # 6. GPT 프롬프트 생성
         prompt_text = (
-            "이 이미지들을 참고해서,\n"
-            "- 한국적인 분위기가 느껴지는 웹툰 스타일의 배경 이미지를,\n"
-            "- 인물은 제외하고,\n"
-            "- 주요 객체를 단순하고 직관적으로 표현해줘.\n"
-            "- 참고한 이미지들의 구도나 위치, 객체의 모양 등을 설명해줘.\n"
-            "- 그림은 DALL·E 3에 사용할 영어 프롬프트 형식으로 만들어줘.\n\n"
-            f"추가 설명: 사용자는 다섯 단계 중 '{layer}' 스타일을 원하며, 이 단계에 맞는 스타일 가이드는 다음과 같다:\n"
-            f"{layer_descriptions.get(layer, '')}\n\n"
-            f"원래 설명: \"{caption_input}\""
+            "Analyze the provided images and generate a background illustration that can be used in a DALL·E 3 prompt.\n"
+            "- The illustration should depict a Korean-style background in webtoon style.\n"
+            "- Do not include any human figures.\n"
+            "- Objects should be simplified and intuitively represented.\n"
+            "- Composition and placement should be suitable for a background scene.\n"
+            "- The prompt must be formatted in fluent and optimized English for DALL·E 3.\n\n"
+            "Additional instructions for the image prompt:\n"
+            "- The purpose of the image is to serve as a Korean-style background in webtoon format where a person may be added later.\n"
+            "- The main food item from the input keyword should be placed at the center of the table.\n"
+            "- Other side dishes should be arranged next to it in a natural and balanced way.\n"
+            "- Do NOT include raw ingredients or uncooked food components.\n"
+            "- Do NOT include cooking tools, utensils, or preparation scenes.\n"
+            "- Even without specific instructions, the background should always depict a traditional Korean dining table as the default.\n"
+            "- The scene must exclude people and focus solely on the background setting.\n\n"
+            f"Style step: '{layer}'\n"
+            f"Style guide for this step:\n{layer_descriptions.get(layer, '')}\n\n"
+            f"Original description from the user: \"{caption_input}\""
         )
+
         print(f"[STEP 6] 생성된 프롬프트:\n{prompt_text}")
 
         messages = [{
