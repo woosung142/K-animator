@@ -27,7 +27,7 @@ https://www.prtest.shop/
 
 ## 실제 화면 구조
 
-<img src="./실제ui.png" alt="실제 UI" style="width: 50%;" />
+<img src="image-samples/실제ui.png" alt="실제 UI" style="width: 50%;" />
 
 ## 사용 기술 스택 정리
 
@@ -69,7 +69,7 @@ https://www.prtest.shop/
 
 ## Kubernetes 리소스 구조
 
-![Kubernetes 리소스 구조](./포드.png)
+![Kubernetes 리소스 구조](image-samples/포드.png)
 
 ## 사용자 요청 처리 과정
 
