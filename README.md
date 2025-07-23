@@ -174,9 +174,9 @@ https://www.prtest.shop/
 #### 1. `/upload-image`: 이미지 업로드 및 변환
 
 * 사용자가 선택하거나 붙여넣은 이미지 파일을 받음
-* **Pillow(PIL)**로 리사이즈 (최대 1024px, RGB 변환 → PNG 저장)
-* **Azure Blob Storage**에 이미지 업로드
-* **읽기 전용 SAS URL(10분)**을 생성해서 클라이언트에 전달
+* Pillow(PIL)로 리사이즈 (최대 1024px, RGB 변환 → PNG 저장)
+* **Azure Blob Storage** 에 이미지 업로드
+* 읽기 전용 SAS URL(10분)을 생성해서 클라이언트에 전달
 
 → 사용처: `index.html`에서 이미지 첨부 시 호출
 
