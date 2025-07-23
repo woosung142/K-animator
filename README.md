@@ -92,6 +92,49 @@ https://www.prtest.shop/
 ```
 ---
 
+## 전체 구조
+
+```
+[사용자 (User)]
+   ├─ index.html
+   │    ├─ 키워드, 태그, 설명 입력
+   │    ├─ 마이크 사용 (STT)
+   │    ├─ 이미지 첨부 or 붙여넣기
+   │    └─ 이미지 생성 요청 
+   ▼
+[웹 서버: web (web.py + index.html)]
+   ├─ /              → index.html 정적 파일 응답
+   ├─ /upload-image  → 이미지 업로드 + Azure Blob 저장 + SAS URL 발급
+   ├─ /get-speech-token → Azure STT 토큰 발급
+   ▼
+[모델 API 서버: model-api (api.py)]
+   ├─ /api/generate-prompt
+   │    ├─ 사용자 입력(category, layer, tag, caption_input, image_url) 수신
+   │    ├─ Celery에 "generate_prompt" 태스크 등록
+   │    └─ task_id 반환
+   ├─ /api/generate-image-from-prompt
+   │    ├─ 정제된 dalle_prompt 직접 수신
+   │    └─ Celery에 "generate_final_image" 태스크 등록
+   ├─ /api/result/{task_id}
+   │    ├─ Redis에서 해당 task 상태 확인
+   │    └─ SUCCESS면 png_url, psd_url 함께 반환
+   ▼
+[비동기 처리: Celery (model-worker)]
+   ├─ generate_prompt
+   │    ├─ KoCLIP 임베딩 + PostgreSQL 유사도 검색
+   │    ├─ GPT-4o로 프롬프트 생성
+   │    └─ 결과 Redis에 저장
+   ├─ generate_final_image
+   │    ├─ DALL·E 3로 이미지 생성
+   │    ├─ PNG → PSD 변환 (ImageMagick)
+   │    └─ Azure Blob 저장 + URL Redis에 저장
+   ▼
+[결과 확인]
+   └─ 사용자 → /api/result/{task_id} 주기적 polling
+          └─ 완료 시 이미지 및 PSD 표시
+```
+---
+
 ## 주요 POD 요약
 
 | POD 이름          | 설명            | 주요 기능                    | 관련 파일                  |
