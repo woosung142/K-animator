@@ -123,11 +123,11 @@ https://www.prtest.shop/
    ├─ generate_prompt
    │    ├─ KoCLIP 임베딩 + PostgreSQL 유사도 검색
    │    ├─ GPT-4o로 프롬프트 생성
-   │    └─ 결과 Redis에 저장
+   │    └─ 결과 프롬프트 반환
    ├─ generate_final_image
    │    ├─ DALL·E 3로 이미지 생성
    │    ├─ PNG → PSD 변환 (ImageMagick)
-   │    └─ Azure Blob 저장 + URL Redis에 저장
+   │    └─ Azure Blob 저장 + URL 반환
    ▼
 [결과 확인]
    └─ 사용자 → /api/result/{task_id} 주기적 polling
