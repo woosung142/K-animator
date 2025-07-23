@@ -217,7 +217,7 @@ def generate_final_image(self, dalle_prompt: str) -> dict:
         print(f"[INPUT] DALL·E 프롬프트: {dalle_prompt}")
 
         # 8. DALL·E 3 이미지 생성
-        dalle_response = client.images.generate(model="dall-e-3", prompt=dalle_prompt, size="512x512", n=1)
+        dalle_response = client.images.generate(model="dall-e-3", prompt=dalle_prompt, size="1024x1024", n=1)
         image_url = dalle_response.data[0].url
         print(f"[STEP 8] DALL·E 이미지 URL: {image_url}")
         dalle_image_data = requests.get(image_url).content
