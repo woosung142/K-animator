@@ -4,6 +4,12 @@
   const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   if (isMobile) {
     document.body.classList.add('mobile');
+    const left = document.getElementById('left-panel');
+    if (left) {
+      left.style.width = '100%';
+      left.style.minWidth = '0';
+      left.style.maxWidth = '100%';
+    }
   }
 </script>
 <head>
@@ -312,6 +318,7 @@
     body.mobile #left-panel {
     width: 100%;
     min-width: 0 !important;
+    max-width: 100% !important;
     height: auto;
     border-right: none;
     border-top: none;
