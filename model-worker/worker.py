@@ -181,19 +181,20 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
         if not images_content:
             print(f"[STEP 5] 이미지 없이 텍스트만으로 프롬프트 생성됨")
 
+        # 6. gpt 프롬프트 생성
         prompt_text = (
-            "Analyze the provided images and generate a Korean-style webtoon background illustration suitable for a DALL·E 3 prompt.\n"
-            "The illustration should depict a peaceful Korean background scene where the main food item from the input keyword is clearly visible.\n"
-            "If necessary, you may include human figures, but they should not be the central focus — never portray them as main characters.\n"
-            "Instead, the emphasis should remain on the food and setting.\n"
-            "Do not include raw ingredients, utensils, or cooking preparation elements.\n"
-            "The environment should harmonize with the given food keyword — reflecting a natural and authentic Korean atmosphere.\n"
-            "Use a webtoon-friendly, simplified illustration style that avoids clutter and supports clear composition.\n"
-            "The prompt must be written in natural, fluent English optimized for DALL·E 3 input.\n\n"
-            f"Style step: '{layer}'\n"
-            f"Style guide for this step:\n{layer_descriptions.get(layer, '')}\n\n"
-            f"Original description from the user: \"{caption_input}\""
-        )
+        "Analyze the provided images and generate a Korean-style webtoon background scene suitable for a DALL·E 3 prompt.\n"
+        "The scene should reflect a natural and culturally authentic Korean setting that fits the input concept.\n"
+        "You may adjust the level of detail depending on the artistic stage, from rough draft to polished background.\n"
+        "If necessary, you may include human figures, but they should not be the central focus — never portray them as main characters.\n"
+        "Do not include raw ingredients, utensils, or cooking preparation elements.\n"
+        "The environment should harmonize with the given keyword — reflecting a natural and authentic Korean atmosphere.\n"
+        "Use a style that supports clarity and composition, and avoid clutter unless appropriate for the artistic layer.\n"
+        "The prompt must be written in natural, fluent English optimized for DALL·E 3 input.\n\n"
+        f"Style step: '{layer}'\n"
+        f"Style guide for this step:\n{layer_descriptions.get(layer, '')}\n\n"
+        f"Original description from the user: \"{caption_input}\""
+    )
 
 
         print(f"[STEP 6] 생성된 프롬프트:\n{prompt_text}") 
