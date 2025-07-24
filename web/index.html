@@ -157,31 +157,6 @@
     animation: bounceIn 1s ease-out 0.3s both;
   }
 
-  h1::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 3px;
-    background: linear-gradient(90deg, var(--primary), var(--accent));
-    border-radius: 2px;
-  }
-
-  h1::before {
-    content: "";
-    display: inline-block;
-    width: 1.5rem;
-    height: 1.5rem;
-    margin-right: 0.5rem;
-    background-image: url('/images/brush-icon.png'); /* 또는 절대경로/URL */
-    background-size: contain;
-    background-repeat: no-repeat;
-    animation: float 3s ease-in-out infinite;
-    vertical-align: middle;
-  }
-
   #chatbox {
     flex: 1;
     background: rgba(255, 255, 255, 0.9);
@@ -763,12 +738,22 @@
   overflow: hidden;
   text-overflow: ellipsis; /* 너무 길면 ... 처리 */
 }
+.title-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+  animation: float 3s ease-in-out infinite;
+}
 </style>
 
 </head>
 <body>
   <div id="left-panel">
-    <h1>한국풍 웹툰 배경 이미지 생성기</h1>
+    <h1>
+    <img src="./images/brush-icon.png" alt="" class="title-icon" />
+    한국풍 웹툰 배경 이미지 생성기
+    </h1> 
     <div class="selection-container">
       <div class="selection-group korean-decoration" id="category-group">
         <strong>카테고리 *</strong>
