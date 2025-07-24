@@ -885,6 +885,7 @@
         let selectedLayers = [];
         let pasteBlocked = false;
         let inputLocked = false; 
+        let latestPsdData = null;
 
         // 세션 ID 설정
         let sessionId = sessionStorage.getItem('chatSessionId') || `web-user-${Date.now()}`;
@@ -1244,9 +1245,11 @@
                     } else if (type === 'image') {
                         addLine('AI 이미지', `<img src="${result.png_url}" alt="생성된 이미지" style="width: 300px; height: 300px;">`, true);
                         addLine('다운로드', `<a href="${result.psd_url}" download>PSD 파일</a>`, true);
-                        psdUrl = result.psd_url;
- 
-currentTaskId = taskId;                       downloadPsdBtn.style.display = "inline-block";
+                        latestPsdData = {
+                            url: result.psd_url,
+                            taskId: taskId
+                        };            
+                        downloadPsdBtn.style.display = "inline-block";
                         openPsdBtn.style.display = "inline-block";
                         resetUI();
                     }
@@ -1269,10 +1272,13 @@ currentTaskId = taskId;                       downloadPsdBtn.style.display = "in
 
         // PSD 파일 다운로드
         on(downloadPsdBtn, 'click', () => {
-            if (!psdUrl || !currentTaskId) return;
+            if (!latestPsdData) {
+                alert("다운로드 가능한 PSD 파일이 없습니다. 이미지를 먼저 생성해주세요.");
+                return;
+            }
             const a = document.createElement('a');
-            a.href = psdUrl;
-            a.download = `${currentTaskId}.psd`;
+            a.href = latestPsdData.url;
+            a.download = `${latestPsdData.taskId}.psd`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1280,12 +1286,17 @@ currentTaskId = taskId;                       downloadPsdBtn.style.display = "in
 
         // PSD 자동 실행 요청 (로컬 서버와 통신)
         on(openPsdBtn, 'click', async () => {
-            if (!psdUrl || !currentTaskId) return;
+            if (!latestPsdData) {
+                alert("실행할 PSD 파일이 없습니다. 이미지를 먼저 생성해주세요.");
+                return;
+            }
             try {
                 await fetch("http://localhost:5001/download-and-open-psd", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ url: psdUrl, filename: `${currentTaskId}.psd` })
+                    body: JSON.stringify({ 
+                      url: latestPsdData.url, 
+                      filename: `${latestPsdData.taskId}.psd` })
                 });
             } catch (err) {
                 alert("실행기가 실행 중이 아니거나 통신에 실패했습니다. 설치 후 다시 시도해주세요.");
