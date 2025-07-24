@@ -76,31 +76,28 @@ def generate_sas_url(account_name, account_key, container_name, blob_name, expir
 
 layer_descriptions = {
     "콘티": (
-        "A very rough wireframe-style layout using only light pencil lines. "
-        "There should be no shading, coloring, or filled areas — just loose hand-drawn outlines that indicate object placement and basic shapes. "
-        "The sketch must look incomplete and minimal, focusing solely on structure, like a storyboard or planning draft."
+        "A rough wireframe sketch with light pencil lines only. "
+        "No color, no shading — just loose outlines showing layout and composition."
     ),
     "스케치": (
-        "A clean black-and-white pencil sketch with clearly defined outlines and simple grayscale shading. "
-        "All major forms are visible, and contours are refined. "
-        "No color is applied — depth and structure are shown using only brightness and line weight."
+        "A clean black-and-white pencil drawing with defined lines and basic grayscale shading. "
+        "No color — depth is shown through line weight and brightness."
     ),
     "채색 기본": (
-    "A partially colored illustration using flat tones in selected areas. "
-    "Large portions of the image must remain uncolored, left white or in sketch form, to intentionally show incomplete coloring. "
-    "The color palette should be minimal, with no shading or lighting — this is a color blocking phase to suggest intended tones."
+        "Flat colors applied to only parts of the image. "
+        "Large areas must remain white or uncolored. "
+        "No shading — just a minimal color preview."
     ),
     "채색 명암": (
-    "A fully colored illustration where all areas are filled with flat, solid colors only. "
-    "There should be no lighting, no shadows, no highlights, and no gradients. "
-    "The image must remain completely flat in tone — it should look like a coloring book filled in, with no sense of light or depth."
+        "All areas are filled with flat, solid colors. "
+        "No shadows, no highlights, no lighting — colors only, completely flat in tone."
     ),
     "배경": (
-        "A fully rendered and polished scene with complete coloring, shading, lighting, texture, and atmosphere. "
-        "All elements — foreground and background — are realistically detailed, showing depth, material qualities, and a unified environment. "
-        "This should look like a finalized background image ready for use in production."
+        "A fully rendered scene with complete coloring, shading, lighting, texture, and atmosphere. "
+        "Everything is polished and cohesive, as in a finished background."
     )
 }
+
 
 def get_wikipedia_main_image(tag):
     try:
