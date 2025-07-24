@@ -17,29 +17,107 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>한국풍 웹툰 배경 이미지 생성기</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+  
   :root {
-    --gap: 1rem;
-    --radius: .75rem;
-    --primary: #E16350;
-    --bg: #f8fafc;
-    --light-gray: #0d0e10;
-    --dark-gray: #4b5563;
-    --selected-bg: #dbeafe;
-    --selected-border: #60a5fa;
+    --gap: 1.2rem;
+    --radius: 12px;
+    --primary: #D63031;
+    --primary-light: #FF6B6B;
+    --primary-dark: #A52A2A;
+    --secondary: #0984e3;
+    --accent: #FD79A8;
+    --bg: linear-gradient(135deg, #f8f9ff 0%, #fff5f5 100%);
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --text-primary: #2d3436;
+    --text-secondary: #636e72;
+    --border: rgba(214, 48, 49, 0.2);
+    --shadow: 0 8px 32px rgba(214, 48, 49, 0.1);
+    --shadow-hover: 0 12px 40px rgba(214, 48, 49, 0.15);
+    --korean-pattern: url("data:image/svg+xml,%3csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3e%3cg fill='none' fill-rule='evenodd'%3e%3cg fill='%23D63031' fill-opacity='0.03'%3e%3cpath d='M30 0c16.569 0 30 13.431 30 30s-13.431 30-30 30S0 46.569 0 30 13.431 0 30 0zm0 10c11.046 0 20 8.954 20 20s-8.954 20-20 20-20-8.954-20-20 8.954-20 20-20z'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");
   }
 
   * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
 
   body {
-    margin: 0;
-    font-family: system-ui, sans-serif;
+    font-family: 'Noto Sans KR', system-ui, sans-serif;
     background: var(--bg);
+    background-image: var(--korean-pattern);
     display: flex;
     flex-direction: row;
     height: 100vh;
     overflow: hidden;
+    animation: fadeIn 1s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideInFromLeft {
+    from { 
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInFromRight {
+    from { 
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes bounceIn {
+    0% { 
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    50% { 
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    70% { 
+      transform: scale(0.9);
+    }
+    100% { 
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% { 
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(214, 48, 49, 0.4);
+    }
+    50% { 
+      transform: scale(1.05);
+      box-shadow: 0 0 0 10px rgba(214, 48, 49, 0);
+    }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
   }
 
   #left-panel {
@@ -49,103 +127,201 @@
     flex-shrink: 0;
     height: 100vh;
     overflow-y: auto;
-    padding: 1rem;
-    background: var(--bg);
-    border-right: none;
+    padding: 1.5rem;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-right: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    animation: slideInFromLeft 0.8s ease-out;
   }
 
   #right-panel {
     flex: 1;
     height: 100vh;
     overflow-y: auto;
-    padding: 1rem;
-    background: var(--bg);
+    padding: 1.5rem;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;
+    animation: slideInFromRight 0.8s ease-out;
   }
 
   h1 {
-    margin: .25rem 0 1rem;
-    font-size: 1.4rem;
+    margin: 0 0 2rem;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-align: center;
+    position: relative;
+    animation: bounceIn 1s ease-out 0.3s both;
+  }
+
+  h1::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 2px;
+  }
+
+  h1::before {
+    content: '🎨';
+    display: inline-block;
+    margin-right: 0.5rem;
+    animation: float 3s ease-in-out infinite;
   }
 
   #chatbox {
     flex: 1;
-    background: #fff;
-    border: 1px solid var(--light-gray);
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid var(--border);
     border-radius: var(--radius);
     padding: var(--gap);
     overflow-y: auto;
     min-height: 100px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
+    backdrop-filter: blur(5px);
   }
 
   .msg {
-    margin-bottom: .6rem;
-    line-height: 1.45;
+    margin-bottom: 1rem;
+    line-height: 1.6;
     word-wrap: break-word;
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.7);
+    border-left: 4px solid var(--primary);
+    animation: slideInFromLeft 0.5s ease-out;
+    transition: all 0.3s ease;
+  }
+
+  .msg:hover {
+    transform: translateX(5px);
+    box-shadow: var(--shadow);
   }
 
   .msg strong {
     color: var(--primary);
+    font-weight: 600;
   }
 
   .msg img {
     max-width: 100%;
     height: auto;
-    border-radius: calc(var(--radius) / 2);
-    margin-top: 0.5rem;
+    border-radius: var(--radius);
+    margin-top: 0.8rem;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease;
+  }
+
+  .msg img:hover {
+    transform: scale(1.02);
   }
 
   .selection-container {
     width: 100%;
-    margin-bottom: 0.75rem;
-    padding: 0.75rem;
-    background-color: #fff;
-    border: 1px solid var(--light-gray);
+    margin-bottom: 1.2rem;
+    padding: 1.2rem;
+    background: var(--card-bg);
+    border: 2px solid var(--border);
     border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    animation: bounceIn 0.8s ease-out 0.5s both;
+  }
+
+  .selection-container:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
   }
 
   .selection-group {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
   }
 
-  .selection-group:not(:last-child) {
-    margin-bottom: 0.75rem;
+  .selection-group:last-child {
+    margin-bottom: 0;
   }
 
   .selection-group strong {
-    font-size: 0.9rem;
-    margin-right: 0.5rem;
-    color: var(--dark-gray);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-right: 0.8rem;
+    color: var(--text-primary);
+    position: relative;
+  }
+
+  .selection-group strong::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary), transparent);
+    border-radius: 1px;
   }
 
   .selection-btn {
-    padding: 0.4rem 0.8rem;
+    padding: 0.6rem 1.2rem;
     font-size: 0.9rem;
-    border: 1px solid var(--light-gray);
-    border-radius: var(--radius);
-    background: #fff;
-    color: var(--dark-gray);
+    font-weight: 500;
+    border: 2px solid var(--border);
+    border-radius: 25px;
+    background: var(--card-bg);
+    color: var(--text-primary);
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .selection-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.5s;
+  }
+
+  .selection-btn:hover::before {
+    left: 100%;
+  }
+
+  .selection-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    border-color: var(--primary);
   }
 
   .selection-btn.selected {
-    background: var(--selected-bg);
-    border-color: var(--selected-border);
-    color: var(--primary);
-    font-weight: bold;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    border-color: var(--primary);
+    color: white;
+    font-weight: 600;
+    animation: pulse 2s infinite;
+    box-shadow: var(--shadow-hover);
   }
 
   form {
     display: flex;
     flex-direction: column;
-    gap: .5rem;
+    gap: 0.8rem;
     width: 100%;
     max-width: 600px;
+    animation: slideInFromLeft 0.8s ease-out 0.7s both;
   }
 
   .selection-group input {
@@ -157,56 +333,119 @@
     flex: 1;
     width: auto;
     min-width: 0;
-    padding: .65rem .9rem;
+    padding: 1rem 1.2rem;
     font-size: 1rem;
-    border: 1px solid #d1d5db;
+    font-family: inherit;
+    border: 2px solid var(--border);
     border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+  }
+
+  input#userInput:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(214, 48, 49, 0.1);
+    transform: translateY(-1px);
   }
 
   button {
-    padding: .65rem 1rem;
+    padding: 1rem 1.5rem;
     font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
     border: none;
     border-radius: var(--radius);
-    background: var(--primary);
-    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
     cursor: pointer;
     flex-shrink: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+  }
+
+  button:hover::before {
+    left: 100%;
+  }
+
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+  }
+
+  button:active {
+    transform: translateY(0);
   }
 
   button:disabled {
-    opacity: .4;
+    opacity: 0.6;
     cursor: not-allowed;
+    transform: none;
+  }
+
+  button:disabled:hover {
+    transform: none;
+    box-shadow: none;
   }
 
   #preview-area {
     width: 100%;
-    padding: 0 .5rem .5rem;
+    padding: 0 0.8rem 0.8rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.8rem;
   }
 
   #preview-area img {
-    max-height: 80px;
+    max-height: 100px;
     border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease;
+  }
+
+  #preview-area img:hover {
+    transform: scale(1.05);
   }
 
   #preview-area button#remove-preview-btn {
-    background: none;
+    background: var(--primary);
     border: none;
-    font-size: 1.2rem;
-    color: var(--dark-gray);
+    font-size: 1.5rem;
+    color: white;
     cursor: pointer;
-    padding: 0;
+    padding: 0.3rem;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+
+  #preview-area button#remove-preview-btn:hover {
+    background: var(--primary-dark);
+    transform: rotate(90deg);
   }
 
   #form-controls {
     display: flex;
-    gap: .5rem;
+    gap: 0.8rem;
     width: 100%;
     align-items: stretch;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     min-width: 0;
   }
 
@@ -215,45 +454,73 @@
     width: 100%;
     display: block;
     font-size: 1rem;
+    font-family: inherit;
     line-height: 1.5rem;
-    border-radius: .75rem;
-    border: 1px solid var(--light-gray);
-    padding: .65rem .75rem;
+    border-radius: var(--radius);
+    border: 2px solid var(--border);
+    padding: 1rem;
     resize: none;
     overflow-y: hidden;
-    font-family: inherit;
     max-height: calc(1.5rem * 6);
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+  }
+
+  #captionInput:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(214, 48, 49, 0.1);
+    transform: translateY(-1px);
   }
 
   #sttBtn, #generateImageBtn, #addFileBtn {
-    width: 2.75rem;
-    height: 2.75rem;
-    font-size: 1.5rem;
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.2rem;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: .75rem;
+    border-radius: 50%;
     border: none;
-    background: var(--primary);
     color: white;
     cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  #generateImageBtn {
+    background: linear-gradient(135deg, var(--secondary), #74b9ff);
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 1.5rem;
+  }
+
+  #addFileBtn {
+    background: linear-gradient(135deg, var(--accent), #ff85c1);
   }
 
   #sttBtn {
-    background: none;
-    color: var(--dark-gray);
+    background: linear-gradient(135deg, #00b894, #55efc4);
     position: absolute;
     top: 50%;
-    right: 0.5rem;
+    right: 0.8rem;
     transform: translateY(-50%);
+    width: 2.5rem;
+    height: 2.5rem;
   }
 
   #extras {
-    margin-top: 1rem;
+    margin-top: 1.5rem;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.8rem;
+    animation: slideInFromLeft 0.8s ease-out 0.9s both;
+  }
+
+  #extras button {
+    font-size: 0.9rem;
+    padding: 0.8rem 1.2rem;
+    background: linear-gradient(135deg, var(--text-secondary), #74b9ff);
   }
 
   @media (max-width: 999px) {
@@ -267,7 +534,7 @@
       max-width: 100%;
       height: auto !important;
       border-right: none;
-      border-top: none;
+      border-top: 1px solid var(--border);
     }
 
     #right-panel {
@@ -288,7 +555,7 @@
     max-width: 100%;
     height: auto !important;
     border-right: none;
-    border-top: none;
+    border-top: 1px solid var(--border);
   }
 
   body.stacked #right-panel {
@@ -299,26 +566,53 @@
   }
 
   .prompt-details {
-    border: 1px solid var(--light-gray);
-    border-radius: .5rem;
-    margin-top: .5rem;
-    background-color: #f9fafb;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    margin-top: 0.8rem;
+    background: rgba(255, 255, 255, 0.9);
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .prompt-details:hover {
+    box-shadow: var(--shadow);
   }
 
   .prompt-details summary {
-    padding: .5rem .75rem;
-    font-weight: 500;
+    padding: 1rem 1.2rem;
+    font-weight: 600;
     cursor: pointer;
     outline: none;
     color: var(--primary);
+    background: linear-gradient(135deg, rgba(214, 48, 49, 0.05), rgba(253, 121, 168, 0.05));
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .prompt-details summary::after {
+    content: '▼';
+    position: absolute;
+    right: 1.2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.3s ease;
+  }
+
+  .prompt-details[open] summary::after {
+    transform: translateY(-50%) rotate(180deg);
+  }
+
+  .prompt-details summary:hover {
+    background: linear-gradient(135deg, rgba(214, 48, 49, 0.1), rgba(253, 121, 168, 0.1));
   }
 
   .prompt-details .prompt-content {
-    padding: 0 .75rem .75rem;
-    border-top: 1px solid var(--light-gray);
-    margin-top: .5rem;
-    color: var(--dark-gray);
+    padding: 1.2rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.5);
     white-space: pre-wrap;
+    line-height: 1.6;
   }
 
   body.mobile {
@@ -332,7 +626,7 @@
     max-width: 100% !important;
     height: auto;
     border-right: none;
-    border-top: none;
+    border-top: 1px solid var(--border);
     padding: 1rem;
   }
 
@@ -347,6 +641,91 @@
     max-height: 100%;
     overflow-y: auto;
   }
+
+  /* 로딩 애니메이션 */
+  .loading {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -200px;
+    width: 200px;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shimmer 2s infinite;
+  }
+
+  /* 성공 애니메이션 */
+  .success-flash {
+    animation: successFlash 0.6s ease-out;
+  }
+
+  @keyframes successFlash {
+    0% { background-color: rgba(0, 184, 148, 0.1); }
+    50% { background-color: rgba(0, 184, 148, 0.3); }
+    100% { background-color: transparent; }
+  }
+
+  /* 스크롤바 스타일링 */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  }
+
+  /* 포커스 지시자 */
+  .focus-indicator {
+    position: relative;
+  }
+
+  .focus-indicator::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 2px solid var(--primary);
+    border-radius: calc(var(--radius) + 2px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .focus-indicator:focus-within::after {
+    opacity: 1;
+  }
+
+  /* 한국 전통 패턴 장식 */
+  .korean-decoration {
+    position: relative;
+  }
+
+  .korean-decoration::before {
+    content: '◆';
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary);
+    opacity: 0.3;
+    font-size: 0.8rem;
+  }
 </style>
 
 </head>
@@ -354,42 +733,42 @@
   <div id="left-panel">
     <h1>한국풍 웹툰 배경 이미지 생성기</h1>
     <div class="selection-container">
-      <div class="selection-group" id="category-group">
+      <div class="selection-group korean-decoration" id="category-group">
         <strong>카테고리 *</strong>
-        <button class="selection-btn" data-value="국내명소">명소</button>
-        <button class="selection-btn" data-value="음식">음식</button>
-        <button class="selection-btn" data-value="한국문화">문화</button>
+        <button class="selection-btn" data-value="국내명소">🏛️ 명소</button>
+        <button class="selection-btn" data-value="음식">🍜 음식</button>
+        <button class="selection-btn" data-value="한국문화">🎭 문화</button>
       </div>
-      <div class="selection-group" id="layer-group">
+      <div class="selection-group korean-decoration" id="layer-group">
         <strong>레이어 *</strong>
-        <button class="selection-btn" data-value="콘티">콘티</button>
-        <button class="selection-btn" data-value="스케치">스케치</button>
-        <button class="selection-btn" data-value="채색 기본">채색(기본)</button>
-        <button class="selection-btn" data-value="채색 명암">채색(명암)</button>
-        <button class="selection-btn" data-value="배경">배경</button>
+        <button class="selection-btn" data-value="콘티">📋 콘티</button>
+        <button class="selection-btn" data-value="스케치">✏️ 스케치</button>
+        <button class="selection-btn" data-value="채색 기본">🎨 채색(기본)</button>
+        <button class="selection-btn" data-value="채색 명암">🖌️ 채색(명암)</button>
+        <button class="selection-btn" data-value="배경">🌅 배경</button>
       </div>
-      <div class="selection-group">
+      <div class="selection-group korean-decoration">
         <strong>키워드 *</strong>
-        <input id="userInput" type="text" placeholder="키워드를 입력하세요 (필수)" />
+        <input id="userInput" type="text" placeholder="키워드를 입력하세요 (예: 경복궁, 비빔밥, 한복)" />
       </div>
     </div>
 
     <form id="chat-form" autocomplete="off">
       <div id="form-controls">
-        <button type="button" id="addFileBtn">+</button>
-        <div style="position: relative; flex: 1;">
-          <textarea id="captionInput" placeholder="장면 설명을 입력하세요" rows="1" oninput="autoGrow(this)" onkeydown="handleEnterSubmit(event)"></textarea>
-          <button type="button" id="sttBtn">🎤</button>
+        <button type="button" id="addFileBtn" title="이미지 첨부">📎</button>
+        <div style="position: relative; flex: 1;" class="focus-indicator">
+          <textarea id="captionInput" placeholder="장면 설명을 자세히 입력하세요 (예: 석양이 지는 한옥마을의 평화로운 풍경)" rows="1" oninput="autoGrow(this)" onkeydown="handleEnterSubmit(event)"></textarea>
+          <button type="button" id="sttBtn" title="음성 입력">🎤</button>
         </div>
-        <button type="button" id="generateImageBtn">▶</button>
+        <button type="button" id="generateImageBtn" title="이미지 생성">🚀</button>
         <input type="file" id="fileInput" accept="image/*" style="display: none;" />
       </div>
     </form>
 
     <div id="extras">
-      <button id="downloadPsdBtn" style="display: none;">.PSD 다운로드</button>
-      <button id="exeDownloadBtn">실행기(.zip) 다운로드</button>
-      <button id="openPsdBtn" style="display: none;">PSD 자동 실행</button>
+      <button id="downloadPsdBtn" style="display: none;">💾 .PSD 다운로드</button>
+      <button id="exeDownloadBtn">📦 실행기(.zip) 다운로드</button>
+      <button id="openPsdBtn" style="display: none;">🔧 PSD 자동 실행</button>
     </div>
   </div>
 
@@ -404,7 +783,7 @@
     const left = document.getElementById('left-panel');
     const style = getComputedStyle(left);
 
-    const minLeft = Math.ceil(parseFloat(style.minWidth || style.width)); // 반올림 처리
+    const minLeft = Math.ceil(parseFloat(style.minWidth || style.width));
     const minRight = 400;
     const gap = Math.ceil(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gap')) || 16);
 
@@ -422,7 +801,6 @@
     </script>
 
     <script>
-    // 자동 높이 조절
     function autoGrow(el) {
     el.style.height = 'auto';
 
@@ -437,12 +815,9 @@
     el.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
     }
 
-    // 엔터 키 입력 감지 → 제출
     function handleEnterSubmit(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault(); // 줄바꿈 방지
-
-        // 실제 제출 동작: 버튼 클릭 시뮬레이션
+        e.preventDefault();
         document.getElementById('generateImageBtn')?.click();
         }
     }
@@ -452,7 +827,7 @@
         el.style.height = 'auto';
         const scrollHeight = el.scrollHeight;
         const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
-        const maxLines = 6;  // ← 여기만 바뀜
+        const maxLines = 6;
 
         el.style.height = scrollHeight + 'px';
 
@@ -466,13 +841,11 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
     <script>
-        // 유틸 함수
         const qs = (sel, scope = document) => scope.querySelector(sel);
         const qsa = (sel, scope = document) => scope.querySelectorAll(sel);
         const on = (el, type, cb) => el.addEventListener(type, cb);
         const escapeHTML = str => str.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
-        // 주요 요소 선택
         const chatbox = qs('#chatbox');
         const userInput = qs('#userInput');
         const form = qs('#chat-form');
@@ -483,487 +856,3 @@
         const generateImageBtn = qs('#generateImageBtn');
         const downloadPsdBtn = qs('#downloadPsdBtn');
         const openPsdBtn = qs('#openPsdBtn');
-        const exeDownloadBtn = qs('#exeDownloadBtn');
-        const captionInput = qs('#captionInput');
-        const MAX_MB = 10; // 최대 파일 크기 (MB 단위)
-
-        // 선택 버튼 관련 요소
-        const categoryGroup = qs('#category-group');
-        const layerGroup = qs('#layer-group');
-
-        // 상태 관리 변수
-        let generationStep = 'prompt';
-        let currentTaskId = null;
-        let fileToSend = null; // 서버로 보낼 파일 객체
-        let uploadedImageUrl = null;
-        let psdUrl = null;
-        let taskId = null;
-        let recognizer = null;
-        let selectedCategory = '';
-        let selectedLayers = [];
-        let pasteBlocked = false;
-        let inputLocked = false; 
-
-        // 세션 ID 설정
-        let sessionId = sessionStorage.getItem('chatSessionId') || `web-user-${Date.now()}`;
-        sessionStorage.setItem('chatSessionId', sessionId);
-
-        // 이벤트 리스너 및 함수
-        // 붙여넣기 방지 로직
-        document.addEventListener('paste', (e) => {
-            if (pasteBlocked) {
-                e.preventDefault();
-            }
-        });
-        // 카테고리 버튼 클릭 (단일 선택)
-        on(categoryGroup, 'click', e => {
-            if (e.target.tagName !== 'BUTTON') return;
-            qsa('button', categoryGroup).forEach(btn => btn.classList.remove('selected'));
-            e.target.classList.add('selected');
-            selectedCategory = e.target.dataset.value;
-        });
-
-        // 레이어 버튼 클릭 (단일 선택으로 변경)
-        on(layerGroup, 'click', e => {
-            if (e.target.tagName !== 'BUTTON') return;
-
-            const buttons = layerGroup.querySelectorAll('button');
-            for (let i = 0; i < buttons.length; i++) {
-                buttons[i].classList.remove('selected');
-            }
-
-            e.target.classList.add('selected');
-            selectedLayers = [e.target.dataset.value];  // 단일 값만 저장
-        });
-
-        // 입력란에서 Enter 키로 폼 제출
-        on(userInput, 'keydown', e => {
-            if (e.key === 'Enter') {
-                if (generateImageBtn.disabled) {
-                    e.preventDefault();  // 버튼 비활성화시 엔터 입력 막기
-                    return;
-                }
-                e.preventDefault();
-                generateImageBtn.disabled = true;
-                fileInput.disabled = true;
-                pasteBlocked = true;
-                userInput.readOnly = true;
-                captionInput.readOnly = true;
-                form.requestSubmit();                  // 안전한 폼 제출
-            }
-        });
-
-        // 버튼 클릭시 입력
-        on(generateImageBtn, 'click', () => {
-            if (generateImageBtn.disabled) return;  // 중복 클릭 방지
-            generateImageBtn.disabled = true;
-            fileInput.disabled = true;
-            pasteBlocked = true;
-            userInput.readOnly = true;
-            captionInput.readOnly = true;  
-            form.requestSubmit();                   // 안전한 폼 제출
-        });
-
-        // 채팅창에 메시지 추가
-        const addLine = (who, content, isHtml = false, imageFile = null) => {
-            const p = document.createElement('p');
-            p.className = 'msg';
-            p.innerHTML = `<strong>${who}:</strong> ${isHtml ? content : escapeHTML(content)}`;
-
-            if (imageFile) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.alt = '업로드 이미지 썸네일';
-                    img.style.maxWidth = '300px';
-                    img.style.marginTop = '0.5rem';
-                    p.appendChild(document.createElement('br'))
-                    p.appendChild(img);
-                    chatbox.appendChild(p);
-                    chatbox.scrollTop = chatbox.scrollHeight;
-                };
-                reader.readAsDataURL(imageFile);
-            } else {
-                chatbox.appendChild(p);
-                chatbox.scrollTop = chatbox.scrollHeight;
-            }
-        };
-
-        // 이미지 미리보기 표시
-        const showPreview = (file) => {
-            fileToSend = file; // 보낼 파일 객체 저장
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                previewArea.innerHTML = `<img src="${e.target.result}" alt="미리보기"><button type="button" id="remove-preview-btn">×</button>`;
-            };
-            reader.readAsDataURL(file);
-        };
-
-        // 이미지 미리보기 제거
-        const clearPreview = () => {
-            fileToSend = null;
-            previewArea.innerHTML = '';
-            fileInput.value = ''; // 파일 input 초기화
-        };
-
-        // 미리보기 제거 버튼(X) 동작
-        on(previewArea, 'click', e => {
-            if (e.target.id === 'remove-preview-btn') clearPreview();
-        });
-
-        // 파일 추가 버튼(+) 클릭 시 파일 입력창 열기
-        on(addFileBtn, 'click', () => fileInput.click());
-
-        // 파일 다이얼로그에서 파일 선택 시
-        on(fileInput, 'change', e => {
-            if (fileToSend) {
-                alert("이미 이미지가 첨부되어 있습니다. 기존 이미지를 제거하고 다시 시도하세요.");
-                fileInput.value = ''; // 선택값 초기화
-                return;
-            }
-            if (e.target.files && e.target.files.length > 0) {
-                const file = e.target.files[0];
-                if (file.size > MAX_MB * 1024 * 1024) {
-                    console.log('선택한 파일 크기:', file.size, 'bytes');
-                    alert("10MB 이하의 이미지만 업로드할 수 있습니다.");
-                    clearPreview();
-                    fileInput.value = "";  
-                    return;
-                }
-                if (!file.type.startsWith('image/')) {
-                    alert('이미지 파일만 업로드할 수 있습니다.');
-                    fileInput.value = '';
-                    clearPreview();
-                    return;
-                }
-                fileToSend = file; 
-                showPreview(file);
-            } else {
-                clearPreview();
-            }
-        });
-                // 클립보드 이미지 붙여넣기 처리
-        on(captionInput, 'paste', e => {
-            if (fileToSend) {
-                alert("이미 이미지가 첨부되어 있습니다. 기존 이미지를 제거하고 다시 시도하세요.");
-                return;
-            }
-            const items = (e.clipboardData || window.clipboardData).items;
-            for (const item of items) {
-                if (item.type.startsWith('image/')) {
-                    const file = item.getAsFile();
-                    if (file.size > MAX_MB * 1024 * 1024) {
-                        console.log('선택한 파일 크기:', file.size, 'bytes');
-                        alert("붙여넣은 이미지가 10MB를 초과합니다.");
-                        return;
-                    }
-                    fileToSend = file; 
-                    showPreview(file);
-                    e.preventDefault(); // 텍스트 필드에 파일 경로 등이 붙여넣어지는 것 방지
-                    break;
-                }
-            }
-        });
-
-        const resetUI = () => {
-            generationStep = 'prompt';
-            currentTaskId = null;
-            fileToSend = null;
-            psdUrl = null;
-            uploadedImageUrl = null;
-
-            userInput.value = '';
-            userInput.readOnly = false;
-            captionInput.value = '';
-            captionInput.readOnly = false;
-            captionInput.placeholder = '장면 설명을 입력하세요';
-            autoGrow(captionInput);
-            qsa('.selection-btn').forEach(btn => btn.disabled = false);
-
-            generateImageBtn.innerHTML = '▶';
-            generateImageBtn.disabled = false;
-            addFileBtn.disabled = false;
-            fileInput.disabled = false;
-            sttBtn.disabled = false;
-
-            downloadPsdBtn.style.display = "none";
-            openPsdBtn.style.display = "none";
-            clearPreview();
-        };
-
-        // 폼 제출(전송 버튼 클릭 또는 Enter) 시
-        on(form, 'submit', async (e) => {
-            e.preventDefault();
-
-            if (generationStep === 'prompt') {
-                await handlePromptGeneration();
-            } else if (generationStep === "image") {
-                await handleImageGeneration();
-            }
-            });
-
-            // === 입력값 유효성 검사 ===
-        const handlePromptGeneration = async() => {
-            const keywords = userInput.value.trim();
-            const caption = captionInput.value.trim();
-
-            if (!selectedCategory || selectedCategory === 0 || !keywords) {
-                return alert("카테고리, 레이어, 키워드는 필수 입력 항목입니다.");
-            }
-
-            // === UI 비활성화 ===
-            generateImageBtn.disabled = true;
-            fileInput.disabled = true;
-            pasteBlocked = true;
-            userInput.readOnly = true;
-            captionInput.readOnly = true;
-
-            // === 사용자 입력 표시 ===
-            let userMessage = keywords;
-            if (fileToSend) userMessage += ' (이미지 첨부)';
-            if (caption) userMessage += `<br>(장면 설명: ${escapeHTML(caption)})`;
-            addLine('나', userMessage, true, fileToSend);
-            userInput.value = '';
-            captionInput.value = '';
-            autoGrow(captionInput)
-            // === 초기화
-            downloadPsdBtn.style.display = "none";
-            openPsdBtn.style.display = "none";
-            psdUrl = null;
-            uploadedImageUrl = null;
-
-            try {
-                // ✅ 이미지 업로드
-                if (fileToSend) {
-                    addLine('시스템', '🟡 이미지를 업로드 중입니다...');
-                    const formData = new FormData();
-                    formData.append('image_file', fileToSend);
-
-                    const uploadRes = await fetch('/upload-image', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    if (!uploadRes.ok) throw new Error('이미지 업로드 실패');
-                    const uploadResult = await uploadRes.json();
-                    if (!uploadResult.image_url) throw new Error('업로드 결과에 image_url이 없습니다.');
-
-                    uploadedImageUrl = uploadResult.image_url;
-                    clearPreview();
-                    fileToSend = null;
-                    addLine('시스템', '✅ 이미지 업로드 완료');
-                }
-
-                // 이미지 생성 요청
-                addLine('시스템', '🟢 AI가 DALL-E 프롬프트를 생성 중입니다...');
-                const res = await fetch('/api/generate-prompt', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        category: selectedCategory,
-                        layer: selectedLayers.join(', '),
-                        tag: keywords,
-                        caption_input: caption || null,
-                        image_url: uploadedImageUrl || null
-                    })
-                });
-                console.log('[generate-image 요청 res]', res);
-                if (!res.ok) throw new Error('이미지 생성 요청 실패');
-
-                const { task_id } = await res.json();
-                currentTaskId = task_id;
-                checkStatus(currentTaskId, 'prompt');
-
-            } catch (err) {
-                console.error('[1단계 실패]', err);
-                addLine('시스템', `⚠️ 요청 실패: ${err.message}`);
-                resetUI();
-            }
-        };
-
-        const handleImageGeneration = async () => {
-            const finalPrompt = captionInput.value.trim();
-            if(!finalPrompt) {
-                return alert("DALL-E 프롬프트가 비어 있습니다.");
-            }
-
-            const messageContent = `
-                (수정된 프롬프트로 이미지 생성 요청)
-                <details class="prompt-details">
-                    <summary>수정된 프롬프트 보기 (클릭)</summary>
-                    <div class="prompt-content">${escapeHTML(finalPrompt)}</div>
-                </details>
-            `;
-            addLine('나', messageContent, true);            
-            addLine('시스템', '🟢 최종 이미지를 생성합니다. 잠시만 기다려주세요...');
-
-            generateImageBtn.disabled = true;
-
-            try {
-                const res = await fetch('/api/generate-image-from-prompt', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        dalle_prompt: finalPrompt
-                    })
-                });
-                if (!res.ok) throw new Error('최종 이미지 생성 요청 실패');
-
-                const { task_id } = await res.json();
-                currentTaskId = task_id;
-                checkStatus(currentTaskId, 'image');
-
-            } catch (err) {
-                console.error('[2단계 실패]', err);
-                addLine('시스템', `⚠️ 요청 실패: ${err.message}`);
-                resetUI();
-            }
-        };
-
-        // 상태 체크
-        const checkStatus = async (taskId, type) => {
-            try {
-                const resp = await fetch(`/api/result/${taskId}`);
-                const result = await resp.json();
-
-                if (result.status === 'PENDING') {
-                    setTimeout(() => checkStatus(taskId, type), 2000);
-                } else if (result.status === 'SUCCESS') {
-                    if (type === 'prompt') {
-                        // ✅ 사용자에게 프롬프트는 채팅창에만 보여줌
-                        //addLine('AI 프롬프트', result.prompt);
-                        const promptContent = `
-                            <details class="prompt-details">
-                                <summary>생성된 AI 프롬프트 보기 (클릭)</summary>
-                                <div class="prompt-content">${escapeHTML(result.prompt)}</div>
-                            </details>
-                        `;
-                        // 세 번째 인자인 isHtml을 true로 설정하여 HTML로 렌더링합니다.
-                        addLine('AI 프롬프트', promptContent, true);
-                        // 입력창에는 넣지 않고 바로 이미지 생성으로 넘어감
-                        captionInput.value = '';
-                        captionInput.placeholder = '장면 설명을 입력하세요';
-                        autoGrow(captionInput);
-
-                        addLine('시스템', '🟢 프롬프트를 기반으로 바로 이미지를 생성합니다...');
-
-                        try {
-                            const res2 = await fetch('/api/generate-image-from-prompt', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ dalle_prompt: result.prompt })
-                            });
-                            if (!res2.ok) throw new Error('최종 이미지 생성 요청 실패');
-
-                            const { task_id: newTaskId } = await res2.json();
-                            currentTaskId = newTaskId;
-                            checkStatus(currentTaskId, 'image');
-                        } catch (err) {
-                            console.error('[자동 이미지 생성 실패]', err);
-                            addLine('시스템', `⚠️ 이미지 생성 실패: ${err.message}`);
-                            resetUI();
-                        }
-
-                    } else if (type === 'image') {
-                        addLine('AI 이미지', `<img src="${result.png_url}" alt="생성된 이미지" style="width: 300px; height: 300px;">`, true);
-                        addLine('다운로드', `<a href="${result.psd_url}" download>PSD 파일</a>`, true);
-                        psdUrl = result.psd_url;
-                        downloadPsdBtn.style.display = "inline-block";
-                        openPsdBtn.style.display = "inline-block";
-                        resetUI();
-                    }
-
-                    // ✅ 공통 UI 해제
-                    generateImageBtn.disabled = false;
-                    fileInput.disabled = false;
-                    pasteBlocked = false;
-                    userInput.readOnly = false;
-                    captionInput.readOnly = false;
-
-                } else {
-                    throw new Error(result.detail || '알 수 없는 오류');
-                }
-            } catch (err) {
-                console.error('[요청 실패]', err);
-                addLine('시스템', `⚠️ 작업 처리 중 오류 발생: ${err.message}`);
-            }
-        };
-
-        // PSD 파일 다운로드
-        on(downloadPsdBtn, 'click', () => {
-            if (!psdUrl || !taskId) return;
-            const a = document.createElement('a');
-            a.href = psdUrl;
-            a.download = `${taskId}.psd`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        });
-
-        // PSD 자동 실행 요청 (로컬 서버와 통신)
-        on(openPsdBtn, 'click', async () => {
-            if (!psdUrl || !taskId) return;
-            try {
-                await fetch("http://localhost:5001/download-and-open-psd", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ url: psdUrl, filename: `${taskId}.psd` })
-                });
-            } catch (err) {
-                alert("실행기가 실행 중이 아니거나 통신에 실패했습니다. 설치 후 다시 시도해주세요.");
-            }
-        });
-
-        // 실행기 다운로드
-        on(exeDownloadBtn, 'click', () => {
-            window.location.href = "https://user20storage.blob.core.windows.net/psd-download/psd_launcher.zip";
-        });
-
-        on(generateImageBtn, 'click', () =>{
-            from.requestSubmit();
-        });
-
-        // 음성 인식 초기화 (페이지 로드 시)
-        on(document, 'DOMContentLoaded', async () => {
-            resetUI();
-            sttBtn.disabled = true;
-            try {
-                const response = await fetch('/get-speech-token');
-                if (!response.ok) throw new Error('인증 토큰을 가져올 수 없습니다.');
-                const data = await response.json();
-                const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
-                speechConfig.speechRecognitionLanguage = 'ko-KR';
-                const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-                recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-                sttBtn.disabled = false;
-            } catch (error) {
-                console.error("음성 인식 초기화 실패:", error);
-                sttBtn.innerHTML = '⚠️';
-                sttBtn.title = "음성 인식 초기화 실패";
-            }
-        });
-
-        // 음성 인식 실행 (버튼 클릭 시)
-        on(sttBtn, 'click', () => {
-            if (!recognizer) return;
-            sttBtn.disabled = true;
-            sttBtn.innerHTML = '👂';
-
-            captionInput.value = '';
-            autoGrow(captionInput)
-            captionInput.placeholder = '말씀해주세요';
-
-            recognizer.recognizeOnceAsync(result => {
-                if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-                    captionInput.value = result.text.replace(/[.]$/, '');
-                    captionInput.placeholder = '장면 설명을 입력하세요';
-                } else {
-                    captionInput.placeholder = '음성 인식 실패. 다시 시도하세요.';
-                }
-                sttBtn.disabled = false;
-                sttBtn.innerHTML = '🎤';
-            });
-        });
-    </script>
-</body>
-</html>
