@@ -75,31 +75,21 @@ def generate_sas_url(account_name, account_key, container_name, blob_name, expir
 
 
 layer_descriptions = {
-    "콘티": (
-        "A loose, unfinished storyboard-style sketch made only with gray pencil lines. "
-        "No shading or coloring is applied — just rough outlines indicating the layout and composition. "
-        "Overlapping lines and lack of detail are acceptable, as this stage focuses solely on spatial planning."
-    ),
-    "스케치": (
-        "A clean and detailed pencil sketch in black and white. "
-        "Contours are clearly defined using dark pencil lines, and basic shading is applied to show light and shadow. "
-        "No color is present — only grayscale tones indicate depth and structure."
-    ),
-    "채색 기본": (
-        "A rough base coloring applied like a light watercolor underpainting. "
-        "Colors are softly touched in to suggest the intended color scheme, but not fully filled. "
-        "No strong outlines, textures, or details — the focus is on giving a gentle color preview of key areas."
-    ),
-    "채색 명암": (
-        "All regions are fully filled with color, using flat tones and consistent areas. "
-        "However, there is no texture, material detail, or advanced shading. "
-        "No highlights or lighting effects — the image appears complete in color but remains flat and stylized."
-    ),
-    "배경": (
-        "A fully rendered and polished scene including detailed textures, shadows, lighting, and atmosphere. "
-        "Color depth, perspective, and material properties are clearly defined. "
-        "Everything appears natural and cohesive, as if finalized for publication or real-world use."
-    )
+    "콘티": "A rough, gray pencil storyboard-style sketch focusing on layout and composition. "
+            "Forms are simplified with minimal detail and overlapping sketch lines are acceptable. "
+            "No color or shading is applied — the emphasis is solely on spatial arrangement and rough structure.",
+    "스케치": "A clean line drawing with clearly defined black outlines. "
+              "All main elements are visible with refined contours and accurate proportions. "
+              "No coloring or shading — just detailed, precise edges on a white background.",
+    "채색 기본": "A flat-colored illustration where base colors are applied to each element. "
+                 "No shadows, highlights, or gradients are used — the focus is on color separation and clarity. "
+                 "Shapes should be filled with solid tones to indicate material or category.",
+    "채색 명암": "A fully colored illustration with realistic shading, highlights, and lighting direction. "
+                 "Depth, form, and texture are emphasized using shadows and color intensity. "
+                 "Contrast between light and dark areas should reflect real-world perception.",
+    "배경": "A complete and polished scene with a coherent background, ambient lighting, and environmental context. "
+           "All elements should be fully rendered with consistent perspective and atmosphere. "
+           "The composition feels complete, as if prepared for publication or final output."
 }
 
 
