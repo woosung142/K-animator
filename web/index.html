@@ -1269,7 +1269,7 @@
 
         // PSD 파일 다운로드
         on(downloadPsdBtn, 'click', () => {
-            if (!psdUrl || !taskId) return;
+            if (!psdUrl || !currentTaskId) return;
             const a = document.createElement('a');
             a.href = psdUrl;
             a.download = `${taskId}.psd`;
@@ -1280,7 +1280,7 @@
 
         // PSD 자동 실행 요청 (로컬 서버와 통신)
         on(openPsdBtn, 'click', async () => {
-            if (!psdUrl || !taskId) return;
+            if (!psdUrl || !currentTaskId) return;
             try {
                 await fetch("http://localhost:5001/download-and-open-psd", {
                     method: "POST",
