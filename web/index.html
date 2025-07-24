@@ -121,8 +121,8 @@
   }
 
   #left-panel {
-    width: 560px;
-    min-width: 560px;
+    width: 780px;
+    min-width: 780px;
     max-width: 600px;
     flex-shrink: 0;
     height: 100vh;
@@ -510,11 +510,9 @@
   }
 
   #extras {
-    margin-top: 1.5rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.8rem;
-    animation: slideInFromLeft 0.8s ease-out 0.9s both;
+    width: 100%;
+    max-width: 780px;
+    margin: 0 auto; /* 가운데 정렬 */
   }
 
   #extras button {
@@ -530,7 +528,7 @@
     }
 
     #left-panel {
-      width: 560px !important;
+      width: 780px !important;
       max-width: 100%;
       height: auto !important;
       border-right: none;
@@ -538,7 +536,7 @@
     }
 
     #right-panel {
-      width: 560px !important;
+      width: 780px !important;
       max-width: 100%;
       height: 60vh !important;
       max-height: 70vh !important;
@@ -551,7 +549,7 @@
   }
 
   body.stacked #left-panel {
-    width: 560px !important;
+    width: 780px !important;
     max-width: 100%;
     height: auto !important;
     border-right: none;
@@ -559,7 +557,7 @@
   }
 
   body.stacked #right-panel {
-    width: 560px !important;
+    width: 780px !important;
     max-width: 100%;
     height: 60vh !important;
     max-height: 70vh !important;
@@ -726,6 +724,25 @@
     opacity: 0.3;
     font-size: 0.8rem;
   }
+  #chat-form {
+    width: 100%;
+    max-width: 780px;
+    margin: 0 auto; /* 가운데 정렬 */
+  }
+#extras {
+  display: flex;
+  gap: 0.5rem; /* 버튼 사이 간격 */
+  margin-top: 1rem;
+}
+
+#extras button {
+  flex: 1; /* 버튼을 동일 비율로 분배 */
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  white-space: nowrap; /* 한 줄 유지 */
+  overflow: hidden;
+  text-overflow: ellipsis; /* 너무 길면 ... 처리 */
+}
 </style>
 
 </head>
@@ -753,7 +770,7 @@
       </div>
     </div>
 
-    <form id="chat-form" autocomplete="off">
+    <form id="chat-form"  autocomplete="off">
       <div id="form-controls">
         <button type="button" id="addFileBtn" title="이미지 첨부">📎</button>
         <div style="position: relative; flex: 1;" class="focus-indicator">
@@ -766,9 +783,9 @@
     </form>
 
     <div id="extras">
-      <button id="downloadPsdBtn" style="display: none;">💾 .PSD 다운로드</button>
-      <button id="exeDownloadBtn">📦 실행기(.zip) 다운로드</button>
-      <button id="openPsdBtn" style="display: none;">🔧 PSD 자동 실행</button>
+      <button id="exeDownloadBtn">실행기(.zip) 다운로드</button>
+      <button id="downloadPsdBtn">.PSD 다운로드</button>
+      <button id="openPsdBtn">PSD 자동 실행</button>
     </div>
   </div>
 
@@ -1059,9 +1076,6 @@
             addFileBtn.disabled = false;
             fileInput.disabled = false;
             sttBtn.disabled = false;
-
-            downloadPsdBtn.style.display = "none";
-            openPsdBtn.style.display = "none";
             clearPreview();
         };
 
