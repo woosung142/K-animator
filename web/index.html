@@ -1085,6 +1085,7 @@
 
             // === 입력값 유효성 검사 ===
         const handlePromptGeneration = async() => {
+            resetUI();
             const keywords = userInput.value.trim();
             const caption = captionInput.value.trim();
 
@@ -1248,7 +1249,7 @@
                         psdUrl = result.psd_url;
                         downloadPsdBtn.style.display = "inline-block";
                         openPsdBtn.style.display = "inline-block";
-                        resetUI();
+                        //resetUI();
                     }
 
                     // 공통 UI 해제
