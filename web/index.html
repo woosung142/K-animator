@@ -1272,7 +1272,7 @@
             if (!psdUrl || !currentTaskId) return;
             const a = document.createElement('a');
             a.href = psdUrl;
-            a.download = `${taskId}.psd`;
+            a.download = `${currentTaskId}.psd`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1285,7 +1285,7 @@
                 await fetch("http://localhost:5001/download-and-open-psd", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ url: psdUrl, filename: `${taskId}.psd` })
+                    body: JSON.stringify({ url: psdUrl, filename: `${currentTaskId}.psd` })
                 });
             } catch (err) {
                 alert("실행기가 실행 중이 아니거나 통신에 실패했습니다. 설치 후 다시 시도해주세요.");
