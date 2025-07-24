@@ -183,18 +183,22 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
 
         # 6. gpt 프롬프트 생성
         prompt_text = (
-        "Analyze the provided images and generate a Korean-style webtoon background scene suitable for a DALL·E 3 prompt.\n"
-        "The scene should reflect a natural and culturally authentic Korean setting that fits the input concept.\n"
-        "You may adjust the level of detail depending on the artistic stage, from rough draft to polished background.\n"
-        "If necessary, you may include human figures, but they should not be the central focus — never portray them as main characters.\n"
-        "Do not include raw ingredients, utensils, or cooking preparation elements.\n"
-        "The environment should harmonize with the given keyword — reflecting a natural and authentic Korean atmosphere.\n"
-        "Use a style that supports clarity and composition, and avoid clutter unless appropriate for the artistic layer.\n"
-        "The prompt must be written in natural, fluent English optimized for DALL·E 3 input.\n\n"
-        f"Style step: '{layer}'\n"
-        f"Style guide for this step:\n{layer_descriptions.get(layer, '')}\n\n"
-        f"Original description from the user: \"{caption_input}\""
-    )
+            "Analyze the provided images and generate a Korean-style webtoon background scene suitable for a DALL·E 3 prompt.\n"
+            "The scene should reflect a natural and culturally authentic Korean setting that fits the input concept.\n"
+            "Include Korean cultural elements in a visually balanced and respectful manner.\n"
+            "You may place small traditional items (such as furniture, ornaments, or patterns) around the main object.\n"
+            "These cultural elements should appear in the background or as part of the environment, not as the main focus.\n"
+            "Even without specific instructions, the scene should convey a Korean cultural atmosphere by default.\n"
+            "Optional supporting objects may be placed near the main concept, but they must not compete for attention.\n"
+            "You may adjust the level of detail depending on the artistic stage, from rough draft to polished background.\n"
+            "If necessary, you may include human figures, but they should not be the central focus — never portray them as main characters.\n"
+            "The prompt must be written in natural, fluent English optimized for DALL·E 3 input.\n\n"
+            f"Style step: '{layer}'\n"
+            f"Style guide for this step:\n{layer_descriptions.get(layer, '')}\n\n"
+            f"Original description from the user: \"{caption_input}\""
+)
+
+
 
 
         print(f"[STEP 6] 생성된 프롬프트:\n{prompt_text}") 
