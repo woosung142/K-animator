@@ -170,10 +170,16 @@
   }
 
   h1::before {
-    content: '🎨';
+    content: "";
     display: inline-block;
+    width: 1.5rem;
+    height: 1.5rem;
     margin-right: 0.5rem;
+    background-image: url('/images/brush-icon.png'); /* 또는 절대경로/URL */
+    background-size: contain;
+    background-repeat: no-repeat;
     animation: float 3s ease-in-out infinite;
+    vertical-align: middle;
   }
 
   #chatbox {
@@ -444,7 +450,7 @@
     display: flex;
     gap: 0.8rem;
     width: 100%;
-    align-items: stretch;
+    align-items: center;
     margin-bottom: 1.5rem;
     min-width: 0;
   }
@@ -500,7 +506,15 @@
   }
 
   #addFileBtn {
-    background: linear-gradient(135deg, var(--accent), #ff85c1);
+    background: linear-gradient(135deg, var(--secondary), #74b9ff);
+    width: 3.5rem;              /* 🚀 버튼과 동일하게 */
+    height: 3.5rem;
+    font-size: 2rem;            /* + 아이콘 크게 */
+    line-height: 1;             /* 정렬 보정 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
   }
 
     #sttBtn {
@@ -520,10 +534,11 @@
     margin: 0 auto; /* 가운데 정렬 */
   }
 
-  #extras button {
-    font-size: 0.9rem;
-    padding: 0.8rem 1.2rem;
-    background: linear-gradient(135deg, var(--text-secondary), #74b9ff);
+
+  #extras button:hover {
+    background: linear-gradient(135deg, var(--text-secondary), #ff85c1);
+    color: white; /* 글자색 반전 */
+    border-color: transparent;
   }
 
   @media (max-width: 999px) {
