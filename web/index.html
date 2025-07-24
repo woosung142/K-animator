@@ -1297,10 +1297,6 @@
             window.location.href = "https://user20storage.blob.core.windows.net/psd-download/psd_launcher.zip";
         });
 
-        on(generateImageBtn, 'click', () =>{
-            from.requestSubmit();
-        });
-
         // 음성 인식 초기화 (페이지 로드 시)
         on(document, 'DOMContentLoaded', async () => {
             resetUI();
