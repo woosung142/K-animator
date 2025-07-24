@@ -822,7 +822,7 @@
     </script>
 
     <script>
-    function autoGrow(el) {
+  function autoGrow(el) {
     el.style.height = 'auto';
 
     const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
@@ -834,8 +834,7 @@
 
     el.style.height = newHeight + 'px';
     el.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
-    }
-
+  }
     function handleEnterSubmit(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -844,17 +843,6 @@
     }
     </script>
     <script>
-    function autoGrow(el) {
-        el.style.height = 'auto';
-        const scrollHeight = el.scrollHeight;
-        const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
-        const maxLines = 6;
-
-        el.style.height = scrollHeight + 'px';
-
-        const currentLines = scrollHeight / lineHeight;
-        el.style.overflowY = currentLines > maxLines ? 'auto' : 'hidden';
-    }
     window.addEventListener('DOMContentLoaded', () => {
     const caption = document.getElementById('captionInput');
     autoGrow(caption);
