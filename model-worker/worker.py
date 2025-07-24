@@ -76,25 +76,29 @@ def generate_sas_url(account_name, account_key, container_name, blob_name, expir
 
 layer_descriptions = {
     "콘티": (
-        "A rough wireframe sketch with light pencil lines only. "
-        "No color, no shading — just loose outlines showing layout and composition."
+        "A loose, unfinished storyboard-style sketch made only with gray pencil lines. "
+        "No shading or coloring is applied — just rough outlines indicating the layout and composition. "
+        "Overlapping lines and lack of detail are acceptable, as this stage focuses solely on spatial planning."
     ),
     "스케치": (
-        "A clean black-and-white pencil drawing with defined lines and basic grayscale shading. "
-        "No color — depth is shown through line weight and brightness."
+        "A clean and detailed pencil sketch in black and white. "
+        "Contours are clearly defined using dark pencil lines, and basic shading is applied to show light and shadow. "
+        "No color is present — only grayscale tones indicate depth and structure."
     ),
     "채색 기본": (
-        "Flat colors applied to only parts of the image. "
-        "Large areas must remain white or uncolored. "
-        "No shading — just a minimal color preview."
+        "A rough base coloring applied like a light watercolor underpainting. "
+        "Colors are softly touched in to suggest the intended color scheme, but not fully filled. "
+        "No strong outlines, textures, or details — the focus is on giving a gentle color preview of key areas."
     ),
     "채색 명암": (
-        "All areas are filled with flat, solid colors. "
-        "No shadows, no highlights, no lighting — colors only, completely flat in tone."
+        "All regions are fully filled with color, using flat tones and consistent areas. "
+        "However, there is no texture, material detail, or advanced shading. "
+        "No highlights or lighting effects — the image appears complete in color but remains flat and stylized."
     ),
     "배경": (
-        "A fully rendered scene with complete coloring, shading, lighting, texture, and atmosphere. "
-        "Everything is polished and cohesive, as in a finished background."
+        "A fully rendered and polished scene including detailed textures, shadows, lighting, and atmosphere. "
+        "Color depth, perspective, and material properties are clearly defined. "
+        "Everything appears natural and cohesive, as if finalized for publication or real-world use."
     )
 }
 
@@ -187,28 +191,35 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
         if not images_content:
             print(f"[STEP 5] 이미지 없이 텍스트만으로 프롬프트 생성됨")
 
-        # 6. GPT 프롬프트 생성
+        # 6. GPT 프롬프트 생성 (국내명소 전용)
         prompt_text = (
-            "Analyze the provided images and generate a background illustration that can be used in a DALL·E 3 prompt.\n"
-            "- The illustration should depict a Korean-style background in webtoon style.\n"
-            "- Do not include any human figures.\n"
-            "- Objects should be simplified and intuitively represented.\n"
-            "- Composition and placement should be suitable for a background scene.\n"
-            "- The prompt must be formatted in fluent and optimized English for DALL·E 3.\n\n"
-            "Additional instructions for the image prompt:\n"
-            "- The purpose of the image is to serve as a Korean-style background in webtoon format where a person may be added later.\n"
-            "- The main food item from the input keyword should be placed at the center of the table.\n"
-            "- Other side dishes should be arranged next to it in a natural and balanced way.\n"
-            "- Do NOT include raw ingredients or uncooked food components.\n"
-            "- Do NOT include cooking tools, utensils, or preparation scenes.\n"
-            "- Even without specific instructions, the background should always depict a traditional Korean dining table as the default.\n"
-            "- The scene must exclude people and focus solely on the background setting.\n\n"
+            "Analyze the provided image references and generate a background scene prompt for DALL·E 3 that reflects Korean natural landmarks.\n"
+            "Follow these three structured sections when generating the image prompt:\n\n"
+
+            "1) Basic Prompt:\n"
+            "- Clearly state the main theme of the image based on the source.\n"
+            "- The image should depict a natural Korean location or landmark.\n"
+            "- The goal is to create a calm, simple background scene without any human figures.\n"
+            "- The background should not look overly traditional or old-fashioned.\n"
+            "- Do not generate any people — only background and landmark objects.\n\n"
+
+            "2) Image Style:\n"
+            "- Use a soft, modern illustration style that reflects natural environments.\n"
+            "- Match the original image's object layout and composition as closely as possible.\n"
+            "- The artistic style should harmonize nature with simple man-made elements if present (e.g. benches, paths).\n"
+            "- The tone should be peaceful and balanced, suitable for background use.\n\n"
+
+            "3) Detailed Description:\n"
+            "- Preserve the colors and textures found in the original image.\n"
+            "- Maintain similar object positions, such as mountains, rivers, trees, or architecture.\n"
+            "- Ensure all elements blend naturally with the background, emphasizing nature over man-made elements.\n"
+            "- Avoid raw or unfinished elements. Do not include any tools or preparation objects.\n"
+            "- Overall, the generated image should resemble a refined background scene for later use.\n\n"
+
             f"Style step: '{layer}'\n"
             f"Style guide for this step:\n{layer_descriptions.get(layer, '')}\n\n"
             f"Original description from the user: \"{caption_input}\""
-        )
-
-        print(f"[STEP 6] 생성된 프롬프트:\n{prompt_text}")
+        )   
 
         messages = [{
             "role": "user",

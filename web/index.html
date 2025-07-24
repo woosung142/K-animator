@@ -16,193 +16,201 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>한국풍 웹툰 배경 이미지 생성기</title>
-  <style>
-    :root {
-      --gap: 1rem;
-      --radius: .75rem;
-      --primary: #E16350;
-      --bg: #f8fafc;
-      --light-gray: #e5e7eb;
-      --dark-gray: #4b5563;
-      --selected-bg: #dbeafe;
-      --selected-border: #60a5fa;
-    }
+<style>
+  :root {
+    --gap: 1rem;
+    --radius: .75rem;
+    --primary: #E16350;
+    --bg: #f8fafc;
+    --light-gray: #0d0e10;
+    --dark-gray: #4b5563;
+    --selected-bg: #dbeafe;
+    --selected-border: #60a5fa;
+  }
 
-    * {
-      box-sizing: border-box;
-    }
+  * {
+    box-sizing: border-box;
+  }
 
-    body {
-      margin: 0;
-      font-family: system-ui, sans-serif;
-      background: var(--bg);
-      display: flex;
-      flex-direction: row;
-      height: 100vh;
-      overflow: hidden;
-    }
+  body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: var(--bg);
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    overflow: hidden;
+  }
 
-    #left-panel {
+  #left-panel {
     width: 560px;
     min-width: 560px;
-    max-width: 600px;  /* 이건 여유용 */
+    max-width: 600px;
     flex-shrink: 0;
     height: 100vh;
     overflow-y: auto;
     padding: 1rem;
     background: var(--bg);
     border-right: none;
-    }
+  }
 
-    #right-panel {
-      flex: 1;
-      height: 100vh;
-      overflow-y: auto;
-      padding: 1rem;
-      background: var(--bg);
-      display: flex;
-      flex-direction: column;
-    }
+  #right-panel {
+    flex: 1;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 1rem;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
 
-    h1 {
-      margin: .25rem 0 1rem;
-      font-size: 1.4rem;
-    }
+  h1 {
+    margin: .25rem 0 1rem;
+    font-size: 1.4rem;
+  }
 
-    #chatbox {
-      flex: 1;
-      background: #fff;
-      border: 1px solid var(--light-gray);
-      border-radius: var(--radius);
-      padding: var(--gap);
-      overflow-y: auto;
-      min-height: 100px;
-    }
+  #chatbox {
+    flex: 1;
+    background: #fff;
+    border: 1px solid var(--light-gray);
+    border-radius: var(--radius);
+    padding: var(--gap);
+    overflow-y: auto;
+    min-height: 100px;
+  }
 
-    .msg {
-      margin-bottom: .6rem;
-      line-height: 1.45;
-      word-wrap: break-word;
-    }
-    .msg strong {
-      color: var(--primary);
-    }
-    .msg img {
-      max-width: 100%;
-      height: auto;
-      border-radius: calc(var(--radius) / 2);
-      margin-top: 0.5rem;
-    }
+  .msg {
+    margin-bottom: .6rem;
+    line-height: 1.45;
+    word-wrap: break-word;
+  }
 
-    .selection-container {
-      width: 100%;
-      margin-bottom: 0.75rem;
-      padding: 0.75rem;
-      background-color: #fff;
-      border: 1px solid var(--light-gray);
-      border-radius: var(--radius);
-    }
+  .msg strong {
+    color: var(--primary);
+  }
 
-    .selection-group {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    .selection-group:not(:last-child) {
-      margin-bottom: 0.75rem;
-    }
-    .selection-group strong {
-      font-size: 0.9rem;
-      margin-right: 0.5rem;
-      color: var(--dark-gray);
-    }
+  .msg img {
+    max-width: 100%;
+    height: auto;
+    border-radius: calc(var(--radius) / 2);
+    margin-top: 0.5rem;
+  }
 
-    .selection-btn {
-      padding: 0.4rem 0.8rem;
-      font-size: 0.9rem;
-      border: 1px solid var(--light-gray);
-      border-radius: var(--radius);
-      background: #fff;
-      color: var(--dark-gray);
-      cursor: pointer;
-      transition: all 0.2s ease-in-out;
-    }
-    .selection-btn.selected {
-      background: var(--selected-bg);
-      border-color: var(--selected-border);
-      color: var(--primary);
-      font-weight: bold;
-    }
+  .selection-container {
+    width: 100%;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    background-color: #fff;
+    border: 1px solid var(--light-gray);
+    border-radius: var(--radius);
+  }
 
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: .5rem;
-      width: 100%;
-      max-width: 600px;
-    }
+  .selection-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
 
-    .selection-group input {
-      flex: 1;
-      min-width: 0;
-    }
+  .selection-group:not(:last-child) {
+    margin-bottom: 0.75rem;
+  }
 
-    input#userInput {
-      flex: 1;
-      width: auto;
-      min-width: 0;
-      padding: .65rem .9rem;
-      font-size: 1rem;
-      border: 1px solid #d1d5db;
-      border-radius: var(--radius);
-    }
+  .selection-group strong {
+    font-size: 0.9rem;
+    margin-right: 0.5rem;
+    color: var(--dark-gray);
+  }
 
-    button {
-      padding: .65rem 1rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: var(--radius);
-      background: var(--primary);
-      color: #fff;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-    button:disabled {
-      opacity: .4;
-      cursor: not-allowed;
-    }
+  .selection-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+    border: 1px solid var(--light-gray);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--dark-gray);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+  }
 
-    #preview-area {
-      width: 100%;
-      padding: 0 .5rem .5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    #preview-area img {
-      max-height: 80px;
-      border-radius: var(--radius);
-    }
-    #preview-area button#remove-preview-btn {
-      background: none;
-      border: none;
-      font-size: 1.2rem;
-      color: var(--dark-gray);
-      cursor: pointer;
-      padding: 0;
-    }
+  .selection-btn.selected {
+    background: var(--selected-bg);
+    border-color: var(--selected-border);
+    color: var(--primary);
+    font-weight: bold;
+  }
 
-    #form-controls {
-      display: flex;
-      gap: .5rem;
-      width: 100%;
-      align-items: stretch;
-      margin-bottom: 1rem;
-      min-width: 0;
-    }
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    width: 100%;
+    max-width: 600px;
+  }
 
-    #captionInput {
+  .selection-group input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  input#userInput {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    padding: .65rem .9rem;
+    font-size: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: var(--radius);
+  }
+
+  button {
+    padding: .65rem 1rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--primary);
+    color: #fff;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+  }
+
+  #preview-area {
+    width: 100%;
+    padding: 0 .5rem .5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  #preview-area img {
+    max-height: 80px;
+    border-radius: var(--radius);
+  }
+
+  #preview-area button#remove-preview-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--dark-gray);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  #form-controls {
+    display: flex;
+    gap: .5rem;
+    width: 100%;
+    align-items: stretch;
+    margin-bottom: 1rem;
+    min-width: 0;
+  }
+
+  #captionInput {
     flex: 1;
     width: 100%;
     display: block;
@@ -214,108 +222,111 @@
     resize: none;
     overflow-y: hidden;
     font-family: inherit;
-    max-height: calc(1.5rem * 6); /* ✅ 줄 수 제한 추가 */
-    }
+    max-height: calc(1.5rem * 6);
+  }
 
-    #sttBtn, #generateImageBtn, #addFileBtn {
-      width: 2.75rem;
-      height: 2.75rem;
-      font-size: 1.5rem;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: .75rem;
-      border: none;
-      background: var(--primary);
-      color: white;
-      cursor: pointer;
-    }
+  #sttBtn, #generateImageBtn, #addFileBtn {
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.5rem;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: .75rem;
+    border: none;
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+  }
 
-    #sttBtn {
+  #sttBtn {
     background: none;
     color: var(--dark-gray);
     position: absolute;
     top: 50%;
     right: 0.5rem;
-    transform: translateY(-50%); /* ✅ 세로 중앙 정렬 */
-    }
+    transform: translateY(-50%);
+  }
 
-    #extras {
-      margin-top: 1rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    @media (max-width: 999px) {
+  #extras {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 999px) {
     body {
-        flex-direction: column-reverse;
-        align-items: center; /* 중앙 정렬 */
+      flex-direction: column-reverse;
+      align-items: center;
     }
 
     #left-panel {
-        width: 560px !important;       /* ✅ 고정 너비 */
-        max-width: 100%;
-        height: auto !important;
-        border-right: none;
-        border-top: none;
+      width: 560px !important;
+      max-width: 100%;
+      height: auto !important;
+      border-right: none;
+      border-top: none;
     }
 
     #right-panel {
-        width: 560px !important;       /* ✅ 고정 너비 */
-        max-width: 100%;
-        height: 60vh !important;
-        max-height: 70vh !important;
+      width: 560px !important;
+      max-width: 100%;
+      height: 60vh !important;
+      max-height: 70vh !important;
     }
-    }
+  }
 
-    body.stacked {
+  body.stacked {
     flex-direction: column-reverse;
-    align-items: center; /* ✅ 중앙 정렬 */
-    }
+    align-items: center;
+  }
 
-    body.stacked #left-panel {
+  body.stacked #left-panel {
     width: 560px !important;
     max-width: 100%;
     height: auto !important;
     border-right: none;
     border-top: none;
-    }
+  }
 
-    body.stacked #right-panel {
+  body.stacked #right-panel {
     width: 560px !important;
     max-width: 100%;
     height: 60vh !important;
     max-height: 70vh !important;
-    }
-    .prompt-details {
+  }
+
+  .prompt-details {
     border: 1px solid var(--light-gray);
     border-radius: .5rem;
     margin-top: .5rem;
     background-color: #f9fafb;
-    }
-    .prompt-details summary {
-        padding: .5rem .75rem;
-        font-weight: 500;
-        cursor: pointer;
-        outline: none;
-        color: var(--primary);
-    }
+  }
 
-    .prompt-details .prompt-content {
-        padding: 0 .75rem .75rem;
-        border-top: 1px solid var(--light-gray);
-        margin-top: .5rem;
-        color: var(--dark-gray);
-        white-space: pre-wrap; /* 프롬프트의 줄바꿈 유지 */
-    }
+  .prompt-details summary {
+    padding: .5rem .75rem;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    color: var(--primary);
+  }
 
-    body.mobile {
+  .prompt-details .prompt-content {
+    padding: 0 .75rem .75rem;
+    border-top: 1px solid var(--light-gray);
+    margin-top: .5rem;
+    color: var(--dark-gray);
+    white-space: pre-wrap;
+  }
+
+  body.mobile {
     flex-direction: column-reverse;
     align-items: center;
-    }
+  }
 
-    body.mobile #left-panel {
+  body.mobile #left-panel {
     width: 100%;
     min-width: 0 !important;
     max-width: 100% !important;
@@ -323,20 +334,21 @@
     border-right: none;
     border-top: none;
     padding: 1rem;
-    }
+  }
 
-    body.mobile #right-panel {
+  body.mobile #right-panel {
     width: 100%;
     height: 60vh;
     max-height: 70vh;
     padding: 1rem;
-    }
+  }
 
-    body.mobile #chatbox {
+  body.mobile #chatbox {
     max-height: 100%;
     overflow-y: auto;
-    }
-  </style>
+  }
+</style>
+
 </head>
 <body>
   <div id="left-panel">
