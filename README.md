@@ -27,7 +27,7 @@ https://www.prtest.shop/
 
 ## 실제 화면 구조
 
-<img src="image-samples/실제ui.png" alt="실제 UI" style="width: 50%;" />
+<img src="image-samples/실제화면2.PNG" alt="실제 UI" style="width: 100%;" />
 
 ## 사용 기술 스택 정리
 
@@ -67,11 +67,17 @@ https://www.prtest.shop/
 - **Prometheus**: 애플리케이션 및 노드 메트릭 수집
 - **Grafana**: 실시간 리소스 시각화
 
+## 전체 아키텍쳐
+
+![아키텍쳐 구조](image-samples/플로우차트/Flowchart-아키텍쳐구조.png)
+
 ## Kubernetes 리소스 구조
 
 ![Kubernetes 리소스 구조](image-samples/포드.png)
 
 ## 사용자 요청 처리 과정
+
+![사용자 요청처리](image-samples/플로우차트/Flowchart-텍스트없는버전.png)
 
 ```
 [ 1. 사용자의 요청 ]
