@@ -69,7 +69,7 @@ https://www.prtest.shop/
 
 ## 전체 아키텍쳐
 
-![아키텍쳐 구조](image-samples/플로우차트/Flowchart-아키텍쳐구조.png)
+<img src="image-samples/플로우차트/Flowchart-아키텍쳐구조.png" alt="실제 UI" style="width: 75%;" />
 
 ## Kubernetes 리소스 구조
 
@@ -77,7 +77,7 @@ https://www.prtest.shop/
 
 ## 사용자 요청 처리 과정
 
-![사용자 요청처리](image-samples/플로우차트/Flowchart텍스트없는버전.png)
+<img src="image-samples/플로우차트/Flowchart텍스트없는버전.png" alt="실제 UI" style="width: 75%;" />
 
 ```
 [ 1. 사용자의 요청 ]
