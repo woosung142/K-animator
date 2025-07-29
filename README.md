@@ -77,7 +77,7 @@ https://www.prtest.shop/
 
 ## 사용자 요청 처리 과정
 
-![사용자 요청처리](image-samples/플로우차트/Flowchart-텍스트없는버전.png)
+![사용자 요청처리](image-samples/플로우차트/Flowchart텍스트없는버전.png)
 
 ```
 [ 1. 사용자의 요청 ]
