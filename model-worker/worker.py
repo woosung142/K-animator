@@ -177,7 +177,7 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
             else:
                 print(f"[STEP 4] Wikipedia 이미지 없음")
 
-        # 5. 이미지가 없어도 텍스트만으로 생성 가능
+        # 5. 이미지가 없어도 텍스트만으로 생성 가능.
         if not images_content:
             print(f"[STEP 5] 이미지 없이 텍스트만으로 프롬프트 생성됨")
 
