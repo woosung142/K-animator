@@ -33,3 +33,6 @@ jobs:
           file: ./${{ matrix.service }}/Dockerfile
           push: true
           tags: ghcr.io/${{ secrets.CR_USERNAME }}/${{ matrix.service }}:latest
+
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
