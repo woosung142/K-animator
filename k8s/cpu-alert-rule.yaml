@@ -9,7 +9,7 @@ spec:
   groups:
   - name: high-cpu-usage
     rules:
-    - alert: HighCpuUsage
+    - alert: HighCpuUsage-test2
       #알림 조건 정의
       expr: 100 - avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) > 1 #쿼리문 수정
       for: 1m
