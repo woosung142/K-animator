@@ -17,7 +17,6 @@ spec:
           enabled: true
         alertmanager:
           alertmanagerSpec:
-            configSecret: alertmanager-prometheus-stack-kube-prom-alertmanager
             externalUrl: http://alertmanager.prtest.shop
           config:
             global:
