@@ -16,6 +16,9 @@ spec:
         prometheus-operator:
           enabled: true
         alertmanager:
+          alertmanagerSpec:
+            configSecret: alertmanager-prometheus-stack-kube-prom-alertmanager
+            externalUrl: http://alertmanager.prtest.shop
           config:
             global:
               resolve_timeout: 5m
@@ -42,8 +45,6 @@ spec:
                   *로그 확인:* <{{ .GeneratorURL }}|Prometheus Graph>
                   ------------------------------------
                   {{ end }}
-          alertmanagerSpec:
-            externalUrl: http://alertmanager.prtest.shop
           service:
             type: ClusterIP
           ingress:
