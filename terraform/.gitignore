@@ -1,0 +1,19 @@
+# Local Terraform execution files
+*.tfstate
+*.tfstate.*
+.terraform.tfstate.lock.info
+
+# .tfvars files
+# Don't commit variable files, they may contain sensitive details.
+*.tfvars
+*.tfvars.json
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude all .tfplan files
+*.tfplan
+
+# Private modules and plugins cache
+.terraform/
