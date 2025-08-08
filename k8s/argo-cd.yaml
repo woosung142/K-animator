@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: korea-webtoon-generator
+  name: k-animator
   namespace: argocd
 spec:
   project: default
