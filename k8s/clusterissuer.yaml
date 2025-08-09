@@ -5,7 +5,7 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: your-email@example.com  # 이메일 주소로 변경
+    email: garbage0233@gmail.com  # 이메일 주소로 변경
     privateKeySecretRef:
       name: letsencrypt-prod
     solvers:
