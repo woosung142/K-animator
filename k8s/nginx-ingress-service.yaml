@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/component: controller
 spec:
   type: LoadBalancer
-  loadBalancerIP: 20.214.242.153  # Azure에서 미리 생성한 고정 공용 IP
+  loadBalancerIP: 20.249.172.128  # Azure에서 미리 생성한 고정 공용 IP
   selector:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/component: controller
