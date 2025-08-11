@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: web
-  #test: notification
+  #test: notification1
 spec:
   replicas: 1
   selector:
