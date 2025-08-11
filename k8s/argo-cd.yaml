@@ -4,9 +4,9 @@ metadata:
   name: k-animator
   namespace: argocd
   annotations:
-    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: "#aks-alert"
-    notifications.argoproj.io/subscribe.on-sync-failed.slack: "#aks-alert"
-    notifications.argoproj.io/subscribe.app-health-degraded.slack: "#aks-alert"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: aks-alert
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: aks-alert
+    notifications.argoproj.io/subscribe.app-health-degraded.slack: aks-alert
 spec:
   project: default
   source:
