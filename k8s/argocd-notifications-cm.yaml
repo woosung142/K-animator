@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
 data:
   service.slack: |
-    token: $slack_token
+    token: $slack-token
 
   template.app-sync-succeeded: |
     message: |
