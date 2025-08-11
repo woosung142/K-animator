@@ -23,8 +23,8 @@ data:
               "short": true
             },
             {
-              "title": "헬스 상태",
-              "value": "`{{.app.destNamespace}}`",
+              "title": "건강 상태",
+              "value": "`{{.app.status.health.status}}`",
               "short": true
             },
             {
@@ -50,7 +50,7 @@ data:
               "short": true
             },
             {
-              "title": "헬스 상태",
+              "title": "건강 상태",
               "value": "`{{.app.status.health.status}}`",
               "short": true
             },
@@ -72,7 +72,7 @@ data:
           "color": "#fdc521",
           "fields": [
             {
-              "title": "헬스 상태",
+              "title": "건강 상태",
               "value": "`{{.app.status.health.status}}`",
               "short": true
             },
