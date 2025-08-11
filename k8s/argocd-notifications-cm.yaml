@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  namespace: argocd
+data:
+  service.slack: |
+    token: $slack_token
+
+  template.app-sync-succeeded: |
+    message: |
+      🟢 *{{.app.metadata.name}}* 애플리케이션 배포가 성공했습니다.
+    attachments: |
+      [{
+        "title": "{{.app.metadata.name}}",
+        "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+        "color": "#18be52",
+        "fields": [
+          {
+            "title": "배포 상태",
+            "value": "`{{.app.status.sync.status}}`",
+            "short": true
+          },
+          {
+            "title": "헬스 상태",
+            "value": "`{{.app.destNamespace}}`",
+            "short": true
+          },
+          {
+            "title": "적용된 버전 (Revision)",
+            "value": "`{{.app.status.sync.revision}}`",
+            "short": false
+          }
+        ]
+      }]
+  template.app-sync-failed: |
+    message: |
+      🔴 *{{.app.metadata.name}}* 애플리케이션 배포가 실패했습니다.
+    attachments: |
+      [{
+        "title": "{{.app.metadata.name}}",
+        "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+        "color": "#E02334",
+        "fields": [
+          {
+            "title": "배포 상태",
+            "value": "`{{.app.status.sync.status}}`",
+            "short": true
+          },
+          {
+            "title": "헬스 상태",
+            "value": "`{{.app.status.health.status}}`",
+            "short": true
+          },
+          {
+            "title": "적용된 버전 (Revision)",
+            "value": "`{{.app.status.sync.revision}}`",
+            "short": false
+          }
+        ]
+      }]
+  template.app-health-degraded: |
+    message: |
+      🟡 *{{.app.metadata.name}}* 애플리케이션의 헬스 상태가 비정상입니다.
+    attachments: |
+      [{
+        "title": "{{.app.metadata.name}}",
+        "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+        "color": "#fdc521",
+        "fields": [
+          {
+            "title": "헬스 상태",
+            "value": "`{{.app.status.health.status}}`",
+            "short": true
+          },
+          {
+            "title": "배포 상태",
+            "value": "`{{.app.status.sync.status}}`",
+            "short": true
+          }
+        ]
+      }]
