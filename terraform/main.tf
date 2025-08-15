@@ -29,4 +29,8 @@ resource "azurerm_kubernetes_cluster" "aks_cluster" {
     Environment = "Production"
     Project     = "Webtoon-Generator-New" # 새로운 프로젝트임을 명시
   }
+
+  key_vault_secrets_provider {
+    secret_rotation_enabled = true
+  }
 }
