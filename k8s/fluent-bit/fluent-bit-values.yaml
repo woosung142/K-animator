@@ -1,3 +1,4 @@
+affinity: {}
 customParsers: |
   [PARSER]
       Name app_log_parser
