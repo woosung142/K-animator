@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://fluent.github.io/helm-charts'
-    chart: fluent-bit
-    targetRevision: 0.45.0
+    repoURL: 'https://github.com/ajh9789/k8s-deploy'
+    path: k8s/fluent-bit
+    targetRevision: main
     helm:
       valueFiles:
       - fluent-bit-values.yaml

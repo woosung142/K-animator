@@ -1,0 +1,8 @@
+apiVersion: v2
+name: fluent-bit-wrapper
+description: A wrapper chart to deploy fluent-bit with custom values.
+version: 0.1.0
+dependencies:
+- name: fluent-bit
+  version: "0.45.0"
+  repository: "https://fluent.github.io/helm-charts"

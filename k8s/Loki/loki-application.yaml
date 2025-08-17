@@ -2,15 +2,15 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: loki
-  namespace: loki
+  namespace: argocd
 spec:
   project: default
   source:
-    repoURL: 'https://grafana.github.io/helm-charts'
-    chart: loki
-    targetRevision: 5.42.0
+    repoURL: 'https://github.com/ajh9789/k8s-deploy'
+    path: k8s/Loki
+    targetRevision: main
     helm:
-      valueFile:
+      valueFiles:
         - loki-values.yaml
   destination:
     server: https://kubernetes.default.svc
