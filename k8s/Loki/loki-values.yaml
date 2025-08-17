@@ -1,0 +1,16 @@
+Loki:
+  storage:
+    type: azure
+    azure:
+      accountName: "stlokikanimator"
+  storage_config:
+    azure:
+      account_name: "stlokikanimator"
+      account_key:
+        secretKeyRef:
+          name: loki-storage-secret
+          key: azure-storage-account-key
+        container_name: "loki-logs"
+
+promtail:
+  enabled: false
