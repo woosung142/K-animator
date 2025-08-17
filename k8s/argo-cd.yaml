@@ -12,7 +12,9 @@ spec:
   source:
     repoURL: https://github.com/ajh9789/k8s-deploy  # 여기에 너 깃 주소
     targetRevision: main
-    path: k8s/archived/k-animator  # YAML들 있는 폴더
+    path: k8s  # YAML들 있는 폴더
+    directory:
+      recurse: true
   destination:
     server: https://kubernetes.default.svc
     namespace: default
