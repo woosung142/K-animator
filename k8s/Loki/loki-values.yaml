@@ -1,17 +1,18 @@
-Loki:
-  storage:
-    type: azure
-    azure:
-      accountName: "stlokikanimator"
-  storage_config:
-    azure:
-      account_name: "stlokikanimator"
-      account_key:
-        secretKeyRef:
-          name: loki-storage-secret
-          key: azure-storage-account-key
+loki:
+  extraVolumeMounts:
+    - name: storage-secret-volume
+      mountPath: "/var/secrets/azure"
+      readOnly: true
+  extraVolumes:
+    - name: storage-secret-volume
+      secret:
+        secretName: loki-storage-secret
+  config:
+    storage_config:
+      azure:
+        account_name: "stlokikanimator"
         container_name: "loki-logs"
-
+        account_key: "/var/secrets/azure/azure_storage_account_key"
 promtail:
   enabled: false
 grafanaAgent:
