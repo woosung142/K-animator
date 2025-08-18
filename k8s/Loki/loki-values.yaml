@@ -9,26 +9,26 @@ loki:
       secret:
         secretName: loki-storage-secret
 
-  config:
-    auth_enabled: false
-    storage_config:
-      azure:
-        account_name: "stlokikanimator"
-        container_name: "loki-logs"
-        account_key: "/var/secrets/azure/azure_storage_account_key"
+  auth_enabled: false
+
+  storage_config:
+    azure:
+      account_name: "stlokikanimator"
+      container_name: "loki-logs"
+      account_key: "/var/secrets/azure/azure_storage_account_key"
     
-    schema_config:
-      configs:
-        - from: "2022-01-11"
-          store: boltdb-shipper
-          object_store: azure
-          schema: v12
-          index:
-            prefix: loki_index_
-            period: 24h
+  schema_config:
+    configs:
+      - from: "2022-01-11"
+        store: boltdb-shipper
+        object_store: azure
+        schema: v12
+        index:
+          prefix: loki_index_
+          period: 24h
 
 promtail:
   enabled: false
-  
+
 grafanaAgent:
   enabled: false
