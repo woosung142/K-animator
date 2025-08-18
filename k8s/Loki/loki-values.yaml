@@ -1,4 +1,7 @@
 loki:
+  monitoring:
+    grafanaAgent:
+      installOperator: false
   extraVolumeMounts:
     - name: storage-secret-volume
       mountPath: "/var/secrets/azure"
@@ -26,9 +29,6 @@ loki:
         index:
           prefix: loki_index_
           period: 24h
-monitoring:
-  grafanaAgent:
-    installOperator: false
     
 promtail:
   enabled: false
