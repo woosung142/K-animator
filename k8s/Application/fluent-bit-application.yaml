@@ -7,8 +7,8 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/ajh9789/k8s-deploy'
-    path: k8s/fluent-bit
-    targetRevision: main
+    path: k8s/charts/fluent-bit
+    targetRevision: feature/app-of-apps-refactor
     helm:
       valueFiles:
       - fluent-bit-values.yaml
