@@ -5,7 +5,7 @@ resource "kubernetes_namespace" "loki" {
 }
 
 resource "kubectl_manifest" "loki_spc" {
-  yaml_body = templatefile("${path.module}/../k8s/Loki/secret-provider-class.yaml.tftpl", {
+  yaml_body = templatefile("${path.module}/../k8s/charts/Loki/secret-provider-class.yaml.tftpl", {
     client_id = azurerm_kubernetes_cluster.aks_cluster.kubelet_identity[0].client_id
     tenant_id = data.azurerm_client_config.current.tenant_id
   })

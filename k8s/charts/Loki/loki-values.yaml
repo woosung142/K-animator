@@ -1,7 +1,5 @@
 loki:
-  monitoring:
-    grafanaAgent:
-      installOperator: false
+  auth_enabled: false
 
   extraVolumeMounts:
     - name: secrets-store-inline
@@ -15,24 +13,22 @@ loki:
         readOnly: true
         volumeAttributes:
           secretProviderClass: "loki-azure-provider"
-
-  auth_enabled: false
-
-  storage_config:
-    azure:
-      account_name: "stlokikanimator"
-      container_name: "loki-logs"
-      account_key: "/mnt/secrets-store/loki-storage-account-key"
+  config:
+    storage_config:
+      azure:
+        account_name: "stlokikanimator"
+        container_name: "loki-logs"
+        account_key_file: "/mnt/secrets-store/loki-storage-account-key"
     
-  schema_config:
-    configs:
-      - from: "2022-01-11"
-        store: boltdb-shipper
-        object_store: azure
-        schema: v12
-        index:
-          prefix: loki_index_
-          period: 24h
+    schema_config:
+      configs:
+        - from: "2022-01-11"
+          store: boltdb-shipper
+          object_store: azure
+          schema: v12
+          index:
+            prefix: loki_index_
+            period: 24h
     
 promtail:
   enabled: false
