@@ -2,15 +2,19 @@ loki:
   monitoring:
     grafanaAgent:
       installOperator: false
+
   extraVolumeMounts:
-    - name: storage-secret-volume
-      mountPath: "/var/secrets/azure"
+    - name: secrets-store-inline
+      mountPath: "/mnt/secrets-store"
       readOnly: true
   
   extraVolumes:
-    - name: storage-secret-volume
-      secret:
-        secretName: loki-storage-secret
+    - name: secrets-store-inline
+      csi:
+        driver: "secrets-store.csi.k8s.io"
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: "loki-azure-provider"
 
   auth_enabled: false
 
@@ -18,7 +22,7 @@ loki:
     azure:
       account_name: "stlokikanimator"
       container_name: "loki-logs"
-      account_key: "/var/secrets/azure/azure_storage_account_key"
+      account_key: "/mnt/secrets-store/loki-storage-account-key"
     
   schema_config:
     configs:
