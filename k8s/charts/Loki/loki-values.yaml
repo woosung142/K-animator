@@ -54,7 +54,7 @@ loki:
         azure:
           account_name: "stlokikanimator"
           container_name: "loki-logs"
-          account_key: "/mnt/secrets-store/loki-storage-account-key"
+          account_key_file: "/mnt/secrets-store/loki-storage-account-key"
       
       schema_config:
         configs:
