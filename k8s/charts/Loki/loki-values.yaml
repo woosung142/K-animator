@@ -1,37 +1,65 @@
 loki:
-  auth_enabled: false
-
-  extraVolumeMounts:
+  read:
+    extraVolumeMounts:
     - name: secrets-store-inline
       mountPath: "/mnt/secrets-store"
       readOnly: true
-  
-  extraVolumes:
+      
+    extraVolumes:
+      - name: secrets-store-inline
+        csi:
+          driver: "secrets-store.csi.k8s.io"
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "loki-azure-provider"
+  write:
+    extraVolumeMounts:
     - name: secrets-store-inline
-      csi:
-        driver: "secrets-store.csi.k8s.io"
-        readOnly: true
-        volumeAttributes:
-          secretProviderClass: "loki-azure-provider"
-
-  storage_config:
-    azure:
-      account_name: "stlokikanimator"
-      container_name: "loki-logs"
-      account_key_file: "/mnt/secrets-store/loki-storage-account-key"
+      mountPath: "/mnt/secrets-store"
+      readOnly: true
+      
+    extraVolumes:
+      - name: secrets-store-inline
+        csi:
+          driver: "secrets-store.csi.k8s.io"
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "loki-azure-provider"
+  backend:
+    extraVolumeMounts:
+    - name: secrets-store-inline
+      mountPath: "/mnt/secrets-store"
+      readOnly: true
+      
+    extraVolumes:
+      - name: secrets-store-inline
+        csi:
+          driver: "secrets-store.csi.k8s.io"
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "loki-azure-provider"
+  monitoring:
+    selfMonitoring:
+      enabled: false    
+  
+  loki:
+    config: |
+      auth_enabled: false
+      storage_config:
+        azure:
+          account_name: "stlokikanimator"
+          container_name: "loki-logs"
+          account_key: "/mnt/secrets-store/loki-storage-account-key"
+      
+      schema_config:
+        configs:
+        - from: "2022-01-11"
+          store: boltdb-shipper
+          object_store: azure
+          schema: v12
+          index:
+            prefix: loki_index_
+            period: 24h
     
-  schema_config:
-    configs:
-      - from: "2022-01-11"
-        store: boltdb-shipper
-        object_store: azure
-        schema: v12
-        index:
-          prefix: loki_index_
-          period: 24h
-    
-promtail:
-  enabled: false
-
-grafanaAgent:
-  enabled: false
+  promtail:
+    enabled: false
