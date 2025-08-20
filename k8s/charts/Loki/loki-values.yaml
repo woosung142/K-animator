@@ -40,8 +40,13 @@ loki:
             secretProviderClass: "loki-azure-provider"
   monitoring:
     selfMonitoring:
-      enabled: false    
-  
+      enabled: false
+      grafanaAgent:
+        installOperator: false
+
+  test:
+    enabled: false
+
   loki:
     config: |
       auth_enabled: false
