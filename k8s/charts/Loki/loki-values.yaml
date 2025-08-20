@@ -12,12 +12,20 @@ loki:
           readOnly: true
           volumeAttributes:
             secretProviderClass: "loki-azure-provider"
+    extraEnv:
+      - name: AZURE_STORAGE_ACCOUNT_KEY
+        valueFrom:
+          secretKeyRef:
+            name: loki-storage-secret 
+            key: azure-storage-account-key 
+    extraArgs:
+      - "-config.expand-env=true"
+
   write:
     extraVolumeMounts:
     - name: secrets-store-inline
       mountPath: "/mnt/secrets-store"
-      readOnly: true
-      
+      readOnly: true 
     extraVolumes:
       - name: secrets-store-inline
         csi:
@@ -25,6 +33,15 @@ loki:
           readOnly: true
           volumeAttributes:
             secretProviderClass: "loki-azure-provider"
+    extraEnv:
+      - name: AZURE_STORAGE_ACCOUNT_KEY
+        valueFrom:
+          secretKeyRef:
+            name: loki-storage-secret 
+            key: azure-storage-account-key 
+    extraArgs:
+      - "-config.expand-env=true"
+
   backend:
     extraVolumeMounts:
     - name: secrets-store-inline
@@ -38,6 +55,15 @@ loki:
           readOnly: true
           volumeAttributes:
             secretProviderClass: "loki-azure-provider"
+    extraEnv:
+      - name: AZURE_STORAGE_ACCOUNT_KEY
+        valueFrom:
+          secretKeyRef:
+            name: loki-storage-secret 
+            key: azure-storage-account-key 
+    extraArgs:
+      - "-config.expand-env=true"
+      
   monitoring:
     selfMonitoring:
       enabled: false
@@ -54,8 +80,8 @@ loki:
         azure:
           account_name: "stlokikanimator"
           container_name: "loki-logs"
-          account_key_file: "/mnt/secrets-store/loki-storage-account-key"
-      
+          account_key: "$(AZURE_STORAGE_ACCOUNT_KEY)"
+
       schema_config:
         configs:
         - from: "2022-01-11"
