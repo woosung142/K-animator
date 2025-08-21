@@ -20,6 +20,10 @@ loki:
             key: azure-storage-account-key 
     extraArgs:
       - "-config.expand-env=true"
+    initContainers:
+      - name: wait-for-csi-secret
+        image: registry.k8s.io/e2e-test-images/busybox:1.29-4
+        command: ['sh', '-c', 'echo "Waiting for secret file to be mounted..."; while [ ! -f /mnt/secrets-store/loki-storage-account-key ]; do sleep 1; done; echo "Secret file found. Starting main container."']
 
   write:
     extraVolumeMounts:
@@ -41,6 +45,11 @@ loki:
             key: azure-storage-account-key 
     extraArgs:
       - "-config.expand-env=true"
+    initContainers:
+      - name: wait-for-csi-secret
+        image: registry.k8s.io/e2e-test-images/busybox:1.29-4
+        command: ['sh', '-c', 'echo "Waiting for secret file to be mounted..."; while [ ! -f /mnt/secrets-store/loki-storage-account-key ]; do sleep 1; done; echo "Secret file found. Starting main container."']
+
 
   backend:
     extraVolumeMounts:
@@ -63,6 +72,11 @@ loki:
             key: azure-storage-account-key 
     extraArgs:
       - "-config.expand-env=true"
+    initContainers:
+      - name: wait-for-csi-secret
+        image: registry.k8s.io/e2e-test-images/busybox:1.29-4
+        command: ['sh', '-c', 'echo "Waiting for secret file to be mounted..."; while [ ! -f /mnt/secrets-store/loki-storage-account-key ]; do sleep 1; done; echo "Secret file found. Starting main container."']
+
       
   monitoring:
     selfMonitoring:
