@@ -24,7 +24,10 @@ loki:
       - name: wait-for-csi-secret
         image: registry.k8s.io/e2e-test-images/busybox:1.29-4
         command: ['sh', '-c', 'echo "Waiting for secret file to be mounted..."; while [ ! -f /mnt/secrets-store/loki-storage-account-key ]; do sleep 1; done; echo "Secret file found. Starting main container."']
-
+        volumeMounts:
+          - name: secrets-store-inline
+            mountPath: "/mnt/secrets-store"
+            readOnly: true        
   write:
     extraVolumeMounts:
     - name: secrets-store-inline
@@ -49,7 +52,10 @@ loki:
       - name: wait-for-csi-secret
         image: registry.k8s.io/e2e-test-images/busybox:1.29-4
         command: ['sh', '-c', 'echo "Waiting for secret file to be mounted..."; while [ ! -f /mnt/secrets-store/loki-storage-account-key ]; do sleep 1; done; echo "Secret file found. Starting main container."']
-
+        volumeMounts:
+          - name: secrets-store-inline
+            mountPath: "/mnt/secrets-store"
+            readOnly: true
 
   backend:
     extraVolumeMounts:
@@ -76,7 +82,10 @@ loki:
       - name: wait-for-csi-secret
         image: registry.k8s.io/e2e-test-images/busybox:1.29-4
         command: ['sh', '-c', 'echo "Waiting for secret file to be mounted..."; while [ ! -f /mnt/secrets-store/loki-storage-account-key ]; do sleep 1; done; echo "Secret file found. Starting main container."']
-
+        volumeMounts:
+          - name: secrets-store-inline
+            mountPath: "/mnt/secrets-store"
+            readOnly: true
       
   monitoring:
     selfMonitoring:
