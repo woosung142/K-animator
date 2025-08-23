@@ -4,5 +4,5 @@ description: A wrapper chart to deploy loki with custom values.
 version: 0.1.0
 dependencies:
 - name: loki
-  version: "5.42.0"
+  version: "6.37.0"
   repository: "https://grafana.github.io/helm-charts"
