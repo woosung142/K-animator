@@ -59,9 +59,10 @@ loki:
         useFederatedToken: true
 
   serviceAccount:
-    create: false
+    create: true
     name: loki
-    
+    annotations:
+      "azure.workload.identity/client-id": "c54df909-f598-4733-9238-b641659e20a8"
 
 
     
