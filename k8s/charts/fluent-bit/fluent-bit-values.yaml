@@ -41,6 +41,19 @@ fluent-bit:
         Key_Name       kubernetes.container_name
         Regex          ^model-worker$
         Parser         celery_log_parser
+        Reserve_Data   Off
+        Unregister_Match On
+
+      [FILTER]
+        Name           rewrite_tag
+        Match          kube.*
+        rule       $level .+ kube.parsed keep
+
+      [FILTER]
+        Name           parser
+        Match          kube.*
+        Key_Name       kubernetes.container_name
+        Regex          ^model-worker$
         Parser         app_log_parser
         Reserve_Data   Off
 
