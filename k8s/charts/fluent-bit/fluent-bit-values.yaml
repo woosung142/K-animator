@@ -45,7 +45,7 @@ fluent-bit:
         Name           parser
         Match          kube.*
         Key_Name       kubernetes.container_name
-        Parser         app_log_parser
+        Parser         celery_log_parser
         Reserve_Data   Off
 
       [FILTER]
