@@ -36,24 +36,15 @@ fluent-bit:
         Keep_Log      Off
 
       [FILTER]
-        Name           parser
-        Match          kube.*
-        Key_Name       kubernetes.container_name
-        Regex          ^model-worker$
-        Parser         celery_log_parser
-        Reserve_Data   Off
-        Unregister_Match On
-
-      [FILTER]
         Name           rewrite_tag
         Match          kube.*
-        rule       $level .+ kube.parsed keep
+        rule       $kubernetes['container_name'] ^model-worker$ kube.model-worker false
+        rule       $kubernetes['container_name'] ^model-api$ kube.model-api false
 
       [FILTER]
         Name           parser
         Match          kube.*
         Key_Name       kubernetes.container_name
-        Regex          ^model-worker$
         Parser         app_log_parser
         Reserve_Data   Off
 
@@ -61,7 +52,6 @@ fluent-bit:
         Name           parser
         Match          kube.*
         Key_Name       kubernetes.container_name
-        Regex          ^model-api$
         Parser         app_log_parser
         Reserve_Data   Off
 
