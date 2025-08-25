@@ -22,6 +22,8 @@ loki:
     replicas: 1
   queryScheduler:
     replicas: 1
+  indexGateway:
+    replicas: 1
 
   ruler:
     enabled: false
