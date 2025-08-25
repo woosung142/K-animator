@@ -20,6 +20,8 @@ loki:
     replicas: 1
   compactor:
     replicas: 1
+  queryScheduler:
+    replicas: 1
 
   ruler:
     enabled: false
@@ -58,7 +60,16 @@ loki:
       azure:
         accountName: loki-storage-account
         useFederatedToken: true
-
+      
+  chunksCache:
+    enabled: true
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 200m
+      limits:
+        memory: 2Gi
+        cpu: 1
   serviceAccount:
     create: true
     name: loki
