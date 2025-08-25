@@ -13,16 +13,6 @@ spec:
       valueFiles:
         - loki-values.yaml
       values: |
-        grafanaAgent:
-          enabled: false
-        
-        loki:
-          monitoring:
-            grafanaAgent:
-              installOperator: false
-        
-        promtail:
-          enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: loki
