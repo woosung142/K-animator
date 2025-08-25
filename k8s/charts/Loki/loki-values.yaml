@@ -58,7 +58,7 @@ loki:
       bucketNames:
         chunks: "loki-logs"
       azure:
-        accountName: loki-storage-account
+        accountName: stlokikanimator
         useFederatedToken: true
       
   chunksCache:
