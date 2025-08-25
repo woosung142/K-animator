@@ -43,13 +43,14 @@ loki:
       "azure.workload.identity/use": "true"
 
     schemaConfig:
-      - from: "2024-04-01"
-        store: tsdb
-        object_store: azure
-        schema: v13
-        index:
-          prefix: loki_index_
-          period: 24h
+      configs:
+        - from: "2024-04-01"
+          store: tsdb
+          object_store: azure
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
     storage:
       type: azure
       bucketNames:
