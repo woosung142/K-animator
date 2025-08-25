@@ -66,5 +66,5 @@ fluent-bit:
         Match       *
         Host        loki-distributor.loki.svc.cluster.local
         Port        3100
-        Label_Keys  $kubernetes['container_name'], $level
-        Line_Format json_nodate
+        Label_keys  $kubernetes['container_name'], $level
+        Line_format json_nodate
