@@ -62,7 +62,7 @@ config:
     [OUTPUT]
         Name loki
         Match *
-        Host loki-write.loki.svc.cluster.local
+        Host loki-distributed.loki.svc.cluster.local
         Port 3100
         LabelKeys $kubernetes['container_name'], $level
         Line_Format json_nodate
