@@ -47,14 +47,14 @@ fluent-bit:
         Name           parser
         Match          celery.logs
         Key_Name       log
-        parser         celery_log_parser
+        Parser         celery_log_parser
         Reserve_Data   On
 
       [FILTER]
         Name           parser
         Match          app.logs
         Key_Name       logs
-        parser         app_log_parser
+        Parser         app_log_parser
         Reserve_Data   On
 
       [FILTER]
