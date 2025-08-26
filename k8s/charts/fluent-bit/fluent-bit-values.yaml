@@ -59,12 +59,25 @@ fluent-bit:
         Reserve_Data   On
 
       [FILTER]
-        Name      modify
-        Match     celery.logs
-        Condition message .*task_id:\s(?<task_id>[0-9a-f\-]+).*
-        Add       task_id ${task_id}
-        Condition message .*succeeded in (?<latency_s>[0-9\.]+)s.*
-        Add       latency_s ${latency_s}
+          Name         lua
+          Match        celery.logs
+          script       |-
+            function add_celery_metadata(tag, timestamp, record)
+                -- task_id 추출 시도
+                local task_id = string.match(record.log, "task_id: ([0-9a-f%-]+)")
+                if task_id then
+                    record.task_id = task_id
+                end
+
+                -- latency_s 추출 시도
+                local latency = string.match(record.log, "succeeded in ([0-9%.]+)s")
+                if latency then
+                    record.latency_s = latency
+                end
+
+                return 2, timestamp, record
+            end
+          call         add_celery_metadata
 
     outputs: |
       [OUTPUT]
