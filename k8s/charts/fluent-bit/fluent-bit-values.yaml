@@ -11,7 +11,6 @@ fluent-bit:
         Name   celery_log_parser
         Format regex
         Regex  ^\[(?<time>[^\]]+): (?<level>\w+)/(?<processName>[^\]]+)\] (?<message>.*)$
-    
     service: |
       [SERVICE]
         Daemon      Off
