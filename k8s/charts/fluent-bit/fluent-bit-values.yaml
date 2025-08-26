@@ -6,11 +6,12 @@ fluent-bit:
         Name   app_log_parser
         Format regex
         Regex  ^\[(?<tag>[^\]]+)\]\s(?<message>.*)$
-
+        
       [PARSER]
         Name   celery_log_parser
         Format regex
         Regex  ^\[(?<time>[^\]]+): (?<level>\w+)/(?<processName>[^\]]+)\] (?<message>.*)$
+
     service: |
       [SERVICE]
         Daemon      Off
@@ -46,7 +47,7 @@ fluent-bit:
         Name           parser
         Match          celery.logs
         Key_Name       log
-        Parser         celery_log_parser
+        parser         celery_log_parser
         Reserve_Data   On
 
       [FILTER]
