@@ -61,7 +61,7 @@ fluent-bit:
       [FILTER]
           Name         lua
           Match        celery.logs
-          script       |-
+          code       |-
             function add_celery_metadata(tag, timestamp, record)
                 -- task_id 추출 시도
                 local task_id = string.match(record.log, "task_id: ([0-9a-f%-]+)")
