@@ -1,5 +1,6 @@
 fluent-bit:
   config:
+
     customParsers: |
       [PARSER]
         Name   app_log_parser
@@ -38,26 +39,27 @@ fluent-bit:
       [FILTER]
         Name           rewrite_tag
         Match          kube.*
-        rule       $kubernetes['container_name'] ^model-worker$ kube.model-worker false
-        rule       $kubernetes['container_name'] ^model-api$ kube.model-api false
+        Rule       $kubernetes['container_name'] ^model-worker$ kube.model-worker false
+        Rule       $kubernetes['container_name'] ^model-api$ kube.model-api false
+        Emitter_Name  re_emitted
 
       [FILTER]
         Name           parser
-        Match          kube.*
-        Key_Name       kubernetes.container_name
+        Match          celery.logs
+        Key_Name       log
         Parser         celery_log_parser
-        Reserve_Data   Off
+        Reserve_Data   On
 
       [FILTER]
         Name           parser
-        Match          kube.*
-        Key_Name       kubernetes.container_name
-        Parser         app_log_parser
-        Reserve_Data   Off
+        Match          app.logs
+        Key_Name       logs
+        parser         app_log_parser
+        Reserve_Data   On
 
       [FILTER]
         Name      modify
-        Match     kube.*
+        Match     celery.logs
         Condition message .*task_id:\s(?<task_id>[0-9a-f\-]+).*
         Add       task_id ${task_id}
         Condition message .*succeeded in (?<latency_s>[0-9\.]+)s.*
@@ -69,5 +71,5 @@ fluent-bit:
         Match       *
         Host        loki-distributor.loki.svc.cluster.local
         Port        3100
-        Label_keys  $kubernetes['container_name'], $level
-        Line_format json_nodate
+        label_keys  $kubernetes['container_name'], $level
+        line_format json_nodate
