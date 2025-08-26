@@ -87,4 +87,4 @@ fluent-bit:
         Host        loki-distributor.loki.svc.cluster.local
         Port        3100
         label_keys  $kubernetes['container_name'], $level
-        line_format json_nodate
+        line_format json
