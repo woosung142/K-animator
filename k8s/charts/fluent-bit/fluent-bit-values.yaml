@@ -72,7 +72,7 @@ fluent-bit:
       [FILTER]
           Name      modify
           Match     *
-          Condition level DOES_NOT_EXIST
+          Condition Key_does_not_exist level
           Add       level unknown
     outputs: |
       [OUTPUT]
