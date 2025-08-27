@@ -14,11 +14,9 @@ fluent-bit:
 
     customParsers: |
       [PARSER]
-        Name        cri
-        Format      regex
-        Regex       ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<log>.*)$
-        Time_Key    time
-        Time_Format %Y-%m-%dT%H:%M:%S.%L%z
+        Name   model-worker-multiline
+        Format regex
+        Regex  /^\[(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}): (?<level>\w+)\/(?<processName>[^\]]+)\] (?<log>.*)/
 
       [PARSER]
         Name   app_log_parser
@@ -26,12 +24,12 @@ fluent-bit:
         Regex  ^\[(?<tag>[^\]]+)\]\s(?<message>.*)$
         
       [PARSER]
-        Name   celery_log_parser
+        Name   model-worker-parser
         Format regex
         Regex  ^\[(?<time>[^\]]+): (?<level>\w+)/(?<processName>[^\]]+)\] (?<message>.*)$
 
       [PARSER]
-          Name   celery_extra_parser
+          Name   model-worker-extra-parser
           Format regex
           Regex  .*task_id:\s(?<task_id>[0-9a-f\-]+).*succeeded in (?<latency_s>[0-9\.]+)s.*
 
@@ -47,31 +45,39 @@ fluent-bit:
     inputs: |
       [INPUT]
           Name              tail
+          Tag               kube.worker*
+          Path              /var/log/containers/model-worker-*.log
+          multiline.parser  model-worker-multiline
+          Mem_Buf_Limit     5MB
+          Skip_Long_Lines   On
+
+      [INPUT]
+          Name              tail
           Tag               kube.*
           Path              /var/log/containers/*.log
-          multiline.parser  cri
+          Exclude_Path      /var/log/containers/model-worker-*.log
           Mem_Buf_Limit     5MB
           Skip_Long_Lines   On
 
     filters: |
       [FILTER]
         Name          kubernetes
-        Match         kube.var.log.containers.*
+        Match         kube.*
         Merge_Log     On
         Keep_Log      Off
 
       [FILTER]
         Name           rewrite_tag
         Match          kube.*
-        Rule       $kubernetes['container_name'] ^model-worker$ kube.model-worker false
-        Rule       $kubernetes['container_name'] ^model-api$ kube.model-api false
+        Rule       $kubernetes['container_name'] ^model-worker$ model-worker.logs false
+        Rule       $kubernetes['container_name'] ^model-api$ app.logs false
         Emitter_Name  re_emitted
 
       [FILTER]
         Name           parser
-        Match          celery.logs
+        Match          model-worker.logs
         Key_Name       log
-        Parser         celery_log_parser
+        Parser         model-worker-parser
         Reserve_Data   On
 
       [FILTER]
@@ -83,9 +89,9 @@ fluent-bit:
 
       [FILTER]
           Name         parser
-          Match        celery.logs
+          Match        model-worker.logs
           Key_Name     log
-          Parser       celery_extra_parser
+          Parser       model-worker-extra-parser
           Reserve_Data On
 
       [FILTER]
