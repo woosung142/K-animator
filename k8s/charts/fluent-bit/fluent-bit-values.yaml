@@ -1,4 +1,6 @@
 fluent-bit:
+  image:
+    tag: 4.0.7
   config:
 
     customParsers: |
