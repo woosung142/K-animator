@@ -5,6 +5,13 @@ fluent-bit:
 
     customParsers: |
       [PARSER]
+        Name        cri
+        Format      regex
+        Regex       ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<log>.*)$
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L%z
+
+      [PARSER]
         Name   app_log_parser
         Format regex
         Regex  ^\[(?<tag>[^\]]+)\]\s(?<message>.*)$
@@ -41,8 +48,13 @@ fluent-bit:
         Name          kubernetes
         Match         kube.var.log.containers.*
         Merge_Log     On
-        Merge_Log_Key log_processed
         Keep_Log      Off
+
+      [FILTER]
+        Name                multiline
+        Match               kube.*
+        multiline.key_content    log
+        multiline.parser        cri
 
       [FILTER]
         Name           rewrite_tag
