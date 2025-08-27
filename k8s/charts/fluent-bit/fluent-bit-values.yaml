@@ -13,11 +13,13 @@ fluent-bit:
   config:
 
     customParsers: |
-      [PARSER]
-        Name   model-worker-multiline
-        Format regex
-        Regex  /^\[(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}): (?<level>\w+)\/(?<processName>[^\]]+)\] (?<log>.*)/
-
+     [MULTILINE_PARSER]
+        Name          model-worker-multiline
+        Format        multiline
+        # Rule "state_name" "regex" "next_state"
+        Rule   "start_state" "/^\[(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}): (?<level>\w+)\/(?<processName>[^\]]+)\] (?<log>.*)/" "cont"
+        Rule   "cont"        "/^(?!\[\d{4}-\d{2}-\d{2})/" "cont"
+        
       [PARSER]
         Name   app_log_parser
         Format regex
