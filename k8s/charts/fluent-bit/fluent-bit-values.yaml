@@ -26,16 +26,7 @@ fluent-bit:
       [PARSER]
           Name   model-worker-extra-parser
           Format regex
-          Regex  .*task_id:\s(?<task_id>[0-9a-f\-]+).*succeeded in (?<latency_s>[0-9\.]+)s.*
-
-    extraFiles:
-      multiline_parsers.conf: |
-        [MULTILINE_PARSER]
-            name          model-worker-multiline
-            type          regex
-            flush_timeout 1000
-            rule "start_state" "/^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}:/" "cont"
-            rule "cont" "/^(?!\[\d{4}-\d{2}-\d{2})/" "cont"          
+          Regex  .*task_id:\s(?<task_id>[0-9a-f\-]+).*succeeded in (?<latency_s>[0-9\.]+)s.*          
 
     service: |
       [SERVICE]
@@ -45,7 +36,13 @@ fluent-bit:
         HTTP_Listen 0.0.0.0
         HTTP_Port   2020
         Parsers_File /fluent-bit/etc/conf/custom_parsers.conf
-        Multiline_Parsers_File /fluent-bit/etc/conf/multiline_parsers.conf
+
+      [MULTILINE_PARSER]
+        name          model-worker-multiline
+        type          regex
+        flush_timeout 1000
+        rule "start_state" "/^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}:/" "cont"
+        rule "cont" "/^(?!\[\d{4}-\d{2}-\d{2})/" "cont"
 
     inputs: |
       [INPUT]
