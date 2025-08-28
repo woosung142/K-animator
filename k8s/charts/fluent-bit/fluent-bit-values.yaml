@@ -13,13 +13,6 @@ fluent-bit:
   config:
 
     customParsers: |
-     [MULTILINE_PARSER]
-        Name          model-worker-multiline
-        Type          regex
-        Flush_Timeout 1000
-        Rule   "start_state" "/^\[(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}): (?<level>\w+)\/(?<processName>[^\]]+)\] (?<log>.*)/" "cont"
-        Rule   "cont"        "/^(?!\[\d{4}-\d{2}-\d{2})/" "cont"
-        
       [PARSER]
         Name   app_log_parser
         Format regex
@@ -34,6 +27,15 @@ fluent-bit:
           Name   model-worker-extra-parser
           Format regex
           Regex  .*task_id:\s(?<task_id>[0-9a-f\-]+).*succeeded in (?<latency_s>[0-9\.]+)s.*
+
+    extraFiles:
+      multiline_parsers.conf: |
+        [MULTILINE_PARSER]
+            name          model-worker-multiline
+            type          regex
+            flush_timeout 1000
+            rule "start_state" "/^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}:/" "cont"
+            rule "cont" "/^(?!\[\d{4}-\d{2}-\d{2})/" "cont"          
 
     service: |
       [SERVICE]
