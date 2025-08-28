@@ -12,6 +12,7 @@ from transformers import AutoProcessor, AutoModel
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
+import logging
 
 # 환경변수 로딩
 load_dotenv()
@@ -59,7 +60,7 @@ def get_blob_base64_image(blob_dir, file_name):
         image.save(buffered, format="PNG")
         return base64.b64encode(buffered.getvalue()).decode("utf-8")
     except Exception as e:
-        print(f"[ERROR] Blob 이미지 로딩 실패 - {file_name}: {e}")
+        logging.info(f"[ERROR] Blob 이미지 로딩 실패 - {file_name}: {e}")
         return None
 
 def generate_sas_url(account_name, account_key, container_name, blob_name, expiry_minutes=10):
@@ -104,7 +105,7 @@ def get_wikipedia_main_image(tag):
             if "source" in thumbnail:
                 return thumbnail["source"]
     except Exception as e:
-        print(f"[ERROR] Wikipedia 이미지 검색 실패: {e}")
+        logging.info(f"[ERROR] Wikipedia 이미지 검색 실패: {e}")
     return None
 
 
@@ -112,21 +113,21 @@ def get_wikipedia_main_image(tag):
 def generate_image(self, category: str, layer: str, tag: str, caption_input: str | None = None, image_url: str | None = None) -> dict:
     try:
         task_id = self.request.id
-        print(f"[TASK] generate_image 시작 - task_id: {task_id}")
-        print(f"[INPUT] category: {category}, layer: {layer}, tag: {tag}, caption_input: {caption_input}, image_url: {image_url}")
+        logging.info(f"[TASK] generate_image 시작 - task_id: {task_id}")
+        logging.info(f"[INPUT] category: {category}, layer: {layer}, tag: {tag}, caption_input: {caption_input}, image_url: {image_url}")
         
         # 1. KoCLIP 임베딩
         text_to_embed = caption_input if caption_input else f"{tag}가 포함된 한국 웹툰 이미지를 그려주세요."
-        print(f"[STEP 1] 임베딩 대상 텍스트: {text_to_embed}")
+        logging.info(f"[STEP 1] 임베딩 대상 텍스트: {text_to_embed}")
         embedding_vector = embed_text_koclip(text_to_embed)
         vector_str = "[" + ",".join([str(x) for x in embedding_vector]) + "]"
-        print(f"[STEP 1] 생성된 임베딩 벡터 길이: {len(embedding_vector)}")
+        logging.info(f"[STEP 1] 생성된 임베딩 벡터 길이: {len(embedding_vector)}")
 
         images_content = []
 
         # 2. 사용자 업로드 이미지 (최우선, 1장)
         if image_url:
-            print(f"[STEP 2] 사용자 업로드 이미지 추가: {image_url}")
+            logging.info(f"[STEP 2] 사용자 업로드 이미지 추가: {image_url}")
             images_content.append({
                 "type": "image_url",
                 "image_url": {"url": image_url}
@@ -137,7 +138,7 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
             conn = psycopg2.connect(host=PG_HOST, port=PG_PORT, dbname=PG_DBNAME, user=PG_USER, password=PG_PASSWORD)
             cursor = conn.cursor()
             keywords = [f"%{word.strip()}%" for word in tag.split()]
-            print(f"[STEP 3] 태그 키워드 변환: {keywords}")
+            logging.info(f"[STEP 3] 태그 키워드 변환: {keywords}")
 
             sql = """
                 SELECT file_name FROM korea_image_data
@@ -148,16 +149,16 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
             """
             cursor.execute(sql, (category, layer, keywords, vector_str))
             results = cursor.fetchall()
-            print(f"[STEP 3] DB 검색 결과 file_name 리스트: {results}")
+            logging.info(f"[STEP 3] DB 검색 결과 file_name 리스트: {results}")
             cursor.close()
             conn.close()
 
             for row in results:
                 file_name = row[0]
-                print(f"[STEP 3] Blob에서 이미지 로딩 시도: {file_name}")
+                logging.info(f"[STEP 3] Blob에서 이미지 로딩 시도: {file_name}")
                 image_b64 = get_blob_base64_image("img", file_name)
                 if image_b64:
-                    print(f"[STEP 3] base64 변환 성공: {file_name}")
+                    logging.info(f"[STEP 3] base64 변환 성공: {file_name}")
                     images_content.append({
                         "type": "image_url",
                         "image_url": {
@@ -169,17 +170,17 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
         if len(images_content) < 2:
             wiki_image_url = get_wikipedia_main_image(tag)
             if wiki_image_url:
-                print(f"[STEP 4] Wikipedia 이미지 추가: {wiki_image_url}")
+                logging.info(f"[STEP 4] Wikipedia 이미지 추가: {wiki_image_url}")
                 images_content.append({
                     "type": "image_url",
                     "image_url": {"url": wiki_image_url}
                 })
             else:
-                print(f"[STEP 4] Wikipedia 이미지 없음")
+                logging.info(f"[STEP 4] Wikipedia 이미지 없음")
 
         # 5. 이미지가 없어도 텍스트만으로 생성 가능
         if not images_content:
-            print(f"[STEP 5] 이미지 없이 텍스트만으로 프롬프트 생성됨")
+            logging.info(f"[STEP 5] 이미지 없이 텍스트만으로 프롬프트 생성됨")
 
         # 6. gpt 프롬프트 생성
         prompt_text = (
@@ -201,7 +202,7 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
 
 
 
-        print(f"[STEP 6] 생성된 프롬프트:\n{prompt_text}") 
+        logging.info(f"[STEP 6] 생성된 프롬프트:\n{prompt_text}") 
 
         messages = [{
             "role": "user",
@@ -209,12 +210,12 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
         }]
         response = client.chat.completions.create(model="gpt-4o", messages=messages, max_tokens=800, temperature=0.7)
         dalle_prompt = response.choices[0].message.content.strip()
-        print(f"[STEP 6] GPT 생성 결과:\n{dalle_prompt}")
+        logging.info(f"[STEP 6] GPT 생성 결과:\n{dalle_prompt}")
 
         return {"status": "SUCCESS", "prompt": dalle_prompt}
 
     except Exception as e:
-        print(f"[ERROR] 프롬프트 생성 실패: {e}")
+        logging.info(f"[ERROR] 프롬프트 생성 실패: {e}")
         return {"status": "FAILURE", "error": str(e)}
 
 
@@ -222,13 +223,13 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
 def generate_final_image(self, dalle_prompt: str) -> dict:
     try:
         task_id = self.request.id
-        print(f"[TASK] generate_final_image 시작 - task_id: {task_id}")
-        print(f"[INPUT] DALL·E 프롬프트: {dalle_prompt}")
+        logging.info(f"[TASK] generate_final_image 시작 - task_id: {task_id}")
+        logging.info(f"[INPUT] DALL·E 프롬프트: {dalle_prompt}")
 
         # 8. DALL·E 3 이미지 생성
         dalle_response = client.images.generate(model="dall-e-3", prompt=dalle_prompt, size="1024x1024", n=1)
         image_url = dalle_response.data[0].url
-        print(f"[STEP 8] DALL·E 이미지 URL: {image_url}")
+        logging.info(f"[STEP 8] DALL·E 이미지 URL: {image_url}")
         dalle_image_data = requests.get(image_url).content
         dalle_img = Image.open(BytesIO(dalle_image_data))
 
@@ -239,7 +240,7 @@ def generate_final_image(self, dalle_prompt: str) -> dict:
         filename_png = f"png/{task_id}.png"
         container_client.upload_blob(name=filename_png, data=png_buffer, overwrite=True)
         png_url = generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_png)
-        print(f"[STEP 9] PNG Blob 저장 완료: {png_url}")
+        logging.info(f"[STEP 9] PNG Blob 저장 완료: {png_url}")
         png_buffer.close()
 
         # 10. PSD 변환 후 psd/ 하위에 저장
@@ -250,7 +251,7 @@ def generate_final_image(self, dalle_prompt: str) -> dict:
         with open(temp_psd_path, "rb") as f:
             container_client.upload_blob(name=f"psd/{task_id}.psd", data=f, overwrite=True)
         psd_url = generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, f"psd/{task_id}.psd")
-        print(f"[STEP 10] PSD 업로드 완료: {psd_url}")
+        logging.info(f"[STEP 10] PSD 업로드 완료: {psd_url}")
 
         # 임시 파일 삭제
         os.remove(temp_png_path)
@@ -259,5 +260,5 @@ def generate_final_image(self, dalle_prompt: str) -> dict:
         return {"status": "SUCCESS", "png_url": png_url, "psd_url": psd_url}
 
     except Exception as e:
-        print(f"[ERROR] 전체 프로세스 실패: {e}")
+        logging.info(f"[ERROR] 전체 프로세스 실패: {e}")
         return {"status": "FAILURE", "error": str(e)}
