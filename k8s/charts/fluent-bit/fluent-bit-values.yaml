@@ -15,8 +15,8 @@ fluent-bit:
     customParsers: |
      [MULTILINE_PARSER]
         Name          model-worker-multiline
-        type          regex
-        flush_timeout 1000
+        Type          regex
+        Flush_Timeout 1000
         Rule   "start_state" "/^\[(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}): (?<level>\w+)\/(?<processName>[^\]]+)\] (?<log>.*)/" "cont"
         Rule   "cont"        "/^(?!\[\d{4}-\d{2}-\d{2})/" "cont"
         
