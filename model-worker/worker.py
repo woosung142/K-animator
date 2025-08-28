@@ -1,4 +1,5 @@
 from celery import Celery
+from celery.signals import after_setup_logger
 from io import BytesIO
 from PIL import Image
 import requests
@@ -13,11 +14,6 @@ from dotenv import load_dotenv
 from openai import AzureOpenAI
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
 import logging
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s: %(levelname)s/%(processName)s] %(message)s'
-)
 
 # 환경변수 로딩
 load_dotenv()
@@ -46,6 +42,14 @@ container_client = blob_service.get_container_client(AZURE_CONTAINER_NAME)
 
 # Celery 설정
 celery_app = Celery('worker', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
+
+@after_setup_logger.connect
+def setup_loggers(logger, *args, **kwargs):
+    formatter = logging.Formatter('[%(asctime)s: %(levelname)s/%(processName)s] %(message)s')
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
 
 # 유틸 함수
 def embed_text_koclip(text):
