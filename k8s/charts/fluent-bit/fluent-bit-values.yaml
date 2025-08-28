@@ -45,7 +45,7 @@ fluent-bit:
         HTTP_Listen 0.0.0.0
         HTTP_Port   2020
         Parsers_File /fluent-bit/etc/conf/custom_parsers.conf
-        Multiline_Parsers_File /fluent-bit/etc/conf/custom_parsers.conf
+        Multiline_Parsers_File /fluent-bit/etc/conf/multiline_parsers.conf
 
     inputs: |
       [INPUT]
