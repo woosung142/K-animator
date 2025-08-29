@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/ajh9789/k8s-deploy'
+    repoURL: 'https://github.com/woosung142/K-animator'
     path: k8s/charts/fluent-bit
-    targetRevision: feature/app-of-apps-refactor
+    targetRevision: main
     helm:
       valueFiles:
       - fluent-bit-values.yaml
