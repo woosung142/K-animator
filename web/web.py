@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 
 app = FastAPI()
 
-# 정적 파일 서빙 설정 (여기가 중요!)
+# 정적 파일 서빙 설정 (여기가 중요!).
 app.mount("/images", StaticFiles(directory=Path(__file__).parent / "images"), name="images")
 
 # Blob Storage 환경변수

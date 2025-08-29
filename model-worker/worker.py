@@ -19,7 +19,7 @@ logging.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 logging.warning('!!! WORKER SCRIPT STARTED - Top Level !!!')
 logging.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
-# 환경변수 로딩
+# 환경변수 로딩,
 load_dotenv()
 AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
