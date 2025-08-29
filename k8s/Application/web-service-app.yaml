@@ -6,8 +6,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/ajh9789/k8s-deploy'
-    targetRevision: feature/app-of-apps-refactor    
+    repoURL: 'https://github.com/woosung142/K-animator'
+    targetRevision: main    
     path: k8s/manifests                               
   destination:
     server: https://kubernetes.default.svc
