@@ -20,3 +20,5 @@ spec:
           envFrom:
             - secretRef:
                 name: azure-secret
+      imagePullSecrets:
+        - name: ghcr-secret
