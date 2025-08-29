@@ -9,6 +9,9 @@ resource "azurerm_kubernetes_cluster" "aks_cluster" {
   resource_group_name = azurerm_resource_group.aks_rg.name
   dns_prefix          = "${var.aks_cluster_name}-dns"
 
+  oidc_issuer_enabled = true
+  workload_identity_enabled = true
+
   default_node_pool {
     name           = "default"
     node_count     = 3

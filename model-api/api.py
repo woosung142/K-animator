@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from celery import Celery
 from fastapi.middleware.cors import CORSMiddleware
 import os
+import logging
 
 app = FastAPI()
 
@@ -34,12 +35,12 @@ class FinalPromptRequest(BaseModel):
 # 프롬프트 생성 요청
 @app.post("/api/generate-prompt")
 async def generate_prompt_endpoint(request: PromptRequest):
-    print(f"[REQUEST] POST /api/generate-image")
-    print(f"[DATA] category: {request.category}")
-    print(f"[DATA] layer: {request.layer}")
-    print(f"[DATA] tag: {request.tag}")
-    print(f"[DATA] caption_input: {request.caption_input}")
-    print(f"[DATA] image_url: {request.image_url}")
+    logging.info(f"[REQUEST] POST /api/generate-image")
+    logging.info(f"[DATA] category: {request.category}")
+    logging.info(f"[DATA] layer: {request.layer}")
+    logging.info(f"[DATA] tag: {request.tag}")
+    logging.info(f"[DATA] caption_input: {request.caption_input}")
+    logging.info(f"[DATA] image_url: {request.image_url}")
 
     task = celery_app.send_task(
         "generate_image",
@@ -51,32 +52,32 @@ async def generate_prompt_endpoint(request: PromptRequest):
             request.image_url
         ]
     )
-    print(f"[TASK] Celery task 전송 완료 - task_id: {task.id}")
+    logging.info(f"[TASK] Celery task 전송 완료 - task_id: {task.id}")
     return {"task_id": task.id}
 
 # 최종 이미지 생성 요청
 @app.post("/api/generate-image-from-prompt")
 async def generate_image_from_prompt(request: FinalPromptRequest):
-    print("[REQUEST] POST /api/generate-image-from-prompt")
+    logging.info("[REQUEST] POST /api/generate-image-from-prompt")
     task = celery_app.send_task(
         "generate_final_image",
         args=[request.dalle_prompt]
     )
-    print(f"[TASK] celery 'generate_final_image' task 전송 완료 - task_id: {task.id}")
+    logging.info(f"[TASK] celery 'generate_final_image' task 전송 완료 - task_id: {task.id}")
     return {"task_id": task.id}
 
 # 결과 조회 (prompt 또는 image 결과 모두 포함)
 @app.get("/api/result/{task_id}")
 async def get_result(task_id: str):
-    print(f"[REQUEST] GET /api/result/{task_id}")
+    logging.info(f"[REQUEST] GET /api/result/{task_id}")
     result = celery_app.AsyncResult(task_id)
-    print(f"[INFO] 현재 상태: {result.state}")
+    logging.info(f"[INFO] 현재 상태: {result.state}")
 
     if result.state == "PENDING":
         return {"status": "PENDING"}
 
     elif result.state == "SUCCESS":
-        print(f"[SUCCESS] 결과 수신 완료: {result.result}")
+        logging.info(f"[SUCCESS] 결과 수신 완료: {result.result}")
         result_data = result.result or {}
 
         response = {"status": "SUCCESS"}
@@ -91,9 +92,9 @@ async def get_result(task_id: str):
         return response
 
     elif result.state == "FAILURE":
-        print(f"[ERROR] Celery 태스크 실패: {result.result}")
+        logging.info(f"[ERROR] Celery 태스크 실패: {result.result}")
         raise HTTPException(status_code=500, detail="Task failed")
 
     else:
-        print(f"[INFO] 기타 상태: {result.state}")
+        logging.info(f"[INFO] 기타 상태: {result.state}")
         return {"status": result.state}

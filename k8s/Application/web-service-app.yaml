@@ -1,23 +1,18 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: fluent-bit
+  name: web-services
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: 'https://github.com/ajh9789/k8s-deploy'
-    path: k8s/fluent-bit
-    targetRevision: main
-    helm:
-      valueFiles:
-      - fluent-bit-values.yaml
+    targetRevision: feature/app-of-apps-refactor    
+    path: k8s/manifests                               
   destination:
     server: https://kubernetes.default.svc
-    namespace: loki
+    namespace: default
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-    - CreateNamespace=true

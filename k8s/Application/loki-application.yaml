@@ -6,12 +6,13 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/ajh9789/k8s-deploy'
-    path: k8s/Loki
+    repoURL: 'https://github.com/woosung142/K-animator'
+    path: k8s/charts/Loki
     targetRevision: main
     helm:
       valueFiles:
         - loki-values.yaml
+      values: |
   destination:
     server: https://kubernetes.default.svc
     namespace: loki

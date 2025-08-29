@@ -10,11 +10,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/ajh9789/k8s-deploy  # 여기에 너 깃 주소
+    repoURL: https://github.com/woosung142/K-animator  # 여기에 너 깃 주소
     targetRevision: main
-    path: k8s  # YAML들 있는 폴더
-    directory:
-      recurse: true
+    path: k8s/Application  # YAML들 있는 폴더
   destination:
     server: https://kubernetes.default.svc
     namespace: default
