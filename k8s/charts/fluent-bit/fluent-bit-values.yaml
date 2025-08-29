@@ -1,7 +1,12 @@
 fluent-bit:
   image:
     tag: 4.0.7
-  
+
+  rbac:
+    create: true
+  serviceAccount:
+    create: true
+
   resources:
     limits:
       cpu: 500m
@@ -11,90 +16,76 @@ fluent-bit:
       memory: 128Mi
 
   config:
-
     customParsers: |
+      [PARSER]
+          Name        cri
+          Format      regex
+          Regex       ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<log>.*)$
+          Time_Key    time
+          Time_Format %Y-%m-%dT%H:%M:%S.%L%z
 
-    extraFiles:
-      all_parsers.conf: |
-        [MULTILINE_PARSER]
-          Name          model-worker-multiline
-          type          regex
-          flush_timeout 1000
-          rule "start_state" "/^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}:/" "cont"
-          rule "cont" "/^(?!\[\d{4}-\d{2}-\d{2})/" "cont"
-
-        [PARSER]
+      [PARSER]
           Name   app_log_parser
           Format regex
           Regex  ^\[(?<tag>[^\]]+)\]\s(?<message>.*)$
-        
-        [PARSER]
+
+      [PARSER]
           Name   model-worker-parser
           Format regex
           Regex  ^\[(?<time>[^\]]+): (?<level>\w+)/(?<processName>[^\]]+)\] (?<message>.*)$
 
-        [PARSER]
+      [PARSER]
           Name   model-worker-extra-parser
           Format regex
           Regex  .*task_id:\s(?<task_id>[0-9a-f\-]+).*succeeded in (?<latency_s>[0-9\.]+)s.*
-    
 
     service: |
       [SERVICE]
-        Daemon      Off
-        Log_Level   info
-        HTTP_Server On
-        HTTP_Listen 0.0.0.0
-        HTTP_Port   2020
-        Parsers_File /fluent-bit/etc/conf/all_parsers.conf
-        Multiline_Parsers_File /fluent-bit/etc/conf/all_parsers.conf
+          Daemon      Off
+          Log_Level   info
+          HTTP_Server On
+          HTTP_Listen 0.0.0.0
+          HTTP_Port   2020
+          Parsers_File custom_parsers.conf
 
     inputs: |
       [INPUT]
           Name              tail
-          Tag               kube.worker*
-          Path              /var/log/containers/model-worker-*.log
-          multiline.parser  model-worker-multiline
-          Mem_Buf_Limit     5MB
-          Skip_Long_Lines   On
-
-      [INPUT]
-          Name              tail
           Tag               kube.*
           Path              /var/log/containers/*.log
-          Exclude_Path      /var/log/containers/model-worker-*.log
+          multiline.parser  cri
           Mem_Buf_Limit     5MB
           Skip_Long_Lines   On
 
     filters: |
       [FILTER]
-        Name          kubernetes
-        Match         kube.*
-        Merge_Log     On
-        Keep_Log      Off
-        K8S-Logging.Parser On
-        K8S-Logging.Exclude Off
+          Name          kubernetes
+          Match         kube.*
+          Merge_Log     On
+          Keep_Log      Off
+          K8S-Logging.Parser On
+          K8S-Logging.Exclude Off
 
       [FILTER]
-        Name           rewrite_tag
-        Match          kube.*
-        Rule       $kubernetes['container_name'] ^model-worker$ model-worker.logs false
-        Rule       $kubernetes['container_name'] ^model-api$ app.logs false
-        Emitter_Name  re_emitted
+          Name        rewrite_tag
+          Match       kube.*
+          Rule        $kubernetes['container_name'] ^model-worker$ model-worker.logs false
+          Rule        $kubernetes['container_name'] ^model-api$ app.logs false
+          Emitter_Name re_emitted
 
       [FILTER]
-        Name           parser
-        Match          model-worker.logs
-        Key_Name       log
-        Parser         model-worker-parser
-        Reserve_Data   On
+          Name         parser
+          Match        model-worker.logs
+          Key_Name     log
+          Parser       model-worker-parser
+          Reserve_Data On
 
       [FILTER]
-        Name           parser
-        Match          app.logs
-        Key_Name       logs
-        Parser         app_log_parser
-        Reserve_Data   On
+          Name         parser
+          Match        app.logs
+          Key_Name     log
+          Parser       app_log_parser
+          Reserve_Data On
 
       [FILTER]
           Name         parser
@@ -111,10 +102,9 @@ fluent-bit:
 
     outputs: |
       [OUTPUT]
-        Name        loki
-        Match       *
-        Host        loki-distributor.loki.svc.cluster.local
-        Port        3100
-        labels      job=fluent-bit,namespace=$kubernetes['namespace_name'],pod=$kubernetes['pod_name'],container=$kubernetes['container_name'],level=$level
-        line_format json
-        
+          Name        loki
+          Match       *
+          Host        loki-distributor.loki.svc.cluster.local
+          Port        3100
+          Labels      job=fluent-bit,namespace=$kubernetes['namespace_name'],pod=$kubernetes['pod_name'],container=$kubernetes['container_name'],level=$level
+          line_format json
