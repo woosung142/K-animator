@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: model-worker
-          image: ghcr.io/ajh9789/model-worker:latest
+          image: ghcr.io/woosung142/model-worker:latest
           envFrom:
             - secretRef:
                 name: azure-secret

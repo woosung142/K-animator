@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: model-api
-          image: ghcr.io/ajh9789/model-api:latest
+          image: ghcr.io/woosung142/model-api:latest
           ports:
             - containerPort: 8000
           envFrom:
