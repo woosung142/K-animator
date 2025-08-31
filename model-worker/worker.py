@@ -15,10 +15,6 @@ from openai import AzureOpenAI
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
 import logging
 
-logging.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-logging.warning('!!! WORKER SCRIPT STARTED - Top Level !!!')
-logging.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-
 # 환경변수 로딩,
 load_dotenv()
 AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_API_KEY")
@@ -49,10 +45,6 @@ celery_app = Celery('worker', broker='redis://redis:6379/0', backend='redis://re
 
 @after_setup_logger.connect
 def setup_loggers(logger, *args, **kwargs):
-
-    logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-    logger.warning('!!! CELERY LOGGER CONFIGURED via Signal !!!')
-    logger.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
     formatter = logging.Formatter('[%(asctime)s: %(levelname)s/%(processName)s] %(message)s')
     handler = logging.StreamHandler()
@@ -130,10 +122,6 @@ def get_wikipedia_main_image(tag):
 @celery_app.task(name="generate_image", bind=True)
 def generate_image(self, category: str, layer: str, tag: str, caption_input: str | None = None, image_url: str | None = None) -> dict:
     try:
-
-        logging.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        logging.warning('!!! GENERATE_IMAGE TASK STARTED !!!')
-        logging.warning('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
         
         task_id = self.request.id
         logging.info(f"[TASK] generate_image 시작 - task_id: {task_id}")
