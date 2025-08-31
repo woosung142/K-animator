@@ -6,6 +6,7 @@ import os
 import logging
 
 app = FastAPI()
+PrometheusInstrumentator().instrument(app).expose(app)
 
 # CORS 허용.
 app.add_middleware(
