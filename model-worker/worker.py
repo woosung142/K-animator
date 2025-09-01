@@ -15,7 +15,7 @@ from openai import AzureOpenAI
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
 import logging
 
-# 환경변수 로딩
+# 환경변수 로딩.
 load_dotenv()
 AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
