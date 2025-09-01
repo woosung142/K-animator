@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: k-animator-appset-test # 이름 변경
-  namespace: argcd
+  namespace: argocd
 spec:
   # 'feature/*'를 찾는 두 번째 generator를 완전히 제거하여 단순화
   generators:
