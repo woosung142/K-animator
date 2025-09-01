@@ -27,7 +27,7 @@ jobs:
 
   build-push:
     needs: changes
-    # if: ${{ needs.changes.outputs.service_changes != '[]' }}
+    if: ${{ needs.changes.outputs.service_changes != '[]' }}
     runs-on: ubuntu-latest
 
     strategy:
