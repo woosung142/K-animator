@@ -2,12 +2,10 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from celery import Celery
 from fastapi.middleware.cors import CORSMiddleware
-from prometheus_fastapi_instrumentator import PrometheusInstrumentator
 import os
 import logging
 
 app = FastAPI()
-PrometheusInstrumentator().instrument(app).expose(app)
 
 # CORS 허용.
 app.add_middleware(

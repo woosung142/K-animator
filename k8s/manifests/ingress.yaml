@@ -13,6 +13,7 @@ spec:
   tls:
     - hosts:
         - www.prtest.shop  # 자신의 도메인으로 변경
+        - dev.prtest.shop
       secretName: www-prtest-shop-tls  # 인증서를 저장할 Secret 이름
   rules:
     - host: www.prtest.shop  # 자신의 도메인으로 변경
@@ -30,5 +31,22 @@ spec:
             backend:
               service:
                 name: web
+                port:
+                  number: 80
+    - host: dev.prtest.shop
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: model-api # feature/* 네임스페이스의 model-api 서비스
+                port:
+                  number: 8000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web       # feature/* 네임스페이스의 web 서비스
                 port:
                   number: 80
