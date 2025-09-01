@@ -20,7 +20,7 @@ spec:
       source:
         repoURL: 'https://github.com/woosung142/K-animator'
         path: k8s/manifests
-        targetRevision: '{{branch}}'
+        targetRevision: {{branch}}
       destination:
         server: 'https://kubernetes.default.svc'
         # 복잡한 조건문 로직을 제거하고, 'default' 네임스페이스로 고정
