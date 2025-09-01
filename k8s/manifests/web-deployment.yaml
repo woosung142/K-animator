@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: web
-          image: ghcr.io/woosung142/web:latest
+          image: ghcr.io/woosung142/k-animator/web:main
           ports:
             - containerPort: 80
           envFrom:
