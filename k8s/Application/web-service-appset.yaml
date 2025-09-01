@@ -1,18 +1,36 @@
 apiVersion: argoproj.io/v1alpha1
-kind: Application
+kind: ApplicationSet
 metadata:
-  name: web-services
+  name: k-animator-appset
   namespace: argocd
 spec:
-  project: default
-  source:
-    repoURL: 'https://github.com/woosung142/K-animator'
-    targetRevision: main    
-    path: k8s/manifests                               
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: default
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+  generators:
+  - git:
+      repoURL: https://github.com/woosung142/K-animator.git
+      revision: HEAD
+      branches:
+      - main
+  - git:
+      repoURL: https://github.com/woosung142/K-animator.git
+      revision: HEAD
+      branches:
+      - 'feature/*'
+      
+  template:
+    metadata:
+      name: 'k-animator-{{branchNormalized}}'
+    spec:
+      project: default
+      source:
+        repoURL: 'https://github.com/woosung142/K-animator.git'
+        path: k8s/manifests
+        targetRevision: '{{branch}}'
+      destination:
+        server: 'https://kubernetes.default.svc'
+        namespace: '{{#contains "feature" branch}}k-animator-{{branchNormalized}}{{/contains}}{{^contains "feature" branch}}default{{/contains}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
