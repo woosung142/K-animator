@@ -1,31 +1,18 @@
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
+piVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
-  name: k-animator-appset-test # 이름 변경
+  name: web-services
   namespace: argocd
 spec:
-  # 'feature/*'를 찾는 두 번째 generator를 완전히 제거하여 단순화
-  generators:
-  - git:
-      repoURL: https://github.com/woosung142/K-animator
-      revision: HEAD
-      branches:
-      - main # 오직 'main' 브랜치 하나만 찾도록 설정
-      
-  template:
-    metadata:
-      name: 'k-animator-{{branch}}' # 이름 생성 규칙 단순화
-    spec:
-      project: default
-      source:
-        repoURL: 'https://github.com/woosung142/K-animator'
-        path: k8s/manifests
-        targetRevision: {{branch}}
-      destination:
-        server: 'https://kubernetes.default.svc'
-        # 복잡한 조건문 로직을 제거하고, 'default' 네임스페이스로 고정
-        namespace: 'default'
-      syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
+  project: default
+  source:
+    repoURL: 'https://github.com/woosung142/K-animator'
+    targetRevision: main    
+    path: k8s/manifests                               
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
