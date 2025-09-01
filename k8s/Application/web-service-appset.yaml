@@ -6,12 +6,12 @@ metadata:
 spec:
   generators:
   - git:
-      repoURL: https://github.com/woosung142/K-animator.git
+      repoURL: https://github.com/woosung142/K-animator
       revision: HEAD
       branches:
       - main
   - git:
-      repoURL: https://github.com/woosung142/K-animator.git
+      repoURL: https://github.com/woosung142/K-animator
       revision: HEAD
       branches:
       - 'feature/*'
@@ -22,7 +22,7 @@ spec:
     spec:
       project: default
       source:
-        repoURL: 'https://github.com/woosung142/K-animator.git'
+        repoURL: 'https://github.com/woosung142/K-animator'
         path: k8s/manifests
         targetRevision: '{{branch}}'
       destination:
