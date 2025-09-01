@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: model-worker
-          image: ghcr.io/woosung142/K-animator/model-worker:main
+          image: ghcr.io/woosung142/k-animator/model-worker:main
           envFrom:
             - secretRef:
                 name: azure-secret
