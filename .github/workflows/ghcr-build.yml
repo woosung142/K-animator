@@ -73,7 +73,13 @@ jobs:
       - name: Update Kustomize Manifest
         if: github.ref_name == 'main' || github.ref_name == 'develop'
         run: |
-          IMAGE_TAG=${{ github.ref_name }}
+          IMAGE_TAG=${{ steps.meta.outputs.version }}
+
+          if [[ -z "${IMAGE_TAG}" ]]; then
+            echo "Error: IMAGE_TAG is empty. Aborting."
+            exit 1
+          fi
+
           if [[ "${{ github.ref_name }}" == "main" ]]; then
             KUSTOMIZE_PATH="k8s/manifests/overlays/production/kustomization.yaml"
           else
@@ -89,6 +95,9 @@ jobs:
 
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          git pull --rebase
+          
           git add ${KUSTOMIZE_PATH}
           git commit -m "ci: Update ${{ matrix.service }} image to tag ${IMAGE_TAG}" || echo "No changes to commit"
           git push
