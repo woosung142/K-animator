@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: default
+  name: web-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Cert-Manager를 사용해 인증서를 발급받도록 지정
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - dev.prtest.shop  # 자신의 도메인으로 변경
+      secretName: dev-prtest-shop-tls  # 인증서를 저장할 Secret 이름
+  rules:
+    - host: dev.prtest.shop  # 자신의 도메인으로 변경
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: model-api
+                port:
+                  number: 8000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 80
