@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  namespace: default
+  namespace: development
   name: web-ingress
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Cert-Manager를 사용해 인증서를 발급받도록 지정
