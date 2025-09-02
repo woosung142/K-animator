@@ -88,16 +88,15 @@ jobs:
 
           echo "Updating ${KUSTOMIZE_PATH} for ${{ matrix.service }} with tag ${IMAGE_TAG}"
 
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod a+x /usr/local/bin/yq
-
-          yq e '(.images[] | select(.name | test("ghcr.io/.*/${{ matrix.service }}")) | .newTag) = strenv(IMAGE_TAG)' -i ${KUSTOMIZE_PATH}
-
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
           git pull --rebase
           
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod a+x /usr/local/bin/yq
+          yq e '(.images[] | select(.name | test("ghcr.io/.*/${{ matrix.service }}")) | .newTag) = strenv(IMAGE_TAG)' -i ${KUSTOMIZE_PATH}
+
           git add ${KUSTOMIZE_PATH}
           git commit -m "ci: Update ${{ matrix.service }} image to tag ${IMAGE_TAG}" || echo "No changes to commit"
           git push
