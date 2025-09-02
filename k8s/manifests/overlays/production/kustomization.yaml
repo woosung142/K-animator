@@ -9,10 +9,10 @@ resources:
 
 images:
   - name: ghcr.io/woosung142/k-animator/web:main
-    newTag: v1.0.0 
+    newTag: main 
 
   - name: ghcr.io/woosung142/k-animator/model-api:main
-    newTag: v1.0.0
+    newTag: main
 
   - name: ghcr.io/woosung142/k-animator/model-worker:main
-    newTag: v1.0.0
+    newTag: main
