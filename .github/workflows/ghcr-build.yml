@@ -73,7 +73,7 @@ jobs:
       - name: Update Kustomize Manifest
         if: github.ref_name == 'main' || github.ref_name == 'develop'
         run: |
-          IMAGE_TAG=${{ steps.meta.outputs.version }}
+          IMAGE_TAG=${{ github.ref_name }}
 
           if [[ -z "${IMAGE_TAG}" ]]; then
             echo "Error: IMAGE_TAG is empty. Aborting."
