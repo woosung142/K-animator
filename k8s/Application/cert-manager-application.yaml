@@ -1,0 +1,18 @@
+apiVersion: argroj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager-configs
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/woosung142/K-animator'
+    targetRevision: main
+    path: k8s/infrastructure/cert-manager
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: cert-manager 
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
