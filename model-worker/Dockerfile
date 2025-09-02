@@ -1,4 +1,4 @@
-# Python 3.10 슬림 베이스 이미지.
+# Python 3.10 슬림 베이스 이미지
 FROM python:3.10-slim AS base
 
 # 필수 시스템 패키지 설치 (ImageMagick 포함)
