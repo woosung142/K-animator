@@ -10,4 +10,4 @@ images:
   - name: ghcr.io/woosung142/k-animator/model-api
     newTag: ""
   - name: ghcr.io/woosung142/k-animator/model-worker
-    newTag: develop
+    newTag: ""
