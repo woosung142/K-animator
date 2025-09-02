@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: web-services
+  name: web-services-prod
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: 'https://github.com/woosung142/K-animator'
     targetRevision: main    
-    path: k8s/manifests                               
+    path: k8s/manifests/overlays/production                          
   destination:
     server: https://kubernetes.default.svc
     namespace: default
