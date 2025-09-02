@@ -15,7 +15,7 @@ spec:
     path: k8s/Application  # YAML들 있는 폴더
   destination:
     server: https://kubernetes.default.svc
-    namespace: default
+    namespace: argocd
   syncPolicy:
     automated:
       prune: true
