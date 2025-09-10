@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware  # CORS 미들웨어
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles 
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
@@ -15,8 +16,15 @@ from datetime import datetime, timedelta
 
 app = FastAPI()
 
-# 정적 파일 서빙 설정 (여기가 중요!).
-app.mount("/images", StaticFiles(directory=Path(__file__).parent / "images"), name="images")
+origins = ["https://dev.prtest.shop", "https://www.prtest.shop"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 
 # Blob Storage 환경변수
 AZURE_STORAGE_ACCOUNT_NAME = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
@@ -55,9 +63,9 @@ blob_service_client = BlobServiceClient(
     credential=AZURE_STORAGE_ACCOUNT_KEY
 )
 
-@app.get("/")
-async def root():
-    return FileResponse(Path(__file__).parent / "index.html")
+#@app.get("/")
+#async def root():
+#    return FileResponse(Path(__file__).parent / "index.html")
 
 # 이미지 업로드 및 리사이징 API
 @app.post("/upload-image")
