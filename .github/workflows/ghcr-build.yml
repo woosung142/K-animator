@@ -17,8 +17,10 @@ jobs:
         id: filter
         with:
           filters: |
-            web:
-              - 'web/**'
+            frontend:
+              - 'web/frontend/**'
+            backend:
+              - 'web/backend/**'
             model-api:
               - 'model-api/**'
             model-worker:
@@ -58,12 +60,21 @@ jobs:
             type=raw,value=develop,enable=${{ github.ref_name == 'develop' }}
             type=sha,format=short
 
+      - name: Set Docker build context
+        id: set-context
+        run: |
+          if [[ "${{ matrix.service }}" == "frontend" || "${{ matrix.service }}" == "backend" ]]; then
+            echo "path=web/${{ matrix.service }}" >> $GITHUB_OUTPUT
+          else
+            echo "path=${{ matrix.service }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and Push image to GHCR
         id: build
         uses: docker/build-push-action@v6.5.0
         with:
-          context: ./${{ matrix.service }}
-          file: ./${{ matrix.service }}/Dockerfile
+          context: ./${{ steps.set-context.outputs.path }}
+          file: ./${{ steps.set-context.outputs.path }}/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -91,11 +102,12 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
-          git pull --rebase
+          git fetch origin ${{ github.ref_name }}
+          git reset --hard origin/${{ github.ref_name }}
           
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod a+x /usr/local/bin/yq
-          yq e '(.images[] | select(.name | test("ghcr.io/.*/${{ matrix.service }}")) | .newTag) = strenv(IMAGE_TAG)' -i ${KUSTOMIZE_PATH}
+          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod a+x /usr/local/bin/yq
+          yq e '(.images[] | select(.name | test("ghcr.io/${{ github.repository_owner }}/k-animator/${{ matrix.service }}")) | .newTag) = strenv(IMAGE_TAG)' -i ${KUSTOMIZE_PATH}
 
           git add ${KUSTOMIZE_PATH}
           git commit -m "ci: Update ${{ matrix.service }} image to tag ${IMAGE_TAG}" || echo "No changes to commit"

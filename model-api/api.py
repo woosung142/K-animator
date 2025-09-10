@@ -8,11 +8,12 @@ import logging
 app = FastAPI()
 
 # CORS 허용.
+origins = ["https://dev.prtest.shop", "https://www.prtest.shop"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -45,10 +46,10 @@ async def generate_prompt_endpoint(request: PromptRequest):
     task = celery_app.send_task(
         "generate_image",
         args=[
-            request.category,
+            request.category,   
             request.layer,
-            request.tag,
-            request.caption_input,
+            request.tag,    #키워드
+            request.caption_input,  #장면 설명
             request.image_url
         ]
     )
