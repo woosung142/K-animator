@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web
+  name: backend-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: web
+      app: backend
   template:
     metadata:
       labels:
-        app: web
+        app: backend
     spec:
       containers:
-        - name: web
-          image: ghcr.io/woosung142/k-animator/web:main
+        - name: backend
+          image: ghcr.io/woosung142/k-animator/backend:main
           ports:
-            - containerPort: 80
+            - containerPort: 8000
           envFrom:
             - secretRef:
                 name: azure-secret
