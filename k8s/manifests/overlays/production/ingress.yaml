@@ -18,13 +18,30 @@ spec:
     - host: www.prtest.shop  # 자신의 도메인으로 변경
       http:
         paths:
-          - path: /api
+        # api.py로 보냄
+          - path: /api/
             pathType: Prefix
             backend:
               service:
                 name: model-api
                 port:
-                  number: 8000
+                  number: 80
+        # 2개는 web.py로 보냄
+          - path: /upload-image
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-service
+                port:
+                  number: 80
+          - path: /get-speech-token
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-service
+                port:
+                  number: 80
+        # 나머지는 frontend로 보냄
           - path: /
             pathType: Prefix
             backend:

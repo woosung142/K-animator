@@ -8,11 +8,11 @@ resources:
   - ingress.yaml
 
 images:
-  - name: ghcr.io/woosung142/k-animator/web:main
-    newTag: main 
-
+  - name: ghcr.io/woosung142/k-animator/frontend:main
+    newTag: main
+  - name: ghcr.io/woosung142/k-animator/backend:main
+    newTag: main
   - name: ghcr.io/woosung142/k-animator/model-api:main
     newTag: main
-
   - name: ghcr.io/woosung142/k-animator/model-worker:main
     newTag: main
