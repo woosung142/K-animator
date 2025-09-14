@@ -1,7 +1,8 @@
 <p align="left">
   <img src="https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white" />
   <img src="https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white" />
-  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black" />
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=white" />
+  <img src="https://img.shields.io/badge/NGINX-009639?style=flat&logo=NGINX&logoColor=white" />
   <img src="https://img.shields.io/badge/Microsoft%20Speech%20SDK-0078D7?style=flat&logo=microsoft&logoColor=white" />
   <img src="https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white" />
   <img src="https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white" />
@@ -18,6 +19,9 @@
   <img src="https://img.shields.io/badge/Argo%20CD-FB8B00?style=flat&logo=argo&logoColor=white" />
   <img src="https://img.shields.io/badge/Prometheus-E6522C?style=flat&logo=prometheus&logoColor=white" />
   <img src="https://img.shields.io/badge/Grafana-F46800?style=flat&logo=grafana&logoColor=white" />
+  <img src="https://img.shields.io/badge/Loki-F46800?style=flat&logo=grafana&logoColor=white" />
+  <img src="https://img.shields.io/badge/Fluent-bit-49BDA5?style=flat&logo=Fluent-bit&logoColor=white" />
+  <img src="https://img.shields.io/badge/Terraform-844FBA?style=flat&logo=Terraform&logoColor=white" />
 </p>
 
 ## 한국풍 웹툰 배경 이미지 생성기
@@ -53,10 +57,11 @@ https://www.prtest.shop/
 - **ImageMagick (`convert`)**: 생성 이미지 PNG → PSD 변환
 
 ### 4. 인프라 & 클라우드 환경
+- **Terraform**: IaC(Infrastructure as Code)를 통해 Azure 리소스를 코드로 관리하고 프로비저닝
 - **Docker**: 컨테이너 기반 서비스 구성
 - **Kubernetes (AKS)**: Azure Kubernetes Service 기반 클러스터 운영
 - **Ingress-NGINX**: 외부 요청을 클러스터 내부 서비스로 라우팅
-- **Azure Blob Storage**: 클라우드 스토리지로 이미지 저장소 구성
+- **Azure Blob Storage**: 클라우드 스토리지로 이미지 저장소 구성 및 로그 수집 저장소
 - **Azure OpenAI**: AI 모델 API 호스팅 플랫폼 (GPT-4o, DALL·E 3 포함)
 
 ### 5. CI/CD & 배포 자동화
@@ -66,6 +71,8 @@ https://www.prtest.shop/
 ### 6. 모니터링 & 로깅
 - **Prometheus**: 애플리케이션 및 노드 메트릭 수집
 - **Grafana**: 실시간 리소스 시각화
+- **Fluent-bit**: 경량 로그 수집기로, 각 노드에서 발생하는 로그를 수집하여 Loki로 전송
+- **Loki**: 수집된 로그를 저장하고 Grafana에서 조회할 수 있도록 하는 로그 집계 시스템
 
 ## 전체 아키텍쳐
 
@@ -80,21 +87,23 @@ https://www.prtest.shop/
 <img src="image-samples/플로우차트/Flowchart텍스트없는버전.png" alt="실제 UI" style="width: 75%;" />
 
 ```
-[ 1. 사용자의 요청 ]
+[ 1. 사용자의 요청 (브라우저)]
         ↓
-[ 2. 웹 서버 (web - 마이크 입력, 이미지 업로드 → Azure Blob Storage 저장) ]
+[ 2. 프론트엔드 서버 (frontend - Nginx가 정적 파일 서빙) ]
         ↓
-[ 3. 모델 API 서버 (model-api - 입력 정제 및 Celery 작업 등록) ]
+[ 3. 백엔드 서버 (backend - 이미지 업로드 처리, STT 토큰 발급) ]
         ↓
-[ 4. 작업 큐 등록 (Redis - 작업 상태 및 결과 저장) ]
+[ 4. 모델 API 서버 (model-api - 입력 정제 및 Celery 작업 등록) ]
         ↓
-[ 5. Celery 워커 (model-worker - 프롬프트 생성 + RAG 파이프라인 기반 이미지 생성) ]
+[ 5. 작업 큐 등록 (Redis - 작업 상태 및 결과 저장) ]
         ↓
-[ 6. 결과 저장 (Azure Blob Storage 저장 + Redis에 상태 업데이트) ]
+[ 6. Celery 워커 (model-worker - 프롬프트 생성 + RAG 파이프라인 기반 이미지 생성) ]
         ↓
-[ 7. 모델 API 서버 (model-api - Redis에서 결과 확인) ]
+[ 7. 결과 저장 (Azure Blob Storage 저장 + Redis에 상태 업데이트) ]
         ↓
-[ 8. 사용자 웹사이트 응답 (index.html에서 이미지 및 PSD 표시) ]
+[ 8. 모델 API 서버 (model-api - Redis에서 결과 확인) ]
+        ↓
+[ 9. 사용자 웹사이트 응답 (index.html에서 이미지 및 PSD 표시) ]
 ```
 ---
 
@@ -102,14 +111,15 @@ https://www.prtest.shop/
 
 ```
 [사용자 (User)]
-   ├─ index.html
+   ├─ 웹 브라우저 (index.html, style.css, script.js)
    │    ├─ 카테고리, 레이어, 키워드, 장면 설명 입력
-   │    ├─ 마이크 사용 (STT)
-   │    ├─ 이미지 첨부 or 붙여넣기
-   │    └─ 이미지 생성 요청 
+   │    ├─ 마이크 사용 (STT) 및 이미지 첨부
+   │    └─ 백엔드에 이미지 생성 요청 
    ▼
-[웹 서버: web (web.py + index.html)]
-   ├─ /              → index.html 정적 파일 응답
+[프론트엔드 서버: frontend (Nginx)]
+   ├─ / → index.html, css, js 정적 파일 응답
+   ▼
+[백엔드 서버: backend (web.py)]
    ├─ /upload-image  → 이미지 업로드 + Azure Blob 저장 + SAS URL 발급
    ├─ /get-speech-token → Azure STT 토큰 발급
    ▼
@@ -145,16 +155,17 @@ https://www.prtest.shop/
 
 | POD 이름          | 설명            | 주요 기능                    | 관련 파일                  |
 | -------------- | ------------- | ------------------------ | ---------------------- |
-| `web`          | 사용자와의 UI 상호작용 | 입력, 이미지 첨부, STT, 결과 표시   | `index.html`, `web.py` |
+| `web`          | 사용자 인터페이스(UI) | 정적 HTML/CSS/JS 파일 서빙, 사용자 입력 처리   | `index.html`, `style.css`, `script.js` |
+| `web`          | 웹 요청 처리 | 이미지 업로드, STT 토큰 발급 등 프론트엔드의 요청을 받아 처리   | `web.py` |
 | `model-api`    | API 중계        | Celery 작업 요청 및 결과 확인     | `api.py`               |
 | `model-worker` | AI 비동기 처리     | 프롬프트 생성, 이미지 생성, Blob 저장 | `worker.py`            |
 | `redis`        | 작업 상태 저장      | Celery 큐 및 결과 상태 관리      | (환경 구성 요소)             |
 
 ---
 
-## 웹 프론트엔드 (`web/index.html`) 설명
+## 웹 프론트엔드 (`web/frontend/`) 설명
 
-### POD 이름: `web`
+### POD 이름: `frontend`
 
 ### 주요 역할:
 
@@ -205,7 +216,7 @@ https://www.prtest.shop/
 
 ---
 
-## 웹 백엔드 (`web/web.py`) 설명
+## 웹 백엔드 (`web/backend/`) 설명
 
 ### POD 이름: `web` (웹 프론트엔드와 같은 POD에 포함)
 
@@ -238,13 +249,6 @@ https://www.prtest.shop/
 * 클라이언트에서 받은 토큰으로 STT 기능 활성화 (🎤 버튼)
 
 → 사용처: `index.html`의 STT 초기화 시 호출
-
----
-
-#### 3. `/`: 루트 요청 → 정적 페이지 반환
-
-* `/` 요청이 들어오면 `index.html`을 바로 응답
-* 개발 또는 퍼블릭 서비스 시에도 바로 접속 가능하게 만듦
 
 ---
 
