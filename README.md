@@ -218,7 +218,7 @@ https://www.prtest.shop/
 
 ## 웹 백엔드 (`web/backend/`) 설명
 
-### POD 이름: `web` (웹 프론트엔드와 같은 POD에 포함)
+### POD 이름: `backend`
 
 ### 주요 역할:
 
