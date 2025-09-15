@@ -76,7 +76,7 @@ loki:
     create: true
     name: loki
     annotations:
-      "azure.workload.identity/client-id": "c54df909-f598-4733-9238-b641659e20a8"
+      "azure.workload.identity/client-id": "117a8834-e621-437e-ba70-faa9589cac8e"
 
 
     
