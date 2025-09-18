@@ -42,5 +42,4 @@ variable "storage_account_name" {
 variable "storage_container_name" {
   description = "Loki 로그를 저장할 스토리지 컨테이너의 이름"
   type        = string
-  default     = "loki-data"
 }
