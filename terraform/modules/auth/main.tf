@@ -11,6 +11,10 @@ resource "azurerm_key_vault_secret" "jwt_secret" {
   name                = "jwt-secret-key"
   key_vault_id        = var.key_vault_id
   value               = "placeholder-for-jwt-secret"    # 실제 시크릿 값은 배포 후 수동으로 새 버전 추가
+
+  lifecycle {
+    ignore_changes = [value,]  # 시크릿 값 변경 무시
+  }
 }
 
 resource "azurerm_role_assignment" "auth_identity_kv_reader" {

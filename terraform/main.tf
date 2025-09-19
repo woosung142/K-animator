@@ -39,6 +39,19 @@ resource "azurerm_kubernetes_cluster" "aks_cluster" {
   }
 }
 # ----------------------------------------------------
+# PostgreSQL 관련 리소스 생성
+# ----------------------------------------------------
+resource "azurerm_private_dns_zone" "pg_dns_zone" {
+  name = "privatelink.postgres.database.azure.com"
+  resource_group_name = azurerm_kubernetes_cluster.aks_cluster.resource_group_name
+}
+resource "azurerm_private_dns_zone_virtual_network_link" "pg_dns_zone_link" {
+  name                  = "pg-dns-zone-link"
+  resource_group_name   = azurerm_kubernetes_cluster.aks_cluster.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.pg_dns_zone.name
+  virtual_network_id    = data.azurerm_virtual_network.existing_vnet.id
+}
+# ----------------------------------------------------
 # Loki module
 # ----------------------------------------------------
 module "loki_stack" {
@@ -68,6 +81,11 @@ module "auth_stack_prod" {
   k8s_namespace            = "default"
   k8s_service_account_name = "auth-sa-prod"
 
+  # 운영용 database 관련 변수 값
+  private_dns_zone_id = azurerm_private_dns_zone.pg_dns_zone.id
+  subnet_id      = azurerm_subnet.db_subnet.id
+  aks_cluster_name         = azurerm_kubernetes_cluster.aks_cluster.name
+
   depends_on = [
     azurerm_role_assignment.terraform_user_kv_prod_admin  #Key Vault Secrets Officer 역할 할당이 완료된 후에 Key Vault Secrets User 역할 할당이 진행되도록 설정
   ]
@@ -87,6 +105,11 @@ module "auth_stack" {
   # 개발용 key vault 시크릿
   k8s_namespace            = "development"
   k8s_service_account_name = "auth-sa-dev"
+
+  # 개발용 database 관련 변수 값
+  private_dns_zone_id = azurerm_private_dns_zone.pg_dns_zone.id
+  subnet_id      = azurerm_subnet.db_subnet.id
+  aks_cluster_name         = azurerm_kubernetes_cluster.aks_cluster.name
 
   depends_on = [
     azurerm_role_assignment.terraform_user_kv_dev_admin   #Key Vault Secrets Officer 역할 할당이 완료된 후에 Key Vault Secrets User 역할 할당이 진행되도록 설정

@@ -26,3 +26,18 @@ variable "k8s_service_account_name" {
   description = "auth 파드가 사용할 쿠버네티스 서비스 어카운트 이름"
   type        = string
 }
+# ----------------------------------------------------
+# PostgreSQL 변수
+# ----------------------------------------------------
+variable "subnet_id" {
+  description = "PostgreSQL 서버를 배치할 위임된 서브넷의 ID"
+  type        = string
+}
+variable "aks_cluster_name" {
+  description = "AKS 클러스터 이름"
+  type        = string
+}
+variable "private_dns_zone_id" {
+  description = "PostgreSQL 서버에 연결할 프라이빗 DNS 존의 ID"
+  type        = string
+}
