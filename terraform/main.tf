@@ -39,7 +39,7 @@ resource "azurerm_kubernetes_cluster" "aks_cluster" {
   }
 }
 # ----------------------------------------------------
-# PostgreSQL 관련 리소스 생성
+# PostgreSQL DNS Vnet Link
 # ----------------------------------------------------
 resource "azurerm_private_dns_zone" "pg_dns_zone" {
   name = "privatelink.postgres.database.azure.com"
@@ -50,6 +50,20 @@ resource "azurerm_private_dns_zone_virtual_network_link" "pg_dns_zone_link" {
   resource_group_name   = azurerm_kubernetes_cluster.aks_cluster.resource_group_name
   private_dns_zone_name = azurerm_private_dns_zone.pg_dns_zone.name
   virtual_network_id    = data.azurerm_virtual_network.existing_vnet.id
+}
+# ----------------------------------------------------
+# Redis DNS Vnet Link
+# ----------------------------------------------------
+resource "azurerm_private_dns_zone" "redis_dns_zone" {
+  name = "privatelink.redis.cache.windows.net"
+  resource_group_name = azurerm_kubernetes_cluster.aks_cluster.resource_group_name
+}
+resource "azurerm_private_dns_zone_virtual_network_link" "resis_dns_zone_link" {
+  name                  = "redis-dns-zone-link"
+  resource_group_name   = azurerm_kubernetes_cluster.aks_cluster.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.redis_dns_zone.name
+  virtual_network_id    = data.azurerm_virtual_network.existing_vnet.id
+  
 }
 # ----------------------------------------------------
 # Loki module
@@ -86,6 +100,10 @@ module "auth_stack_prod" {
   subnet_id      = azurerm_subnet.db_subnet.id
   aks_cluster_name         = azurerm_kubernetes_cluster.aks_cluster.name
 
+  # 운영용 Redis 관련 변수 값
+  pe_subnet_id = azurerm_subnet.pe_subnet.id
+  redis_private_dns_zone_id = azurerm_private_dns_zone.redis_dns_zone.id
+
   depends_on = [
     azurerm_role_assignment.terraform_user_kv_prod_admin  #Key Vault Secrets Officer 역할 할당이 완료된 후에 Key Vault Secrets User 역할 할당이 진행되도록 설정
   ]
@@ -110,6 +128,10 @@ module "auth_stack" {
   private_dns_zone_id = azurerm_private_dns_zone.pg_dns_zone.id
   subnet_id      = azurerm_subnet.db_subnet.id
   aks_cluster_name         = azurerm_kubernetes_cluster.aks_cluster.name
+
+  # 개발용 Redis 관련 변수 값
+  pe_subnet_id = azurerm_subnet.pe_subnet.id
+  redis_private_dns_zone_id = azurerm_private_dns_zone.redis_dns_zone.id
 
   depends_on = [
     azurerm_role_assignment.terraform_user_kv_dev_admin   #Key Vault Secrets Officer 역할 할당이 완료된 후에 Key Vault Secrets User 역할 할당이 진행되도록 설정

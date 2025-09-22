@@ -27,3 +27,14 @@ resource "azurerm_subnet" "db_subnet" {
     }  
   }
 }
+# ----------------------------------------------------
+# Redis 서브넷 (Azure Cache for Redis 서브넷)
+# ----------------------------------------------------
+resource "azurerm_subnet" "pe_subnet" {
+  name = "pe-subnet"
+  resource_group_name = data.azurerm_virtual_network.existing_vnet.resource_group_name
+  virtual_network_name = data.azurerm_virtual_network.existing_vnet.name
+  address_prefixes = ["10.12.3.0/24"]
+
+  private_endpoint_network_policies = "Disabled"
+}

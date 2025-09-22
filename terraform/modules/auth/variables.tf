@@ -41,3 +41,14 @@ variable "private_dns_zone_id" {
   description = "PostgreSQL 서버에 연결할 프라이빗 DNS 존의 ID"
   type        = string
 }
+# ----------------------------------------------------
+# Redis 변수
+# ----------------------------------------------------
+variable "redis_private_dns_zone_id" {
+  description = "Azure Cache for Redis에 연결할 프라이빗 DNS 존의 ID"
+  type        = string
+}
+variable "pe_subnet_id" {
+  description = "Azure Cache for Redis를 배치할 프라이빗 엔드포인트 서브넷의 ID"
+  type        = string
+}
