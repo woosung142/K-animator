@@ -8,6 +8,7 @@ resource "azurerm_redis_cache" "auth_redis" {
     minimum_tls_version = "1.2"
     non_ssl_port_enabled = false   # 암호화되지 않은 평문 통신을 허용하지 않겠다는 거임
     
+    public_network_access_enabled = false  # 퍼블릭 액세스 비활성화
     redis_configuration{}
 }
 

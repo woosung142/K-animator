@@ -29,6 +29,10 @@ resource "azurerm_postgresql_flexible_server" "auth_db" {
   sku_name = "B_Standard_B1ms"  #버스터 SKU -> 추후 변경 고려 (범용 SKU)
   storage_mb = 32768  #32GB
   backup_retention_days = 7
+
+  lifecycle {
+    ignore_changes = [ zone, ]  #존 변경 무시
+  }
 }
 # ----------------------------------------------------
 # 실제 데이터베이스 생성
