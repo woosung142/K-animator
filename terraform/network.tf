@@ -38,3 +38,38 @@ resource "azurerm_subnet" "pe_subnet" {
 
   private_endpoint_network_policies = "Disabled"
 }
+# ----------------------------------------------------
+# 기존 vnet 정보 조회 (user16)
+# ----------------------------------------------------
+data "azurerm_virtual_network" "vm_vnet" {
+  name = var.vm_vnet_name
+  resource_group_name = var.vm_vnet_resource_group_name
+}
+# ----------------------------------------------------
+# vnet peering (DB/Redis <-> vm)
+# ----------------------------------------------------
+# aks -> vm 연결
+resource "azurerm_virtual_network_peering" "aks_to_vm" {
+  name = "peering-to-${data.azurerm_virtual_network.vm_vnet.name}"
+  resource_group_name = data.azurerm_virtual_network.existing_vnet.resource_group_name
+  virtual_network_name = data.azurerm_virtual_network.existing_vnet.name
+  remote_virtual_network_id = data.azurerm_virtual_network.vm_vnet.id
+
+  allow_virtual_network_access = true
+  allow_forwarded_traffic = true
+  allow_gateway_transit = false
+  use_remote_gateways = false
+}
+
+# vm -> aks 연결
+resource "azurerm_virtual_network_peering" "vm_to_aks" {
+  name = "peering-to-${data.azurerm_virtual_network.existing_vnet.name}"
+  resource_group_name = data.azurerm_virtual_network.vm_vnet.resource_group_name
+  virtual_network_name = data.azurerm_virtual_network.vm_vnet.name
+  remote_virtual_network_id = data.azurerm_virtual_network.existing_vnet.id
+
+  allow_virtual_network_access = true
+  allow_forwarded_traffic = true
+  allow_gateway_transit = false
+  use_remote_gateways = false
+}

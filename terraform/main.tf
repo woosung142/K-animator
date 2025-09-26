@@ -22,6 +22,11 @@ resource "azurerm_kubernetes_cluster" "aks_cluster" {
     max_count     = 3
     vm_size        = "Standard_D2as_v5"
     vnet_subnet_id = data.azurerm_subnet.existing_subnet.id
+
+    # 무중단 서비스
+    upgrade_settings {  #새 노드 1개가 추가되어 총 4개가 된 상태에서 순차적으로 기존 노드를 교체
+      max_surge = "10%"
+    }
   }
 
   identity {

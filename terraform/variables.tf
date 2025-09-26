@@ -43,3 +43,15 @@ variable "storage_container_name" {
   description = "Loki 로그를 저장할 스토리지 컨테이너의 이름"
   type        = string
 }
+# ----------------------------------------------------
+# 개발용 vm peering 변수
+# ----------------------------------------------------
+variable "vm_vnet_resource_group_name" {
+  description = "접속하려는 VM이 있는 VNet의 리소스 그룹 이름"
+  type = string
+}
+
+variable "vm_vnet_name" {
+  description = "접속하려는 vm이 있는 vnet 이름"
+  type = string
+}
