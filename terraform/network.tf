@@ -73,3 +73,29 @@ resource "azurerm_virtual_network_peering" "vm_to_aks" {
   allow_gateway_transit = false
   use_remote_gateways = false
 }
+# ----------------------------------------------------
+# 기존 프라이빗 DNS 존 리소스
+# ----------------------------------------------------
+data "azurerm_private_dns_zone" "postgres_dns_zone" {
+  name = "privatelink.postgres.database.azure.com"
+  resource_group_name = var.private_dns_rg_name
+}
+data "azurerm_private_dns_zone" "redis_dns_zone" {
+  name = "privatelink.redis.cache.windows.net"
+  resource_group_name = var.private_dns_rg_name
+}
+# ----------------------------------------------------
+# 프라이빗 DNS 존 <-> 가상 네트워크 링크 (user16-vnet)
+# ----------------------------------------------------
+resource "azurerm_private_dns_zone_virtual_network_link" "postgres_dns_link" {
+  name = "link-to-${data.azurerm_virtual_network.vm_vnet.name}-postgres"
+  resource_group_name = var.private_dns_rg_name
+  private_dns_zone_name = data.azurerm_private_dns_zone.postgres_dns_zone.name
+  virtual_network_id = data.azurerm_virtual_network.vm_vnet.id
+}
+resource "azurerm_private_dns_zone_virtual_network_link" "redis_dns_link" {
+  name = "link-to-${data.azurerm_virtual_network.vm_vnet.name}-redis"
+  resource_group_name = var.private_dns_rg_name
+  private_dns_zone_name = data.azurerm_private_dns_zone.redis_dns_zone.name
+  virtual_network_id = data.azurerm_virtual_network.vm_vnet.id
+}

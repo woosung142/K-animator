@@ -55,3 +55,11 @@ variable "vm_vnet_name" {
   description = "접속하려는 vm이 있는 vnet 이름"
   type = string
 }
+# ----------------------------------------------------
+# 개발용 vm vnet 프라이빗 DNS 링크 변수
+# ----------------------------------------------------
+variable "private_dns_rg_name" {
+  description = "프라이빗 DNS 존이 있는 리소스 그룹 이름"
+  type = string
+  default = "k-animator"
+}
