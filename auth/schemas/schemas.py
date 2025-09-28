@@ -5,7 +5,7 @@ import re
 class UserBase(BaseModel):      # 공통 정보
     username: str
     email: EmailStr
-    full_name: Optional[str] = None
+    full_name: Optional[str] = None 
 
     @validator('username')
     def validate_usernmae(cls, value):
