@@ -25,6 +25,35 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.refresh(db_user)
     return db_user
 
+# 회원 정보 수정 (이름)
+def update_user(db: Session, user: models.User, user_update: schemas.UserUpdate):
+    update_data = user_update.model_dump(exclude_unset=True)
+
+    for key, value in update_data.items():
+        setattr(user, key, value)
+        
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+# 비번 수정 
+def update_password(db: Session, user: models.User, new_password: str):
+    hashed_password = security.get_password_hash(new_password)
+    user.hashed_password = hashed_password
+    
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+# 회원 탈퇴
+def delete_user(db: Session, user: models.User):
+    db.delete(user)
+    db.commit()
+    return
+
 def authenticate_user(db: Session, username: str, password: str):
     """
     사용자 이름과 비밀번호로 사용자를 인증합니다.

@@ -8,17 +8,23 @@ from jose import jwt, JWTError
 
 from ..db import crud, database, models
 from ..schemas import schemas
+from ..schemas.schemas import UserUpdatepassword
 from ..core import security
 from ..core.dependency import get_current_user
 from ..db.redis_re import get_redis_refresh
 
 router = APIRouter(
     prefix="/auth",
-    tags=["Authentication"]
+    tags=["회원인증 API"]
 )
 
 # 공개 API 엔드포인트: 회원가입
-@router.post("/signup", response_model=schemas.User, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", 
+response_model=schemas.User, 
+status_code=status.HTTP_201_CREATED,
+summary="사용자 생성 (회원가입)",
+description="새로운 사용자를 생성합니다. `username`과 `email`은 고유해야 합니다.")
+
 def create_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     # 중복된 username 검사
     db_user = crud.get_user(db, username=user.username)
@@ -33,7 +39,11 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)
     return crud.create_user(db=db, user=user) 
 
 # API 엔드포인트: Access Token 발급
-@router.post("/token", response_model=schemas.Token)
+@router.post("/token",
+response_model=schemas.Token,
+summary="로그인 (Access/Refresh 토큰 발급)",
+description="사용자 이름과 비밀번호로 로그인하여 JWT 토큰을 발급받습니다.")
+
 def login_for_access_token(
     response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -69,7 +79,11 @@ def login_for_access_token(
     )
     return {"access_token": access_token,"refresh_token" : refresh_token, "token_type": "bearer"}
 
-@router.post("/logout", status_code=status.HTTP_200_OK)
+@router.post("/logout",
+status_code=status.HTTP_200_OK,
+summary="로그아웃",
+description="현재 사용자를 로그아웃 처리하고 Redis 및 쿠키에서 Refresh Token을 삭제합니다.")
+
 def logout(
     response: Response,
     current_user: schemas.User = Depends(get_current_user),
@@ -80,7 +94,11 @@ def logout(
     response.delete_cookie(key="refresh_token")
     return {"message": "성공적으로 로그아웃되었습니다."}
 
-@router.post("/refresh", response_model=schemas.Token)
+@router.post("/refresh",
+response_model=schemas.Token,
+summary="Access Token 재발급",
+description="HttpOnly 쿠키에 담긴 유효한 Refresh Token을 사용하여 새로운 Access Token과 Refresh Token을 발급받습니다.")
+
 def refresh_access_token(
     response: Response,
     refresh_token: Optional[str] = Cookie(None), # 쿠키에서 리프레시 토큰 가져오기
@@ -145,6 +163,59 @@ def refresh_access_token(
 
 
 # 보호 API 엔드포인트
-@router.get("/users/me/", response_model=schemas.User)
+@router.get("/users/me",
+response_model=schemas.User,
+summary="내 정보 보기",
+description="현재 로그인된 사용자의 프로필 정보를 조회합니다. Access Token의 유효성을 검증하는 용도로도 사용됩니다.")
+
 async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
     return current_user
+
+# 회원 정보 수정 (이름)
+@router.patch("/users/me",
+response_model=schemas.User,
+summary="내 정보 수정 (이름)",
+description="현재 로그인된 사용자의 전체 이름(`full_name`)을 수정합니다.")
+
+def update_user_me(
+    user_update: schemas.UserUpdate,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db)
+):
+    return crud.update_user(db=db, user=current_user, user_update=user_update)
+
+# 로그인 후 비밀번호 변경
+@router.patch("/users/me/password",
+status_code=status.HTTP_200_OK,
+summary="비밀번호 변경",
+description="현재 비밀번호를 확인한 후, 새로운 비밀번호로 변경합니다.")
+
+def change_password(
+    passwords: schemas.UserUpdatepassword,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    if not security.vetify_password(passwords.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="현재 비밀번호가 일치하지 않습니다."
+        )
+    
+    crud.update_password(db=db, user=current_user, new_password=passwords.new_password)
+    return {"message": "비밀번호가 성공적으로 변경되었습니다."}
+
+@router.delete("/users/me",
+status_code=status.HTTP_204_NO_CONTENT,
+summary="회원 탈퇴",
+description="현재 로그인된 사용자의 계정을 삭제하고 모든 세션 정보를 제거합니다.")
+
+def delete_user_me(
+    response: Response,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+    redis_refresh: redis.Redis = Depends(get_redis_refresh)
+):
+    redis_refresh.delete(current_user.username)
+    response.delete_cookie(key="refresh_token")
+    crud.delete_user(db=db, user=current_user)
+    return

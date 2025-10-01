@@ -32,6 +32,13 @@ class User(UserBase):           # 회원가입 응답
 class UserInDB(UserBase):       # DB에 저장된 정보
     hashed_password: str
 
+class UserUpdate(BaseModel):    # 정보 수정 (이름)
+    full_name: Optional[str] = None
+
+class UserUpdatepassword(BaseModel):    # 비번 수정
+    current_password: str
+    new_password: str
+
 
 ########## 토큰 관련 스끼익마 #########
 class TokenData(BaseModel):
