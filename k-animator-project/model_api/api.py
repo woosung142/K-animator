@@ -1,24 +1,17 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from celery import Celery
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import logging
 
-app = FastAPI()
-
-# CORS 허용.
-origins = ["https://dev.prtest.shop", "https://www.prtest.shop"]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
+router = APIRouter(
+    prefix="/model",
+    tags=["이미지 생성 API"]
 )
 
-# Celery 설정
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
+# Celery 설정 -> 쓰기
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")  #배포 전 수정
 celery_app = Celery("model-api", broker=CELERY_BROKER_URL)
 celery_app.conf.result_backend = CELERY_BROKER_URL
 
@@ -34,7 +27,7 @@ class FinalPromptRequest(BaseModel):
     dalle_prompt: str  
 
 # 프롬프트 생성 요청
-@app.post("/api/generate-prompt")
+@router.post("/api/generate-prompt")
 async def generate_prompt_endpoint(request: PromptRequest):
     logging.info(f"[REQUEST] POST /api/generate-image")
     logging.info(f"[DATA] category: {request.category}")
@@ -57,7 +50,7 @@ async def generate_prompt_endpoint(request: PromptRequest):
     return {"task_id": task.id}
 
 # 최종 이미지 생성 요청
-@app.post("/api/generate-image-from-prompt")
+@router.post("/api/generate-image-from-prompt")
 async def generate_image_from_prompt(request: FinalPromptRequest):
     logging.info("[REQUEST] POST /api/generate-image-from-prompt")
     task = celery_app.send_task(
@@ -68,10 +61,10 @@ async def generate_image_from_prompt(request: FinalPromptRequest):
     return {"task_id": task.id}
 
 # 결과 조회 (prompt 또는 image 결과 모두 포함)
-@app.get("/api/result/{task_id}")
+@router.get("/api/result/{task_id}")
 async def get_result(task_id: str):
     logging.info(f"[REQUEST] GET /api/result/{task_id}")
-    result = celery_app.AsyncResult(task_id)
+    result = celery_app.AsyncResult(task_id)    # result backend를 확인하는 역할
     logging.info(f"[INFO] 현재 상태: {result.state}")
 
     if result.state == "PENDING":

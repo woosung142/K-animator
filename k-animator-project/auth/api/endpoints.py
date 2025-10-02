@@ -168,7 +168,7 @@ response_model=schemas.User,
 summary="내 정보 보기",
 description="현재 로그인된 사용자의 프로필 정보를 조회합니다. Access Token의 유효성을 검증하는 용도로도 사용됩니다.")
 
-async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
+def read_users_me(current_user: schemas.User = Depends(get_current_user)):
     return current_user
 
 # 회원 정보 수정 (이름)

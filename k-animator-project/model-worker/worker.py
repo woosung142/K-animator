@@ -40,8 +40,8 @@ client = AzureOpenAI(api_key=AZURE_OPENAI_KEY, azure_endpoint=AZURE_OPENAI_ENDPO
 blob_service = BlobServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
 container_client = blob_service.get_container_client(AZURE_CONTAINER_NAME)
 
-# Celery 설정
-celery_app = Celery('worker', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
+# Celery 설정 -> 읽기
+celery_app = Celery('worker', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')    # 배포 전 수정
 
 @after_setup_logger.connect
 def setup_loggers(logger, *args, **kwargs):

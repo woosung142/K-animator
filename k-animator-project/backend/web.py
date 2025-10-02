@@ -1,9 +1,7 @@
-from fastapi import FastAPI, Request, HTTPException, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware  # CORS 미들웨어
+from fastapi import APIRouter, Request, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles 
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
-from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 from PIL import Image
@@ -13,17 +11,11 @@ import requests
 from pathlib import Path
 import uuid
 from datetime import datetime, timedelta
+from starlette.middleware.base import BaseHTTPMiddleware
 
-app = FastAPI()
-
-origins = ["https://dev.prtest.shop", "https://www.prtest.shop"]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
+router = APIRouter(
+    prefix="/utils",
+    tags=["유틸리티 API"]
 )
 
 # Blob Storage 환경변수
@@ -54,21 +46,14 @@ class LimitUploadSizeMiddleware(BaseHTTPMiddleware):
             )
         return await call_next(request)
 
-# FastAPI 앱에 미들웨어 적용
-app.add_middleware(LimitUploadSizeMiddleware, max_upload_size=MAX_SIZE)
-
 # Blob 클라이언트 초기화
 blob_service_client = BlobServiceClient(
     account_url=f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net",
     credential=AZURE_STORAGE_ACCOUNT_KEY
 )
 
-#@app.get("/")
-#async def root():
-#    return FileResponse(Path(__file__).parent / "index.html")
-
 # 이미지 업로드 및 리사이징 API
-@app.post("/upload-image")
+@router.post("/upload-image")
 async def upload_image(image_file: UploadFile = File(...)):
     unique_id = uuid.uuid4().hex
     file_extension = Path(image_file.filename).suffix
@@ -126,7 +111,7 @@ async def upload_image(image_file: UploadFile = File(...)):
         print(f"[예외 발생] {e}")
         raise HTTPException(status_code=500, detail=f"Blob 업로드 실패: {e}")
 
-@app.get("/get-speech-token")
+@router.get("/get-speech-token")
 async def get_speech_token():
     print("[요청 수신] /get-speech-token 호출")
 

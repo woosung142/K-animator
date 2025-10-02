@@ -8,3 +8,5 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     full_name = Column(String, index=True)
     hashed_password = Column(String)
+
+#
