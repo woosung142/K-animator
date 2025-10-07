@@ -23,10 +23,10 @@ router = APIRouter(
 response_model=schemas.User, 
 status_code=status.HTTP_201_CREATED,
 summary="사용자 생성 (회원가입)",
-description="새로운 사용자를 생성합니다. `username`과 `email`은 고유해야 합니다.")
+description="새로운 사용자를 생성합니다. `ID`와 `email`은 고유해야 합니다.")
 
 def create_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
-    # 중복된 username 검사
+    # 중복된 id 검사
     db_user = crud.get_user(db, username=user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="사용자 이름이 이미 존재합니다.")
@@ -60,13 +60,13 @@ def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     # 액세스 토큰 및 리프레시 토큰 생성
-    token_data = {"sub": user.username}
+    token_data = {"sub": user.id}
     access_token = security.create_access_token(data=token_data)
     refresh_token = security.create_refresh_token(data=token_data)
 
     # 리프레시 토큰을 Redis에 저장
     redis_refresh.set(
-        user.username,
+        user.id,
         refresh_token,
         ex=int(security.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60)
     )
@@ -90,7 +90,7 @@ def logout(
     redis_refresh: redis.Redis = Depends(get_redis_refresh)
 ):
 
-    redis_refresh.delete(current_user.username)
+    redis_refresh.delete(current_user.id)
     response.delete_cookie(key="refresh_token")
     return {"message": "성공적으로 로그아웃되었습니다."}
 
@@ -123,15 +123,15 @@ def refresh_access_token(
         payload = jwt.decode(
             refresh_token, security.SECRET_KEY, algorithms=[security.ALGORITHM]
         )
-        username: str = payload.get("sub")
-        if username is None:
+        user_id: str = payload.get("sub")
+        if user_id is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
 
     # 2. 토큰의 username으로 DB와 Redis 조회
-    user = crud.get_user(db, username=username)
-    stored_refresh_token = redis_refresh.get(username)
+    user = crud.get_id(db, user_id=user_id)
+    stored_refresh_token = redis_refresh.get(user_id)
 
     if not user or not stored_refresh_token:
         raise credentials_exception
@@ -141,13 +141,13 @@ def refresh_access_token(
         raise credentials_exception
 
     # 4. 검증 완료 후, 새로운 토큰들 생성 (Refresh Token Rotation)
-    new_token_data = {"sub": user.username}
+    new_token_data = {"sub": user.id}
     new_access_token = security.create_access_token(data=new_token_data)
     new_refresh_token = security.create_refresh_token(data=new_token_data)
 
     # 5. Redis와 쿠키에 새로운 리프레시 토큰 저장
     redis_refresh.set(
-        user.username,
+        user.id,
         new_refresh_token,
         ex=int(security.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60)
     )
@@ -195,7 +195,7 @@ def change_password(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    if not security.vetify_password(passwords.current_password, current_user.hashed_password):
+    if not security.verify_password(passwords.current_password, current_user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="현재 비밀번호가 일치하지 않습니다."
@@ -215,7 +215,7 @@ def delete_user_me(
     db: Session = Depends(database.get_db),
     redis_refresh: redis.Redis = Depends(get_redis_refresh)
 ):
-    redis_refresh.delete(current_user.username)
+    redis_refresh.delete(current_user.id)
     response.delete_cookie(key="refresh_token")
     crud.delete_user(db=db, user=current_user)
-    return
+    return {"massage": "회원 탈퇴가 완료되었습니다."}

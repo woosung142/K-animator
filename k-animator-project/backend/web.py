@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException, UploadFile, File
+from fastapi import APIRouter, Request, HTTPException, UploadFile, File, Depends
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles 
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
@@ -12,6 +12,10 @@ from pathlib import Path
 import uuid
 from datetime import datetime, timedelta
 from starlette.middleware.base import BaseHTTPMiddleware
+from sqlalchemy.orm import Session
+
+from auth.db import crud, database, models
+from auth.core.dependency import get_current_user
 
 router = APIRouter(
     prefix="/utils",
@@ -21,7 +25,7 @@ router = APIRouter(
 # Blob Storage 환경변수
 AZURE_STORAGE_ACCOUNT_NAME = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
 AZURE_STORAGE_ACCOUNT_KEY = os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
-AZURE_CONTAINER_NAME = "user-uploads"
+AZURE_CONTAINER_NAME = os.getenv("AZURE_CONTAINER_NAME")
 
 # Azure Speech 토큰 발급 API
 SPEECH_KEY = os.getenv("SPEECH_KEY")
@@ -30,6 +34,18 @@ SPEECH_REGION = os.getenv("SPEECH_REGION")
 # 업로드 최대 허용 용량
 MAX_MB = 10
 MAX_SIZE = MAX_MB * 1024 * 1024
+
+# SAS URL 생성
+def generate_sas_url(blob_name: str, expiry_minutes: int = 10) -> str:
+    sas_token = generate_blob_sas(
+        account_name=AZURE_STORAGE_ACCOUNT_NAME,
+        container_name=AZURE_CONTAINER_NAME,
+        blob_name=blob_name,
+        account_key=AZURE_STORAGE_ACCOUNT_KEY,
+        permission=BlobSasPermissions(read=True),
+        expiry=datetime.utcnow() + timedelta(minutes=expiry_minutes)
+    )
+    return f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{blob_name}?{sas_token}"
 
 # 업로드 크기 제한 해제 미들웨어 정의
 class LimitUploadSizeMiddleware(BaseHTTPMiddleware):
@@ -54,10 +70,13 @@ blob_service_client = BlobServiceClient(
 
 # 이미지 업로드 및 리사이징 API
 @router.post("/upload-image")
-async def upload_image(image_file: UploadFile = File(...)):
+async def upload_image(
+    image_file: UploadFile = File(...),
+    current_user: models.User = Depends(get_current_user)
+):
     unique_id = uuid.uuid4().hex
     file_extension = Path(image_file.filename).suffix
-    blob_name = f"{unique_id}.png"  # 통일된 확장자 사용
+    blob_name = f"user_{current_user.id}/uploads/{unique_id}.png"  # 통일된 확장자 사용
 
     try:
         print(f"[요청 수신] 파일명: {image_file.filename}")
@@ -92,16 +111,8 @@ async def upload_image(image_file: UploadFile = File(...)):
         buffer.close()
         print(f"[업로드 완료] Blob 이름: {blob_name}")
 
-        # SAS URL 생성
-        sas_token = generate_blob_sas(
-            account_name=AZURE_STORAGE_ACCOUNT_NAME,
-            container_name=AZURE_CONTAINER_NAME,
-            blob_name=blob_name,
-            account_key=AZURE_STORAGE_ACCOUNT_KEY,
-            permission=BlobSasPermissions(read=True),
-            expiry=datetime.utcnow() + timedelta(minutes=10)
-        )
-        blob_url = f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{blob_name}?{sas_token}"
+        blob_url = generate_sas_url(blob_name=blob_name, expiry_minutes=10)
+
         print(f"[SAS URL] {blob_url}")
         return {"image_url": blob_url}
 
@@ -134,3 +145,27 @@ async def get_speech_token():
     except requests.exceptions.RequestException as e:
         print(f"[예외 발생] 토큰 발급 실패: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/my-images", summary="내 이미지 목록 조회")
+def read_images(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db)
+):
+    images_from_db = crud.get_images_by_user(db=db, user_id=current_user.id)
+    
+    response_images = []
+    for image in images_from_db:
+        # 각 이미지의 파일 경로를 사용하여 실시간으로 SAS URL을 생성합니다.
+        png_sas_url = generate_sas_url(blob_name=image.png_url, expiry_minutes=5)
+        psd_sas_url = generate_sas_url(blob_name=image.psd_url, expiry_minutes=5)
+
+        # 3. 동적으로 생성된 SAS URL을 담아 응답 목록에 추가합니다.
+        response_images.append({
+            "id": image.id,
+            "prompt": image.prompt,
+            "png_url": png_sas_url,
+            "psd_url": psd_sas_url,
+            "created_at": image.created_at
+        })
+        
+    return response_images

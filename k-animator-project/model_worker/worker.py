@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from celery import Celery
 from celery.signals import after_setup_logger
 from io import BytesIO
@@ -10,10 +11,12 @@ import base64
 import torch
 from datetime import datetime, timedelta
 from transformers import AutoProcessor, AutoModel
-from dotenv import load_dotenv
 from openai import AzureOpenAI
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
 import logging
+
+from auth.db.database import SessionLocal
+from auth.db import models
 
 # 환경변수 로딩,
 load_dotenv()
@@ -120,7 +123,7 @@ def get_wikipedia_main_image(tag):
 
 
 @celery_app.task(name="generate_image", bind=True)
-def generate_image(self, category: str, layer: str, tag: str, caption_input: str | None = None, image_url: str | None = None) -> dict:
+def generate_image(self, user_id: int, category: str, layer: str, tag: str, caption_input: str | None = None, image_url: str | None = None) -> dict:
     try:
         
         task_id = self.request.id
@@ -231,9 +234,15 @@ def generate_image(self, category: str, layer: str, tag: str, caption_input: str
 
 
 @celery_app.task(name="generate_final_image", bind=True)
-def generate_final_image(self, dalle_prompt: str) -> dict:
+def generate_final_image(self, user_id: int, dalle_prompt: str) -> dict:
     try:
         task_id = self.request.id
+        user_folder = f"user_{user_id}"
+
+        # 영구적으로 사용한 blob 파일 경로 
+        filename_png = f"{user_folder}/generated/png/{task_id}.png"
+        filename_psd = f"{user_folder}/generated/psd/{task_id}.psd"
+
         logging.info(f"[TASK] generate_final_image 시작 - task_id: {task_id}")
         logging.info(f"[INPUT] DALL·E 프롬프트: {dalle_prompt}")
 
@@ -248,10 +257,9 @@ def generate_final_image(self, dalle_prompt: str) -> dict:
         png_buffer = BytesIO()
         dalle_img.save(png_buffer, format="PNG")
         png_buffer.seek(0)
-        filename_png = f"png/{task_id}.png"
+        
         container_client.upload_blob(name=filename_png, data=png_buffer, overwrite=True)
-        png_url = generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_png)
-        logging.info(f"[STEP 9] PNG Blob 저장 완료: {png_url}")
+        logging.info(f"[STEP 9] PNG Blob 저장 완료: {filename_png}")
         png_buffer.close()
 
         # 10. PSD 변환 후 psd/ 하위에 저장
@@ -260,14 +268,33 @@ def generate_final_image(self, dalle_prompt: str) -> dict:
         dalle_img.save(temp_png_path, format="PNG")
         subprocess.run(["convert", temp_png_path, temp_psd_path], check=True)
         with open(temp_psd_path, "rb") as f:
-            container_client.upload_blob(name=f"psd/{task_id}.psd", data=f, overwrite=True)
-        psd_url = generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, f"psd/{task_id}.psd")
-        logging.info(f"[STEP 10] PSD 업로드 완료: {psd_url}")
+            container_client.upload_blob(name=filename_psd, data=f, overwrite=True)
+        logging.info(f"[STEP 10] PSD 업로드 완료: {filename_psd}")
+        
+        # --- DB 저장 로직 추가 ---
+        db = SessionLocal()
+        try:
+            new_image = models.Image(
+                task_id=task_id,
+                prompt=dalle_prompt,
+                png_url=filename_png,
+                psd_url=filename_psd,
+                user_id=user_id
+            )
+            db.add(new_image)
+            db.commit()
+            logging.info(f"[DB] 이미지 정보 저장 완료 - user_id: {user_id}")
+        finally:
+            db.close()
+        # --- DB 저장 로직 끝 ---
+
 
         # 임시 파일 삭제
         os.remove(temp_png_path)
         os.remove(temp_psd_path)
 
+        png_url = generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_png)
+        psd_url = generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_psd)
         return {"status": "SUCCESS", "png_url": png_url, "psd_url": psd_url}
 
     except Exception as e:

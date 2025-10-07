@@ -10,9 +10,9 @@ class UserBase(BaseModel):      # 공통 정보
     @validator('username')
     def validate_usernmae(cls, value):
         if not value or ' ' in value:
-            raise ValueError('사용자 이름은 비어있을 수 없고 공백을 포함할 수 없습니다.')
+            raise ValueError('사용자 ID는 비어있을 수 없고 공백을 포함할 수 없습니다.')
         if not re.match("^[a-zA-Z0-9_-]+$", value):
-            raise ValueError('사용자 이름은 영문자, 숫자, 밑줄(_), 대시(-)만 포함할 수 있습니다.')
+            raise ValueError('사용자 ID는 영문자, 숫자, 밑줄(_), 대시(-)만 포함할 수 있습니다.')
         return value
 
 class UserCreate(UserBase):     # 회원가입 받을 정보

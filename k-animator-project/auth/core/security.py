@@ -14,7 +14,7 @@ from azure.identity import DefaultAzureCredential
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def vetify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password) # 평문 비밀번호와 해시된 비밀번호 비교 (로그인)
 
 def get_password_hash(password: str) -> str:

@@ -29,10 +29,11 @@ async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(database.get_db)
 )-> models.User:
-    payload = decode_token(token)
-    username: str = payload.get("sub")
 
-    if username is None:
+    payload = decode_token(token)
+    user_id: str = payload.get("sub")
+
+    if user_id is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
         detail="자격 증명을 확인할 수 없습니다.")
 
@@ -40,7 +41,7 @@ async def get_current_user(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
         detail="엔드포인트에 대한 토큰 유형이 올바르지않습니다.")
 
-    user = crud.get_user(db, username=username)
+    user = crud.get_id(db, user_id=user_id)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
         detail="사용자를 찾을 수 없습니다.")

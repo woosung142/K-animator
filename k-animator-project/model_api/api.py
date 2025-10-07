@@ -1,9 +1,12 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from celery import Celery
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import logging
+
+from auth.core.dependency import get_current_user
+from auth.db import models
 
 router = APIRouter(
     prefix="/model",
@@ -28,7 +31,10 @@ class FinalPromptRequest(BaseModel):
 
 # 프롬프트 생성 요청
 @router.post("/api/generate-prompt")
-async def generate_prompt_endpoint(request: PromptRequest):
+async def generate_prompt_endpoint(
+    request: PromptRequest,
+    current_user: models.User = Depends(get_current_user)
+):
     logging.info(f"[REQUEST] POST /api/generate-image")
     logging.info(f"[DATA] category: {request.category}")
     logging.info(f"[DATA] layer: {request.layer}")
@@ -36,9 +42,10 @@ async def generate_prompt_endpoint(request: PromptRequest):
     logging.info(f"[DATA] caption_input: {request.caption_input}")
     logging.info(f"[DATA] image_url: {request.image_url}")
 
-    task = celery_app.send_task(
+    task = celery_app.send_task(    #redis에 적재
         "generate_image",
         args=[
+            current_user.username,
             request.category,   
             request.layer,
             request.tag,    #키워드
@@ -51,11 +58,16 @@ async def generate_prompt_endpoint(request: PromptRequest):
 
 # 최종 이미지 생성 요청
 @router.post("/api/generate-image-from-prompt")
-async def generate_image_from_prompt(request: FinalPromptRequest):
+async def generate_image_from_prompt(
+    request: FinalPromptRequest,
+    current_user: models.User = Depends(get_current_user)
+):
     logging.info("[REQUEST] POST /api/generate-image-from-prompt")
     task = celery_app.send_task(
         "generate_final_image",
-        args=[request.dalle_prompt]
+        args=[
+            current_user.id,
+            request.dalle_prompt]
     )
     logging.info(f"[TASK] celery 'generate_final_image' task 전송 완료 - task_id: {task.id}")
     return {"task_id": task.id}

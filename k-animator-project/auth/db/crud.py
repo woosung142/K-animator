@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from . import models
 from ..schemas import schemas
-from ..core import security
+from ..core import security 
 
 # username으로 사용자 조회
 def get_user(db: Session, username: str):
@@ -10,6 +10,10 @@ def get_user(db: Session, username: str):
 def get_email(db: Session, email: str):
     return db.query(models.User).filter(
     models.User.email == email).first()
+
+def get_id(db: Session, user_id: str):
+    return db.query(models.User).filter(
+    models.User.id == user_id).first()
 
 # 신규 사용자 생성
 def create_user(db: Session, user: schemas.UserCreate):
@@ -54,6 +58,10 @@ def delete_user(db: Session, user: models.User):
     db.commit()
     return
 
+def get_images_by_user(db: Session, user_id: str):
+    return db.query(models.Image).filter(
+    models.Image.user_id == user_id).order_by(models.Image.created_at.desc()).all()
+
 def authenticate_user(db: Session, username: str, password: str):
     """
     사용자 이름과 비밀번호로 사용자를 인증합니다.
@@ -62,6 +70,6 @@ def authenticate_user(db: Session, username: str, password: str):
     user = get_user(db, username)
     if not user:
         return None
-    if not security.vetify_password(password, user.hashed_password):
+    if not security.verify_password(password, user.hashed_password):
         return None
     return user

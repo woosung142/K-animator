@@ -6,6 +6,7 @@ from auth.api import endpoints as auth_endpoints
 from model_api import api as model_endpoints
 from backend import web as utils_endpoints
 from backend.web import LimitUploadSizeMiddleware, MAX_SIZE
+from auth.db import models, database
 
 # --- 태그 메타데이터 정의 ---
 tags_metadata = [
@@ -13,6 +14,8 @@ tags_metadata = [
     {"name": "이미지 생성 API", "description": "Celery를 이용한 비동기 이미지 생성"},
     {"name": "유틸리티 API", "description": "이미지 업로드, 외부 서비스 토큰 발급 등"},
 ]
+
+models.Base.metadata.create_all(bind=database.engine)
 
 # --- FastAPI 앱 생성 ---
 app = FastAPI(

@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 import os
 import logging
 from sqlalchemy import create_engine
@@ -8,7 +9,7 @@ from azure.identity import DefaultAzureCredential
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-
+load_dotenv()
 SQLALCHEMY_DATABASE_URL = None # DB 연결 문자열 초기화
 try:
     logger.info("DB 연결을 위해 key vault에서 시크릿 조회 시작")
