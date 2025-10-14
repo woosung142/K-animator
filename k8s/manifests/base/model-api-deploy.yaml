@@ -16,10 +16,10 @@ spec:
         - name: model-api
           image: ghcr.io/woosung142/k-animator/model-api:main
           ports:
-            - containerPort: 8000
+            - containerPort: 8002
           envFrom:
             - secretRef:
-                name: azure-secret
+                name: app-secrets
           env:
             - name: TRANSFORMERS_CACHE
               value: /models

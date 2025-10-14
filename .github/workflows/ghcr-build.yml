@@ -18,14 +18,15 @@ jobs:
         with:
           filters: |
             frontend:
-              - 'web/frontend/**'
-            backend:
-              - 'web/backend/**'
+              - 'k-animator-project/frontend/**'
+            auth:
+              - 'k-animator-project/auth/**'
             model-api:
-              - 'model-api/**'
+              - 'k-animator-project/model_api/**'
             model-worker:
-              - 'model-worker/**'
-
+              - 'k-animator-project/model_worker/**'
+            util:
+              - 'k-animator-project/util/**'
   build-push-update:
     needs: changes
     if: ${{ needs.changes.outputs.service_changes != '[]' }}
@@ -59,7 +60,6 @@ jobs:
             type=raw,value=main,enable=${{ github.ref_name == 'main' }}
             type=raw,value=develop,enable=${{ github.ref_name == 'develop' }}
             type=sha,format=short
-
       - name: Set Docker build context
         id: set-context
         run: |
@@ -77,12 +77,11 @@ jobs:
               ;;
           esac
           echo "path=${SERVICE_PATH}" >> $GITHUB_OUTPUT
-
       - name: Build and Push image to GHCR
         id: build
         uses: docker/build-push-action@v6.5.0
         with:
-          context: ${{ steps.set-context.outputs.path }}
+          context: ./k-animator-project
           file: ${{ steps.set-context.outputs.path }}/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
@@ -94,20 +93,16 @@ jobs:
         if: github.ref_name == 'main' || github.ref_name == 'develop'
         run: |
           export IMAGE_TAG=${{ github.ref_name }}
-
           if [[ -z "${IMAGE_TAG}" ]]; then
             echo "Error: IMAGE_TAG is empty. Aborting."
             exit 1
           fi
-
           if [[ "${{ github.ref_name }}" == "main" ]]; then
             KUSTOMIZE_PATH="k8s/manifests/overlays/production/kustomization.yaml"
           else
             KUSTOMIZE_PATH="k8s/manifests/overlays/development/kustomization.yaml"
           fi
-
           echo "Updating ${KUSTOMIZE_PATH} for ${{ matrix.service }} with tag ${IMAGE_TAG}"
-
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
@@ -117,7 +112,6 @@ jobs:
           wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           chmod a+x /usr/local/bin/yq
           yq e '(.images[] | select(.name | test("ghcr.io/${{ github.repository_owner }}/k-animator/${{ matrix.service }}")) | .newTag) = strenv(IMAGE_TAG)' -i ${KUSTOMIZE_PATH}
-
           git add ${KUSTOMIZE_PATH}
           git commit -m "ci: Update ${{ matrix.service }} image to tag ${IMAGE_TAG}" || echo "No changes to commit"
           git push
