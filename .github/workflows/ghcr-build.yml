@@ -83,7 +83,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6.5.0
         with:
-          context: .
+          context: ${{ steps.set-context.outputs.path }}
           file: ${{ steps.set-context.outputs.path }}/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
