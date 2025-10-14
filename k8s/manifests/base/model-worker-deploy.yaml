@@ -17,7 +17,7 @@ spec:
           image: ghcr.io/woosung142/k-animator/model-worker:main
           envFrom:
             - secretRef:
-                name: app-secrets
+                name: azure-secret
           resources:
             requests:
               memory: "512Mi"

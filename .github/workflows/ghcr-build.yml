@@ -18,15 +18,14 @@ jobs:
         with:
           filters: |
             frontend:
-              - 'k-animator-project/frontend/**'
-            auth:
-              - 'k-animator-project/auth/**'
+              - 'web/frontend/**'
+            backend:
+              - 'web/backend/**'
             model-api:
-              - 'k-animator-project/model_api/**'
+              - 'model-api/**'
             model-worker:
-              - 'k-animator-project/model_worker/**'
-            util:
-              - 'k-animator-project/util/**'
+              - 'model-worker/**'
+
   build-push-update:
     needs: changes
     if: ${{ needs.changes.outputs.service_changes != '[]' }}

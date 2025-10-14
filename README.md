@@ -1,29 +1,31 @@
-## Tech Stack
-
-| 구분 | 기술 |
-|------|------|
-| **Frontend** | <img src="https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white"/> <img src="https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white"/> <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black"/> |
-| **Backend** | <img src="https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white"/> <img src="https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white"/> <img src="https://img.shields.io/badge/Celery-37814A?style=flat&logo=celery&logoColor=white"/> |
-| **Database** | <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white"/> <img src="https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white"/> |
-| **Storage** | <img src="https://img.shields.io/badge/Azure%20Blob%20Storage-0078D4?style=flat&logo=microsoftazure&logoColor=white"/> |
-| **AI / ML** | <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=flat&logo=pytorch&logoColor=white"/> <img src="https://img.shields.io/badge/HuggingFace-FFD21F?style=flat&logo=huggingface&logoColor=black"/> <img src="https://img.shields.io/badge/OpenAI-412991?style=flat&logo=openai&logoColor=white"/> <img src="https://img.shields.io/badge/Microsoft%20Speech%20SDK-0078D7?style=flat&logo=microsoft&logoColor=white"/> |
-| **Infra / DevOps** | <img src="https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white"/> <img src="https://img.shields.io/badge/AKS-744da9?style=flat&logo=kubernetes&logoColor=white"/> <img src="https://img.shields.io/badge/NGINX-009639?style=flat&logo=NGINX&logoColor=white"/> <img src="https://img.shields.io/badge/Azure-0078D4?style=flat&logo=microsoftazure&logoColor=white"/> <img src="https://img.shields.io/badge/Terraform-844FBA?style=flat&logo=Terraform&logoColor=white"/> |
-| **CI/CD** | <img src="https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat&logo=githubactions&logoColor=white"/> <img src="https://img.shields.io/badge/Argo%20CD-FB8B00?style=flat&logo=argo&logoColor=white"/> |
-| **Monitoring** | <img src="https://img.shields.io/badge/Prometheus-E6522C?style=flat&logo=prometheus&logoColor=white"/> <img src="https://img.shields.io/badge/Grafana-F46800?style=flat&logo=grafana&logoColor=white"/> |
-| **Logging** | <img src="https://img.shields.io/badge/Loki-F46800?style=flat&logo=grafana&logoColor=white"/> <img src="https://img.shields.io/badge/Fluent-bit-49BDA5?style=flat&logo=Fluent-bit&logoColor=white"/> |
-
-
-## Tools
-| 구분 | 도구 |
-|------|------|
-| **DB Management** | <img src="https://img.shields.io/badge/DBeaver-382923?style=flat&logo=dbeaver&logoColor=white"/> |
-**Redis Management** | ![](https://img.shields.io/badge/Redis%20Insight-DC382D?style=flat&logo=redis&logoColor=white) |
-| **API Docs / Test** | ![](https://img.shields.io/badge/Swagger%20UI-85EA2D?style=flat&logo=swagger&logoColor=black) |
-
-
+<p align="left">
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white" />
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white" />
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=white" />
+  <img src="https://img.shields.io/badge/NGINX-009639?style=flat&logo=NGINX&logoColor=white" />
+  <img src="https://img.shields.io/badge/Microsoft%20Speech%20SDK-0078D7?style=flat&logo=microsoft&logoColor=white" />
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white" />
+  <img src="https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Celery-37814A?style=flat&logo=celery&logoColor=white" />
+  <img src="https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white" />
+  <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=flat&logo=pytorch&logoColor=white" />
+  <img src="https://img.shields.io/badge/HuggingFace-FFD21F?style=flat&logo=huggingface&logoColor=black" />
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/Azure-0078D4?style=flat&logo=microsoftazure&logoColor=white" />
+  <img src="https://img.shields.io/badge/OpenAI-412991?style=flat&logo=openai&logoColor=white" />
+  <img src="https://img.shields.io/badge/Kubernetes-326CE5?style=flat&logo=kubernetes&logoColor=white" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white" />
+  <img src="https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat&logo=githubactions&logoColor=white" />
+  <img src="https://img.shields.io/badge/Argo%20CD-FB8B00?style=flat&logo=argo&logoColor=white" />
+  <img src="https://img.shields.io/badge/Prometheus-E6522C?style=flat&logo=prometheus&logoColor=white" />
+  <img src="https://img.shields.io/badge/Grafana-F46800?style=flat&logo=grafana&logoColor=white" />
+  <img src="https://img.shields.io/badge/Loki-F46800?style=flat&logo=grafana&logoColor=white" />
+  <img src="https://img.shields.io/badge/Fluent-bit-49BDA5?style=flat&logo=Fluent-bit&logoColor=white" />
+  <img src="https://img.shields.io/badge/Terraform-844FBA?style=flat&logo=Terraform&logoColor=white" />
+</p>
 
 ## 한국풍 웹툰 배경 이미지 생성기
-https://www.prtest.shop
+https://www.prtest.shop/
 
 > 이 프로젝트는 한국풍 웹툰 배경 이미지를 생성하는 플랫폼으로, 사용자가 입력한 키워드, 설명, 음성, 이미지 등을 바탕으로 GPT-4o와 KoCLIP을 활용한 RAG 파이프라인을 통해 프롬프트를 생성하고, DALL·E 3로 이미지를 자동 생성하는 시스템입니다. 전체 과정은 약 2만 장의 한국 웹툰풍 이미지 데이터를 기반으로 구축되었습니다.
 
