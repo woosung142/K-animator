@@ -142,3 +142,17 @@ module "auth_stack" {
     azurerm_role_assignment.terraform_user_kv_dev_admin   #Key Vault Secrets Officer 역할 할당이 완료된 후에 Key Vault Secrets User 역할 할당이 진행되도록 설정
   ]
 }
+# ----------------------------------------------------
+# API Management module - API Gateway
+# ----------------------------------------------------
+module "api_gateway" {
+  source = "./modules/api_gateway"
+
+  location                = azurerm_resource_group.aks_rg.location
+  resource_group_name     = azurerm_resource_group.aks_rg.name
+
+  apim_name               = var.apim_name
+  auth_url                = var.backend_auth_url
+  model_api_url           = var.backend_model_api_url
+  util_url                = var.backend_util_url
+}

@@ -39,6 +39,10 @@ class UserUpdatepassword(BaseModel):    # 비번 수정
     current_password: str
     new_password: str
 
+class UserLogin(BaseModel):    # 로그인 받을 정보
+    username: str
+    password: str
+
 
 ########## 토큰 관련 스끼익마 #########
 class TokenData(BaseModel):

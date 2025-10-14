@@ -10,3 +10,6 @@ psycopg2-binary==2.9.9        # PostgreSQL 접속 (psycopg2 경량판)
 transformers==4.40.1         # KoCLIP 모델 로딩 (AutoModel 등)
 torch==2.2.2                  # KoCLIP 모델 실행 (GPU/CPU)
 wand==0.6.11                  # ImageMagick 연동 (convert 명령어용)
+
+sqlalchemy==2.0.31
+psycopg2-binary==2.9.9

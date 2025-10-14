@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-deployment
+  name: auth-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: backend
+      app: auth
   template:
     metadata:
       labels:
-        app: backend
+        app: auth
     spec:
       containers:
-        - name: backend
-          image: ghcr.io/woosung142/k-animator/backend:main
+        - name: auth
+          image: ghcr.io/woosung142/k-animator/auth:main
           ports:
-            - containerPort: 8000
+            - containerPort: 8001
           envFrom:
             - secretRef:
-                name: azure-secret
+                name: app-secrets
       imagePullSecrets:
         - name: ghcr-secret

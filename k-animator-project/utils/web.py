@@ -14,19 +14,13 @@ from datetime import datetime, timedelta
 from starlette.middleware.base import BaseHTTPMiddleware
 from sqlalchemy.orm import Session
 
-from auth.db import crud, database, models
-from auth.core.dependency import get_current_user
+from shared.db import crud, database, models    # 공유폴더
+from shared.dependencies import get_user_id_from_gateway # 공유폴더
+from shared import blob_storage
 
 router = APIRouter(
-    prefix="/utils",
     tags=["유틸리티 API"]
 )
-
-# Blob Storage 환경변수
-AZURE_STORAGE_ACCOUNT_NAME = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
-AZURE_STORAGE_ACCOUNT_KEY = os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
-AZURE_CONTAINER_NAME = os.getenv("AZURE_CONTAINER_NAME")
-
 # Azure Speech 토큰 발급 API
 SPEECH_KEY = os.getenv("SPEECH_KEY")
 SPEECH_REGION = os.getenv("SPEECH_REGION")
@@ -34,18 +28,6 @@ SPEECH_REGION = os.getenv("SPEECH_REGION")
 # 업로드 최대 허용 용량
 MAX_MB = 10
 MAX_SIZE = MAX_MB * 1024 * 1024
-
-# SAS URL 생성
-def generate_sas_url(blob_name: str, expiry_minutes: int = 10) -> str:
-    sas_token = generate_blob_sas(
-        account_name=AZURE_STORAGE_ACCOUNT_NAME,
-        container_name=AZURE_CONTAINER_NAME,
-        blob_name=blob_name,
-        account_key=AZURE_STORAGE_ACCOUNT_KEY,
-        permission=BlobSasPermissions(read=True),
-        expiry=datetime.utcnow() + timedelta(minutes=expiry_minutes)
-    )
-    return f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{blob_name}?{sas_token}"
 
 # 업로드 크기 제한 해제 미들웨어 정의
 class LimitUploadSizeMiddleware(BaseHTTPMiddleware):
@@ -62,21 +44,15 @@ class LimitUploadSizeMiddleware(BaseHTTPMiddleware):
             )
         return await call_next(request)
 
-# Blob 클라이언트 초기화
-blob_service_client = BlobServiceClient(
-    account_url=f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net",
-    credential=AZURE_STORAGE_ACCOUNT_KEY
-)
-
 # 이미지 업로드 및 리사이징 API
 @router.post("/upload-image")
 async def upload_image(
     image_file: UploadFile = File(...),
-    current_user: models.User = Depends(get_current_user)
+    user_id: str = Depends(get_user_id_from_gateway) # 게이트웨이에서 사용자 ID 추출
 ):
     unique_id = uuid.uuid4().hex
     file_extension = Path(image_file.filename).suffix
-    blob_name = f"user_{current_user.id}/uploads/{unique_id}.png"  # 통일된 확장자 사용
+    blob_name = f"user_{user_id}/uploads/{unique_id}.png"  # 통일된 확장자 사용
 
     try:
         print(f"[요청 수신] 파일명: {image_file.filename}")
@@ -101,17 +77,13 @@ async def upload_image(
         print("[처리] PNG 변환 완료, 업로드 준비")
 
         # Blob 업로드
-        blob_client = blob_service_client.get_blob_client(
-            container=AZURE_CONTAINER_NAME,
-            blob=blob_name
-        )
-        blob_client.upload_blob(buffer.getvalue(), overwrite=True)
+        blob_storage.upload_blob(blob_name=blob_name, data=buffer.getvalue())
 
         # 버퍼 초기화 (리소스 해제 목적)
         buffer.close()
         print(f"[업로드 완료] Blob 이름: {blob_name}")
 
-        blob_url = generate_sas_url(blob_name=blob_name, expiry_minutes=10)
+        blob_url = blob_storage.generate_sas_url(blob_name=blob_name, expiry_minutes=10)
 
         print(f"[SAS URL] {blob_url}")
         return {"image_url": blob_url}
@@ -123,7 +95,9 @@ async def upload_image(
         raise HTTPException(status_code=500, detail=f"Blob 업로드 실패: {e}")
 
 @router.get("/get-speech-token")
-async def get_speech_token():
+async def get_speech_token(
+    user_id: str = Depends(get_user_id_from_gateway)
+):
     print("[요청 수신] /get-speech-token 호출")
 
     if not SPEECH_KEY or not SPEECH_REGION:
@@ -148,21 +122,20 @@ async def get_speech_token():
 
 @router.get("/my-images", summary="내 이미지 목록 조회")
 def read_images(
-    current_user: models.User = Depends(get_current_user),
+    user_id: str = Depends(get_user_id_from_gateway),
     db: Session = Depends(database.get_db)
 ):
-    images_from_db = crud.get_images_by_user(db=db, user_id=current_user.id)
+    images_from_db = crud.get_images_by_user(db=db, user_id=user.id)
     
     response_images = []
     for image in images_from_db:
         # 각 이미지의 파일 경로를 사용하여 실시간으로 SAS URL을 생성합니다.
-        png_sas_url = generate_sas_url(blob_name=image.png_url, expiry_minutes=5)
-        psd_sas_url = generate_sas_url(blob_name=image.psd_url, expiry_minutes=5)
+        png_sas_url = blob_storage.generate_sas_url(blob_name=image.png_url, expiry_minutes=5)
+        psd_sas_url = blob_storage.generate_sas_url(blob_name=image.psd_url, expiry_minutes=5)
 
         # 3. 동적으로 생성된 SAS URL을 담아 응답 목록에 추가합니다.
         response_images.append({
             "id": image.id,
-            "prompt": image.prompt,
             "png_url": png_sas_url,
             "psd_url": psd_sas_url,
             "created_at": image.created_at

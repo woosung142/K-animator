@@ -16,6 +16,6 @@ spec:
         - name: frontend
           image: ghcr.io/woosung142/k-animator/frontend:main
           ports:
-            - containerPort: 80
+            - containerPort: 8000
       imagePullSecrets:
         - name: ghcr-secret

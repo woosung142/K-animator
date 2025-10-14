@@ -15,23 +15,21 @@ from openai import AzureOpenAI
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
 import logging
 
-from auth.db.database import SessionLocal
-from auth.db import models
+from shared.db.database import SessionLocal
+from shared.db import models
+from shared import blob_storage
 
 # 환경변수 로딩,
 load_dotenv()
 AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_VERSION = "2024-05-01-preview"
+
 PG_HOST = os.getenv("PG_HOST")
 PG_PORT = os.getenv("PG_PORT")
 PG_DBNAME = os.getenv("PG_DBNAME")
 PG_USER = os.getenv("PG_USER")
 PG_PASSWORD = os.getenv("PG_PASSWORD")
-AZURE_ACCOUNT_NAME = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
-AZURE_ACCOUNT_KEY = os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
-AZURE_CONTAINER_NAME = "rag-images"
-AZURE_CONNECTION_STRING = f"DefaultEndpointsProtocol=https;AccountName={AZURE_ACCOUNT_NAME};AccountKey={AZURE_ACCOUNT_KEY};EndpointSuffix=core.windows.net"
 
 # KoCLIP 모델 로딩
 processor = AutoProcessor.from_pretrained("koclip/koclip-base-pt")
@@ -40,8 +38,6 @@ device = next(model.parameters()).device
 
 # 클라이언트 초기화
 client = AzureOpenAI(api_key=AZURE_OPENAI_KEY, azure_endpoint=AZURE_OPENAI_ENDPOINT, api_version=AZURE_OPENAI_VERSION)
-blob_service = BlobServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
-container_client = blob_service.get_container_client(AZURE_CONTAINER_NAME)
 
 # Celery 설정 -> 읽기
 celery_app = Celery('worker', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')    # 배포 전 수정
@@ -62,51 +58,6 @@ def embed_text_koclip(text):
         embedding = model.get_text_features(**inputs)
     return embedding[0].cpu().numpy().tolist()
 
-def get_blob_base64_image(blob_dir, file_name):
-    try:
-        blob_path = f"{blob_dir}/{file_name}.png"
-        blob_client = container_client.get_blob_client(blob=blob_path)
-        stream = blob_client.download_blob()
-        img_bytes = stream.readall()
-        image = Image.open(BytesIO(img_bytes))
-        buffered = BytesIO()
-        image.save(buffered, format="PNG")
-        return base64.b64encode(buffered.getvalue()).decode("utf-8")
-    except Exception as e:
-        logging.info(f"[ERROR] Blob 이미지 로딩 실패 - {file_name}: {e}")
-        return None
-
-def generate_sas_url(account_name, account_key, container_name, blob_name, expiry_minutes=10):
-    sas_token = generate_blob_sas(
-        account_name=account_name,
-        container_name=container_name,
-        blob_name=blob_name,
-        account_key=account_key,
-        permission=BlobSasPermissions(read=True),
-        expiry=datetime.utcnow() + timedelta(minutes=expiry_minutes)
-    )
-    return f"https://{account_name}.blob.core.windows.net/{container_name}/{blob_name}?{sas_token}"
-
-
-layer_descriptions = {
-    "콘티": "A rough, gray pencil storyboard-style sketch focusing on layout and composition. "
-            "Forms are simplified with minimal detail and overlapping sketch lines are acceptable. "
-            "No color or shading is applied — the emphasis is solely on spatial arrangement and rough structure.",
-    "스케치": "A clean line drawing with clearly defined black outlines. "
-              "All main elements are visible with refined contours and accurate proportions. "
-              "No coloring or shading — just detailed, precise edges on a white background.",
-    "채색 기본": "A flat-colored illustration where base colors are applied to each element. "
-                 "No shadows, highlights, or gradients are used — the focus is on color separation and clarity. "
-                 "Shapes should be filled with solid tones to indicate material or category.",
-    "채색 명암": "A fully colored illustration with realistic shading, highlights, and lighting direction. "
-                 "Depth, form, and texture are emphasized using shadows and color intensity. "
-                 "Contrast between light and dark areas should reflect real-world perception.",
-    "배경": "A complete and polished scene with a coherent background, ambient lighting, and environmental context. "
-           "All elements should be fully rendered with consistent perspective and atmosphere. "
-           "The composition feels complete, as if prepared for publication or final output."
-}
-
-
 def get_wikipedia_main_image(tag):
     try:
         search_url = f"https://en.wikipedia.org/w/api.php?action=query&titles={tag}&prop=pageimages&format=json&pithumbsize=500"
@@ -123,12 +74,12 @@ def get_wikipedia_main_image(tag):
 
 
 @celery_app.task(name="generate_image", bind=True)
-def generate_image(self, user_id: int, category: str, layer: str, tag: str, caption_input: str | None = None, image_url: str | None = None) -> dict:
+def generate_image(self, user_id: int, username: str, tag: str, caption_input: str | None = None, image_url: str | None = None) -> dict:
     try:
         
         task_id = self.request.id
         logging.info(f"[TASK] generate_image 시작 - task_id: {task_id}")
-        logging.info(f"[INPUT] category: {category}, layer: {layer}, tag: {tag}, caption_input: {caption_input}, image_url: {image_url}")
+        logging.info(f"[INPUT] username: {username}, tag: {tag}, caption_input: {caption_input}, image_url: {image_url}")
         
         # 1. KoCLIP 임베딩
         text_to_embed = caption_input if caption_input else f"{tag}가 포함된 한국 웹툰 이미지를 그려주세요."
@@ -156,12 +107,11 @@ def generate_image(self, user_id: int, category: str, layer: str, tag: str, capt
 
             sql = """
                 SELECT file_name FROM korea_image_data
-                WHERE category = %s AND layer = %s
-                  AND tag ILIKE ANY (%s)
+                WHERE tag ILIKE ANY (%s)
                 ORDER BY vec_caption <-> %s::vector
                 LIMIT 1;
             """
-            cursor.execute(sql, (category, layer, keywords, vector_str))
+            cursor.execute(sql, (keywords, vector_str))
             results = cursor.fetchall()
             logging.info(f"[STEP 3] DB 검색 결과 file_name 리스트: {results}")
             cursor.close()
@@ -170,7 +120,7 @@ def generate_image(self, user_id: int, category: str, layer: str, tag: str, capt
             for row in results:
                 file_name = row[0]
                 logging.info(f"[STEP 3] Blob에서 이미지 로딩 시도: {file_name}")
-                image_b64 = get_blob_base64_image("img", file_name)
+                image_b64 = blob_storage.get_blob_base64_image("img", file_name)
                 if image_b64:
                     logging.info(f"[STEP 3] base64 변환 성공: {file_name}")
                     images_content.append({
@@ -208,13 +158,9 @@ def generate_image(self, user_id: int, category: str, layer: str, tag: str, capt
             "You may adjust the level of detail depending on the artistic stage, from rough draft to polished background.\n"
             "If necessary, you may include human figures, but they should not be the central focus — never portray them as main characters.\n"
             "The prompt must be written in natural, fluent English optimized for DALL·E 3 input.\n\n"
-            f"Style step: '{layer}'\n"
-            f"Style guide for this step:\n{layer_descriptions.get(layer, '')}\n\n"
+            f"User's main keywords: '{tag}'\n"
             f"Original description from the user: \"{caption_input}\""
 )
-
-
-
 
         logging.info(f"[STEP 6] 생성된 프롬프트:\n{prompt_text}") 
 
@@ -226,20 +172,8 @@ def generate_image(self, user_id: int, category: str, layer: str, tag: str, capt
         dalle_prompt = response.choices[0].message.content.strip()
         logging.info(f"[STEP 6] GPT 생성 결과:\n{dalle_prompt}")
 
-        return {"status": "SUCCESS", "prompt": dalle_prompt}
-
-    except Exception as e:
-        logging.info(f"[ERROR] 프롬프트 생성 실패: {e}")
-        return {"status": "FAILURE", "error": str(e)}
-
-
-@celery_app.task(name="generate_final_image", bind=True)
-def generate_final_image(self, user_id: int, dalle_prompt: str) -> dict:
-    try:
-        task_id = self.request.id
-        user_folder = f"user_{user_id}"
-
-        # 영구적으로 사용한 blob 파일 경로 
+        # 영구적으로 사용한 blob 파일 경로
+        user_folder = f"user_{user_id}" 
         filename_png = f"{user_folder}/generated/png/{task_id}.png"
         filename_psd = f"{user_folder}/generated/psd/{task_id}.psd"
 
@@ -258,7 +192,7 @@ def generate_final_image(self, user_id: int, dalle_prompt: str) -> dict:
         dalle_img.save(png_buffer, format="PNG")
         png_buffer.seek(0)
         
-        container_client.upload_blob(name=filename_png, data=png_buffer, overwrite=True)
+        blob_storage.upload_blob(name=filename_png, data=png_buffer, overwrite=True)
         logging.info(f"[STEP 9] PNG Blob 저장 완료: {filename_png}")
         png_buffer.close()
 
@@ -268,7 +202,7 @@ def generate_final_image(self, user_id: int, dalle_prompt: str) -> dict:
         dalle_img.save(temp_png_path, format="PNG")
         subprocess.run(["convert", temp_png_path, temp_psd_path], check=True)
         with open(temp_psd_path, "rb") as f:
-            container_client.upload_blob(name=filename_psd, data=f, overwrite=True)
+            blob_storage.upload_blob(name=filename_psd, data=f, overwrite=True)
         logging.info(f"[STEP 10] PSD 업로드 완료: {filename_psd}")
         
         # --- DB 저장 로직 추가 ---
@@ -276,7 +210,6 @@ def generate_final_image(self, user_id: int, dalle_prompt: str) -> dict:
         try:
             new_image = models.Image(
                 task_id=task_id,
-                prompt=dalle_prompt,
                 png_url=filename_png,
                 psd_url=filename_psd,
                 user_id=user_id
@@ -293,8 +226,8 @@ def generate_final_image(self, user_id: int, dalle_prompt: str) -> dict:
         os.remove(temp_png_path)
         os.remove(temp_psd_path)
 
-        png_url = generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_png)
-        psd_url = generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_psd)
+        png_url = blob_storage.generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_png)
+        psd_url = blob_storage.generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_psd)
         return {"status": "SUCCESS", "png_url": png_url, "psd_url": psd_url}
 
     except Exception as e:

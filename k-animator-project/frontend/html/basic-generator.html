@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이미지 생성 - 한국풍 이미지 생성기</title>
+    <script src="../js/auth-guard.js"></script>         
+    <link rel="stylesheet" href="../css/basic-generator.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo">
+                <a href="index.html">
+                    <i class="fa-solid fa-house"></i>
+                    <h1>한국풍 이미지 생성기</h1>
+                </a>
+            </div>
+            <div class="user-menu">
+                <!-- ID 추가: user-profile-btn -->
+                <button class="icon-btn" id="user-profile-btn"><i class="fa-regular fa-user"></i></button>
+                <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="panel mode-selector">
+                <div class="modes">
+                    <a href="basic-generator.html" class="btn-mode active">기본 모드</a>
+                    <a href="style-generator.html" class="btn-mode">스타일 생성 모드</a>
+                    <a href="advanced-generator.html" class="btn-mode">고급 생성 모드</a>
+                </div>
+                <div class="mode-info">
+                    <span>현재 모드: 기본 모드</span>
+                    <a href="edit.html" class="btn btn-edit">
+                        <i class="fa-solid fa-pen"></i> 이미지 편집
+                    </a>
+                </div>
+            </div>
+
+            <div class="generator-layout">
+                <div class="panel settings-panel">
+                    <h2>이미지 설정</h2>
+                    <form>
+                        <div class="form-group">
+                            <label>카테고리 *</label>
+                            <div class="btn-group">
+                                <button type="button" class="btn-option">명소</button>
+                                <button type="button" class="btn-option">음식</button>
+                                <button type="button" class="btn-option">문화</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>레이어 *</label>
+                            <div class="btn-group">
+                                <button type="button" class="btn-option">콘티</button>
+                                <button type="button" class="btn-option">스케치</button>
+                                <button type="button" class="btn-option active">채색(기본)</button>
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" class="btn-option">채색(명암)</button>
+                                <button type="button" class="btn-option">배경</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="keywords">키워드 *</label>
+                            <input type="text" id="keywords" placeholder="예: 김치, 한옥, 한복 등">
+                        </div>
+                        <div class="form-group">
+                            <label for="description">장면 설명 *</label>
+                            <textarea id="description" rows="5" placeholder="예: 접시에 담긴 먹음직스러운 김치 그려줘"></textarea>
+                            <div class="char-counter">0/500</div>
+                        </div>
+                        <div class="form-group">
+                            <label>참조 이미지</label>
+                            <div class="upload-box">
+                                <i class="fa-solid fa-plus"></i>
+                                <input type="file" class="file-input">
+                            </div>
+                        </div>
+                        <button id="generate-button" type="button" class="btn-submit">이미지 생성하기</button>
+                    </form>
+                </div>
+
+                <div class="panel display-panel">
+                    <div class="display-header">
+                        <h2>생성된 이미지</h2>
+                        <span>총 0개</span>
+                    </div>
+                    <div class="image-placeholder">
+                        <i class="fa-regular fa-image"></i>
+                        <p><b>아직 생성된 이미지가 없습니다</b></p>
+                        <p>왼쪽 패널에서 설정을 완료하고 이미지를 생성해보세요</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <button class="talk-button">
+        <i class="fa-solid fa-headset"></i> Talk with Us
+    </button>
+    
+    <!-- === 사용자 프로필 모달 추가 === -->
+    <div id="user-profile-modal" class="modal-overlay">
+        <div class="profile-card">
+            <button class="close-btn" id="close-profile-btn"><i class="fa-solid fa-xmark"></i></button>
+            <h3>내 프로필</h3>
+            
+            <div class="profile-avatar">
+                <i class="fa-solid fa-circle-user"></i>
+            </div>
+
+            <div class="profile-info-group">
+                <p class="info-label">사용자 이름 (ID)</p>
+                <p class="info-value" id="profile-username">로딩 중...</p>
+            </div>
+            <div class="profile-info-group">
+                <p class="info-label">전체 이름</p>
+                <p class="info-value" id="profile-fullname">로딩 중...</p>
+            </div>
+            <div class="profile-info-group">
+                <p class="info-label">이메일</p>
+                <p class="info-value" id="profile-email">로딩 중...</p>
+            </div>
+            
+            <div class="profile-actions">
+                <button id="logout-btn" class="btn btn-danger btn-full-width">로그아웃</button>
+            </div>
+        </div>
+    </div>
+    <!-- ============================= -->
+    
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/basic-generator.js"></script>
+</body>
+</html>

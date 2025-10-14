@@ -2,7 +2,9 @@ import uuid
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from .database import Base
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 
 #고유식별값 생성
 def generate_uuid():
@@ -26,10 +28,9 @@ class Image(Base):
 
     id = Column(String, primary_key=True, default=generate_uuid)
     task_id = Column(String, unique=True, index=True)
-    prompt = Column(String)
     png_url = Column(String)
     psd_url = Column(String, nullable=True)
     created_at = Column(DateTime, server_default=func.now())    # 생성시간
-    user_id = Column(String, ForeignKey("users.id"))   # user 테이블과 연결
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)   # user 테이블과 연결
 
     owner = relationship("User", back_populates="images")

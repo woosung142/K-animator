@@ -1,5 +1,11 @@
-FROM nginx:1.29.1-alpine-slim
+FROM nginx:1.25-alpine
 
-COPY src/ /usr/share/nginx/html
+RUN rm -rf /usr/share/nginx/html/*
 
-EXPOSE 80
+COPY html/ /usr/share/nginx/html/
+
+COPY css/ /usr/share/nginx/html/css/
+COPY js/ /usr/share/nginx/html/js/
+COPY images/ /usr/share/nginx/html/images/
+
+EXPOSE 8000

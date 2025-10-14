@@ -63,3 +63,33 @@ variable "private_dns_rg_name" {
   type = string
   default = "k-animator"
 }
+# ----------------------------------------------------
+# API Gateway 변수
+# ----------------------------------------------------
+
+# --------------------------
+# Backend Service Variables
+# --------------------------
+
+variable "backend_auth_url" {
+  description = "The URL for the Auth backend service."
+  type        = string
+}
+
+variable "backend_model_api_url" {
+  description = "The URL for the Model API backend service."
+  type        = string
+}
+
+variable "backend_util_url" {
+  description = "The URL for the Util backend service."
+  type        = string
+}
+# --------------------------
+# APIM Settings Variable
+# --------------------------
+
+variable "apim_name" {
+  description = "The name of the API Management service."
+  type        = string
+}

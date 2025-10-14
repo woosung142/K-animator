@@ -5,11 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 import logging
 
-from auth.core.dependency import get_current_user
-from auth.db import models
+from shared.dependencies import get_user_id_from_gateway # 공유폴더
+#from auth.db import models
 
 router = APIRouter(
-    prefix="/model",
     tags=["이미지 생성 API"]
 )
 
@@ -30,14 +29,19 @@ class FinalPromptRequest(BaseModel):
     dalle_prompt: str  
 
 # 프롬프트 생성 요청
-@router.post("/api/generate-prompt")
+@router.post("/generate-prompt")
 async def generate_prompt_endpoint(
     request: PromptRequest,
-    current_user: models.User = Depends(get_current_user)
+    user_id: str = Depends(get_user_id_from_gateway),
+    db: Session = Depends(database.get_db)
 ):
+    user = shared_crud.get_id(db, user_id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     logging.info(f"[REQUEST] POST /api/generate-image")
-    logging.info(f"[DATA] category: {request.category}")
-    logging.info(f"[DATA] layer: {request.layer}")
+    logging.info(f"[DATA] id: {user.id}")
+    logging.info(f"[DATA] name: {user.username}")
     logging.info(f"[DATA] tag: {request.tag}")
     logging.info(f"[DATA] caption_input: {request.caption_input}")
     logging.info(f"[DATA] image_url: {request.image_url}")
@@ -45,9 +49,8 @@ async def generate_prompt_endpoint(
     task = celery_app.send_task(    #redis에 적재
         "generate_image",
         args=[
-            current_user.username,
-            request.category,   
-            request.layer,
+            user.id,
+            user.username,
             request.tag,    #키워드
             request.caption_input,  #장면 설명
             request.image_url
@@ -56,11 +59,12 @@ async def generate_prompt_endpoint(
     logging.info(f"[TASK] Celery task 전송 완료 - task_id: {task.id}")
     return {"task_id": task.id}
 
+'''
 # 최종 이미지 생성 요청
-@router.post("/api/generate-image-from-prompt")
+@router.post("/generate-image-from-prompt")
 async def generate_image_from_prompt(
     request: FinalPromptRequest,
-    current_user: models.User = Depends(get_current_user)
+    user_id: str = Depends(get_user_id_from_gateway)
 ):
     logging.info("[REQUEST] POST /api/generate-image-from-prompt")
     task = celery_app.send_task(
@@ -71,10 +75,13 @@ async def generate_image_from_prompt(
     )
     logging.info(f"[TASK] celery 'generate_final_image' task 전송 완료 - task_id: {task.id}")
     return {"task_id": task.id}
-
+'''
 # 결과 조회 (prompt 또는 image 결과 모두 포함)
-@router.get("/api/result/{task_id}")
-async def get_result(task_id: str):
+@router.get("/result/{task_id}")
+async def get_result(
+    task_id: str,
+    user_id: str = Depends(get_user_id_from_gateway)
+):
     logging.info(f"[REQUEST] GET /api/result/{task_id}")
     result = celery_app.AsyncResult(task_id)    # result backend를 확인하는 역할
     logging.info(f"[INFO] 현재 상태: {result.state}")

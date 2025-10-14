@@ -1,15 +1,18 @@
-# Python 기반 이미지 사용
 FROM python:3.10-slim
 
-# 작업 디렉토리 설정
+ENV PYTHONUNBUFFERED 1
+
+ENV PYTHONPATH /app
+
 WORKDIR /app
 
-# 종속성 복사 및 설치
-COPY requirements.txt .
+COPY model_api/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 소스 코드 복사
-COPY . .
+COPY shared/ /app/shared/
 
-# FastAPI 서버 실행 (생성된 이미지는 API용)
-CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+COPY model_api/ /app/model_api/
+
+EXPOSE 8002
+
+CMD ["uvicorn", "model-api.api:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
