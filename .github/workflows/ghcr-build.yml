@@ -18,13 +18,15 @@ jobs:
         with:
           filters: |
             frontend:
-              - 'web/frontend/**'
-            backend:
-              - 'web/backend/**'
+              - 'k-animator-project/frontend/**'
+            auth:
+              - 'k-animator-project/auth/**'
             model-api:
-              - 'model-api/**'
+              - 'k-animator-project/model_api/**'
             model-worker:
-              - 'model-worker/**'
+              - 'k-animator-project/model_worker/**'
+            util:
+              - 'k-animator-project/util/**'
   build-push-update:
     needs: changes
     if: ${{ needs.changes.outputs.service_changes != '[]' }}
@@ -79,7 +81,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6.5.0
         with:
-          context: ./k-ainimator-project
+          context: ./k-animator-project
           file: ${{ steps.set-context.outputs.path }}/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
