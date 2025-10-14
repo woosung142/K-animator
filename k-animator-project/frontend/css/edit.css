@@ -1,0 +1,127 @@
+@import url('style.css');
+/* 기본 스타일 */
+body {
+    background-color: #f0f4ff; /* 배경색 변경: 연한 하늘색 */
+    margin: 0;
+    color: #333;
+}
+.app-container {
+    max-width: 1920px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* 상단 헤더 */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+    margin: 0 -20px 20px -20px;
+    padding: 15px 40px;
+}
+.app-header .back-link a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+}
+.app-header .back-link i {
+    font-size: 20px;
+    margin-right: 15px;
+}
+.app-header .back-link h1 {
+    font-size: 22px;
+}
+.user-menu .icon-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    margin-left: 20px;
+    cursor: pointer;
+    color: #555;
+}
+
+/* 메인 콘텐츠 패널 */
+.info-panel {
+    background-color: #fff;
+    border: 1px solid #e0e7ff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+.info-panel h3 {
+    margin-top: 0;
+}
+.gallery-panel {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+}
+.gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+.gallery-header h2 {
+    margin: 0;
+    font-size: 20px;
+}
+.gallery-header span {
+    font-size: 14px;
+    color: #666;
+}
+
+/* 이미지 그리드 */
+.image-grid a.image-link {
+    text-decoration: none;
+    color: inherit;
+    display: block; /* 링크 영역이 카드를 꽉 채우도록 설정 */
+}
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+.image-card {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.image-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+.image-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* 플로팅 버튼 */
+.talk-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 12px 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 100;
+}
+.talk-button i {
+    margin-right: 8px;
+}

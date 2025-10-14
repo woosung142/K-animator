@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: auth
+          image: ghcr.io/woosung142/k-animator/auth:main
+          ports:
+            - containerPort: 8001
+          envFrom:
+            - secretRef:
+                name: app-secrets
+      imagePullSecrets:
+        - name: ghcr-secret

@@ -1,0 +1,15 @@
+numpy==1.24.4                 # torch → numpy 변환 시 필요
+requests==2.31.0              # DALL·E API 호출 및 이미지 다운로드
+Pillow==10.2.0                # 이미지 처리 (PNG 저장, PSD 변환)
+celery==5.3.6                 # Celery 워커 태스크 처리
+redis==5.0.3                  # Redis 브로커/백엔드 연결
+azure-storage-blob==12.19.1  # Azure Blob Storage 연동
+python-dotenv==1.0.1         # .env 환경변수 로드
+openai==1.93.3                # OpenAI GPT / AzureOpenAI API 사용
+psycopg2-binary==2.9.9        # PostgreSQL 접속 (psycopg2 경량판)
+transformers==4.40.1         # KoCLIP 모델 로딩 (AutoModel 등)
+torch==2.2.2                  # KoCLIP 모델 실행 (GPU/CPU)
+wand==0.6.11                  # ImageMagick 연동 (convert 명령어용)
+
+sqlalchemy==2.0.31
+psycopg2-binary==2.9.9
