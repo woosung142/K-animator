@@ -67,11 +67,11 @@ jobs:
           SERVICE_NAME="${{ matrix.service }}"
           SERVICE_PATH=""
           case "$SERVICE_NAME" in
-            "frontend")     SERVICE_PATH="k-animator-project/frontend" ;;
-            "auth")         SERVICE_PATH="k-animator-project/auth" ;;
-            "model-api")    SERVICE_PATH="k-animator-project/model_api" ;;
-            "model-worker") SERVICE_PATH="k-animator-project/model_worker" ;;
-            "util")         SERVICE_PATH="k-animator-project/util" ;;
+            "frontend")     SERVICE_PATH="k-animator-project/frontend/Dockerfile" ;;
+            "auth")         SERVICE_PATH="k-animator-project/auth/Dockerfile" ;;
+            "model-api")    SERVICE_PATH="k-animator-project/model_api/Dockerfile" ;;
+            "model-worker") SERVICE_PATH="k-animator-project/model_worker/Dockerfile" ;;
+            "util")         SERVICE_PATH="k-animator-project/util/Dockerfile" ;;
             *)
               echo "::error::Unknown service name: $SERVICE_NAME"
               exit 1
@@ -83,7 +83,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6.5.0
         with:
-          context: ./${{ steps.set-context.outputs.path }}
+          context: .
           file: ./${{ steps.set-context.outputs.path }}/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
