@@ -64,17 +64,26 @@ jobs:
       - name: Set Docker build context
         id: set-context
         run: |
-          if [[ "${{ matrix.service }}" == "frontend" || "${{ matrix.service }}" == "backend" ]]; then
-            echo "path=web/${{ matrix.service }}" >> $GITHUB_OUTPUT
-          else
-            echo "path=${{ matrix.service }}" >> $GITHUB_OUTPUT
-          fi
+          SERVICE_NAME="${{ matrix.service }}"
+          SERVICE_PATH=""
+          case "$SERVICE_NAME" in
+            "frontend")     SERVICE_PATH="k-animator-project/frontend" ;;
+            "auth")         SERVICE_PATH="k-animator-project/auth" ;;
+            "model-api")    SERVICE_PATH="k-animator-project/model_api" ;;
+            "model-worker") SERVICE_PATH="k-animator-project/model_worker" ;;
+            "util")         SERVICE_PATH="k-animator-project/util" ;;
+            *)
+              echo "::error::Unknown service name: $SERVICE_NAME"
+              exit 1
+              ;;
+          esac
+          echo "path=${SERVICE_PATH}" >> $GITHUB_OUTPUT
 
       - name: Build and Push image to GHCR
         id: build
         uses: docker/build-push-action@v6.5.0
         with:
-          context: ./${{ steps.set-context.outputs.path }}
+          context: ./k-animator-project
           file: ./${{ steps.set-context.outputs.path }}/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
