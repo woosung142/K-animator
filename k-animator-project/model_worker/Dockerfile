@@ -17,6 +17,6 @@ COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 COPY shared/ /app/shared/
-COPY model-worker/ /app/model-worker/
+COPY model_worker/ /app/model_worker/
 
 CMD ["celery", "-A", "model-worker.worker:celery_app", "worker", "--loglevel=info"]
