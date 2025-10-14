@@ -1,24 +1,44 @@
+version: '3.8'
+
 services:
-  auth:
+  web:
     build:
-      context: ./k-animator-project
-      dockerfile: ./auth/Dockerfile
-    ports:
-      - "8001:8000"
-    env_file:
-      - ./k-animator-project/auth/.env
-    volumes:
-      - ./k-animator-project/auth:/app/auth
-      - ./k-animator-project/shared:/app/shared
-  
-  frontend:
-    build:
-      context: ./front_test
+      context: ./web
       dockerfile: Dockerfile
+    container_name: web
     ports:
       - "8080:80"
-    volumes:
-      - ./front_test/html:/usr/share/nginx/html
-      - ./front_test/css:/usr/share/nginx/html/css
-      - ./front_test/js:/usr/share/nginx/html/js
-      - ./front_test/images:/usr/share/nginx/html/images
+    env_file:
+      - .env  # 현재 디렉토리에 있으므로 상대경로 아님
+
+  model-api:
+    build:
+      context: ./model-api
+      dockerfile: Dockerfile
+    container_name: model-api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    env_file:
+      - .env
+
+  model-worker:
+    build:
+      context: ./model-worker
+      dockerfile: Dockerfile
+    container_name: model-worker
+    depends_on:
+      - redis
+    restart: unless-stopped
+    env_file:
+      - .env
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  model_cache:

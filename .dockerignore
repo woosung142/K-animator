@@ -21,16 +21,3 @@ node_modules/
 
 secret.yaml
 *.secret.yaml
-
-# Virtual environment
-.venv
-venv/
-ENV/
-env/
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
