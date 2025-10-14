@@ -3,11 +3,18 @@ kind: Kustomization
 resources:
   - frontend-deployment.yaml
   - frontend-service.yaml
-  - backend-deployment.yaml
-  - backend-service.yaml
+
+  - auth-deployment.yaml
+  - auth-service.yaml
+
+  - util-deployment.yaml
+  - util-service.yaml
+
   - model-api-deploy.yaml
   - model-api-service.yaml
+
   - model-worker-deploy.yaml
   - model-worker-service.yaml
+  
   - redis-deploy.yaml
   - redis-service.yaml

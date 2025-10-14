@@ -1,0 +1,170 @@
+@import url('style.css');
+/* 기본 스타일 */
+body {
+    background-color: #f0f4ff;
+    color: #333;
+    padding: 20px;
+}
+.btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+}
+
+/* 페이지 전체 레이아웃 */
+.edit-page-layout {
+    display: flex;
+    gap: 20px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* 왼쪽 사이드바 */
+.sidebar {
+    flex: 0 0 320px; /* 사이드바 너비 고정 */
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    height: fit-content;
+}
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+.sidebar-header a {
+    font-size: 20px;
+    color: #333;
+    margin-right: 15px;
+}
+.sidebar-header h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+/* 도구 섹션 */
+.tool-section {
+    margin-bottom: 30px;
+}
+.tool-section h4 {
+    margin: 0 0 10px 0;
+}
+.tool-section p {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 15px 0;
+}
+.tool-section .btn-group {
+    display: flex;
+    gap: 10px;
+}
+.btn.btn-secondary {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+.btn.btn-secondary.active {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+}
+.btn-tool {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 15px;
+    font-size: 16px;
+    border: none;
+    text-align: left;
+}
+.btn-tool i {
+    margin-right: 15px;
+    width: 20px;
+    text-align: center;
+}
+.btn-tool.btn-pink   { background-color: #fff0f6; color: #d63384; }
+.btn-tool.btn-orange { background-color: #fff8e1; color: #ff9800; }
+.btn-tool.btn-green  { background-color: #e6fcf5; color: #00bfa5; }
+.btn-tool.btn-purple { background-color: #f3e5f5; color: #9c27b0; }
+
+.save-section .btn-primary {
+    background-color: #4f46e5;
+    color: white;
+    border: none;
+    margin-bottom: 10px;
+}
+
+/* 오른쪽 캔버스 영역 */
+.canvas-area {
+    flex: 1; /* 남은 공간 모두 차지 */
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+}
+.canvas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+}
+.canvas-header h3 {
+    margin: 0;
+    font-size: 20px;
+}
+.helper-text {
+    font-size: 14px;
+    color: #666;
+}
+.image-display {
+    margin-top: 20px;
+    text-align: center;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+.image-display img {
+    max-width: 100%;
+    max-height: 500px;
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.history-log {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+.history-log h4 {
+    margin: 0 0 10px 0;
+}
+.history-log p {
+    margin: 0;
+    color: #888;
+    font-size: 14px;
+}
+
+/* 플로팅 버튼 */
+.talk-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 12px 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 100;
+}
+.talk-button i {
+    margin-right: 8px;
+}
