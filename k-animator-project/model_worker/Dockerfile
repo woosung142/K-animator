@@ -6,7 +6,7 @@ RUN apt-get update && \
 
 FROM base AS builder
 WORKDIR /app
-COPY model-worker/requirements.txt .
+COPY model_worker/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 FROM base AS final
