@@ -12,6 +12,7 @@ spec:
       labels:
         app: auth
     spec:
+      serviceAccountName: auth-sa
       containers:
         - name: auth
           image: ghcr.io/woosung142/k-animator/auth:main
