@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/woosung142/k-animator/frontend:main
+          image: ghcr.io/woosung142/k-animator/frontend::v1.0.0
           ports:
             - containerPort: 80
       imagePullSecrets:
