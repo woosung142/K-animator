@@ -28,8 +28,8 @@ jobs:
               - 'k-animator-project/model_api/**'
             model-worker:
               - 'k-animator-project/model_worker/**'
-            util:
-              - 'k-animator-project/util/**'
+            utils:
+              - 'k-animator-project/utils/**'
   
   build-and-push:
     needs: changes
