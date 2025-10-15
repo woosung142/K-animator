@@ -87,7 +87,11 @@ jobs:
         id: prepare_output
         run: |
           JSON_STRING=$(jq -n --arg service "${{ matrix.service }}" --arg tag "${{ steps.meta.outputs.tags }}" '{service: $service, tag: $tag}')
-          echo "data=$JSON_STRING" >> $GITHUB_OUTPUT
+          {
+            echo "data<<EOF"
+            echo "$JSON_STRING"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
   update-manifests:
     needs: [changes, build-and-push]
