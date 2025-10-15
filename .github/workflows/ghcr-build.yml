@@ -95,8 +95,12 @@ jobs:
       - name: Prepare build data for this job
         id: prepare-output
         run: |
-          JSON_STRING=$(jq -n --arg service "${{ matrix.service }}" --arg tag "${{ steps.meta.outputs.version }}" '{service: $service, tag: $tag}')
-          echo "data=$JSON_STRING" >> $GITHUB_OUTPUT
+          JSON_STRING=$(jq -c -n --arg service "${{ matrix.service }}" --arg tag "${{ steps.meta.outputs.tags }}" '{service: $service, tag: $tag}')
+          {
+            echo "build_data<<EOF"
+            echo "$JSON_STRING"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
   update-manifests:
     needs: [build-and-push]
