@@ -12,6 +12,6 @@ images:
   - name: ghcr.io/woosung142/k-animator/model-api
     newTag: develop-develop-b1efc22
   - name: ghcr.io/woosung142/k-animator/model-worker
-    newTag: develop-develop-845c778
+    newTag: develop-develop-a52c1c2
   - name: ghcr.io/woosung142/k-animator/auth
     newTag: develop-develop-b1efc22
