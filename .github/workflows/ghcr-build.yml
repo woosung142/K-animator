@@ -134,7 +134,7 @@ jobs:
           echo "Received build data array:"
           echo "${BUILD_DATA_JSON}"
 
-          echo "${BUILD_DATA_JSON}" | jq -r '.[] | fromjson | @base64' | while IFS= read -r b64; do
+          echo "${BUILD_DATA_JSON}" | jq -r '(if type == "array" then . else [.] end) | .[] | fromjson | @base64' | while IFS= read -r b64; do
             JSON_STRING=$(echo "$b64" | base64 --decode)
             SERVICE=$(echo "$JSON_STRING" | jq -r '.service')
             IMAGE_TAG=$(echo "$JSON_STRING" | jq -r '.tag')

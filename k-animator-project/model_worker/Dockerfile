@@ -20,3 +20,4 @@ COPY shared/ /app/shared/
 COPY model_worker/ /app/model_worker/
 
 CMD ["celery", "-A", "model-worker.worker:celery_app", "worker", "--loglevel=info"]
+#.

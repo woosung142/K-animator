@@ -16,3 +16,4 @@ COPY model_api/ /app/model_api/
 EXPOSE 8002
 
 CMD ["uvicorn", "model-api.api:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+#.
