@@ -96,7 +96,7 @@ jobs:
       - name: Prepare build data for this job
         id: prepare-output
         run: |
-          JSON_STRING=$(jq -c -n --arg service "${{ matrix.service }}" --arg tag "${{ steps.meta.outputs.tags }}" '{service: $service, tag: $tag}')
+          JSON_STRING=$(jq -c -n --arg service "${{ matrix.service }}" --arg tag "${{ steps.meta.outputs.version }}" '{service: $service, tag: $tag}')
           {
             echo "build_data<<EOF"
             echo "$JSON_STRING"

@@ -8,4 +8,4 @@ COPY frontend/js/ /usr/share/nginx/html/js/
 COPY frontend/images/ /usr/share/nginx/html/images/
 
 EXPOSE 80
-#.
+#..
