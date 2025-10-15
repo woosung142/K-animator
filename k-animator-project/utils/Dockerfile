@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 FROM base
 
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONPATH /app
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
 
 WORKDIR /app
 
