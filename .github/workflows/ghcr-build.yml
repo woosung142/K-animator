@@ -63,7 +63,6 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/k-animator/${{ matrix.service }}
           tags: |
-            # 브랜치 이름과 짧은 커밋 SHA를 조합하여 고유한 태그 생성 (예: main-a1b2c3d)
             type=raw,value={{branch}}-{{shortsha}}
 
       - name: Set Docker build context and file path
@@ -96,8 +95,6 @@ jobs:
       - name: Prepare build data for this job
         id: prepare-output
         run: |
-          # 'metadata-action'의 'version' output을 사용하면 순수한 태그 값만 가져올 수 있어 안정적입니다.
-          # 예: 'main-a1b2c3d'
           JSON_STRING=$(jq -n --arg service "${{ matrix.service }}" --arg tag "${{ steps.meta.outputs.version }}" '{service: $service, tag: $tag}')
           echo "data=$JSON_STRING" >> $GITHUB_OUTPUT
 
