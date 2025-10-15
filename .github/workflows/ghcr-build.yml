@@ -127,6 +127,12 @@ jobs:
             yq e '(.images[] | select(.name | test("ghcr.io/${{ github.repository_owner }}/k-animator/'"$SERVICE"'")) | .newTag) = strenv(IMAGE_TAG)' -i ${KUSTOMIZE_PATH}
           done
 
+          # 디버깅
+          echo "--- Checking for file changes ---"
+          git status
+          echo "--- Displaying diff for ${KUSTOMIZE_PATH} ---"
+          git diff ${KUSTOMIZE_PATH} || true
+
           if ! git diff --quiet ${KUSTOMIZE_PATH}; then
             git add ${KUSTOMIZE_PATH}
             git commit -m "ci: Update image tags for changed services on ${{ github.ref_name }}"
