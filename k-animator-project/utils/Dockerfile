@@ -12,12 +12,12 @@ ENV PYTHONPATH=/app
 
 WORKDIR /app
 
-COPY util/requirements.txt .
+COPY utils/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY shared/ /app/shared/
 
-COPY utils/ /app/util/
+COPY utils/ /app/utils/
 
 EXPOSE 8003
 
