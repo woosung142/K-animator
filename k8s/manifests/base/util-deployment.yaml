@@ -12,6 +12,7 @@ spec:
       labels:
         app: util
     spec:
+      serviceAccountName: util-sa
       containers:
         - name: util
           image: ghcr.io/woosung142/k-animator/util:main

@@ -12,6 +12,7 @@ spec:
       labels:
         app: model-worker
     spec:
+      serviceAccountName: model-worker-sa
       containers:
         - name: model-worker
           image: ghcr.io/woosung142/k-animator/model-worker:main

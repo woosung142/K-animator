@@ -12,6 +12,7 @@ spec:
       labels:
         app: model-api
     spec:
+      serviceAccountName: model-api-sa
       containers:
         - name: model-api
           image: ghcr.io/woosung142/k-animator/model-api:main
