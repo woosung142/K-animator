@@ -6,7 +6,7 @@ resources:
   - ingress.yaml
 images:
   - name: ghcr.io/woosung142/k-animator/frontend
-    newTag: develop-develop-9257a60
+    newTag: develop-develop-4f67b4d
   - name: ghcr.io/woosung142/k-animator/util
     newTag: develop
   - name: ghcr.io/woosung142/k-animator/model-api
