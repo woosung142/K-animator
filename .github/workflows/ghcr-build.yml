@@ -37,7 +37,7 @@ jobs:
         service: ${{ fromJson(needs.changes.outputs.service_changes) }}
         
     outputs:
-      image_tag_${{ matrix.service }}: ${{ steps.meta.outputs.tags }}
+      build_data: ${{ steps.prepare_output.outputs.data }}
 
     steps:
       - name: Checkout repository
@@ -83,6 +83,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      - name: Prepare build data output
+        id: prepare_output
+        run: |
+          JSON_STRING=$(jq -n --arg service "${{ matrix.service }}" --arg tag "${{ steps.meta.outputs.tags }}" '{service: $service, tag: $tag}')
+          echo "data=$JSON_STRING" >> $GITHUB_OUTPUT
 
   update-manifests:
     needs: [changes, build-and-push]
@@ -95,7 +100,7 @@ jobs:
           token: ${{ secrets.WOOSUNG142 }}
       - name: Update Kustomize Manifest
         env:
-          BUILD_OUTPUTS: ${{ toJSON(needs.build-and-push.outputs) }}
+          BUILD_DATA_ARRAY: ${{ toJSON(needs.build-and-push.outputs.build_data) }}
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
@@ -110,14 +115,15 @@ jobs:
           wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           chmod a+x /usr/local/bin/yq
 
-          for SERVICE in ${{ fromJson(needs.changes.outputs.service_changes) }}; do
-            IMAGE_FULL_TAG=$(echo "$BUILD_OUTPUTS" | jq -r ".image_tag_${SERVICE}")
+          echo "$BUILD_DATA_ARRAY" | jq -r '.[]' | while IFS= read -r build_data_json; do
+            SERVICE=$(echo "$build_data_json" | jq -r '.service')
+            IMAGE_FULL_TAG=$(echo "$build_data_json" | jq -r '.tag')
             IMAGE_TAG=$(echo "$IMAGE_FULL_TAG" | cut -d ':' -f 2)
             echo "Updating image for service: ${SERVICE} with tag: ${IMAGE_TAG}"
             yq e '(.images[] | select(.name | test("ghcr.io/${{ github.repository_owner }}/k-animator/'"$SERVICE"'")) | .newTag) = strenv(IMAGE_TAG)' -i ${KUSTOMIZE_PATH}
           done
-          
-          if ! git diff --staged --quiet; then
+
+          if ! git diff --quiet ${KUSTOMIZE_PATH}; then
             git add ${KUSTOMIZE_PATH}
             git commit -m "ci: Update image tags for changed services on ${{ github.ref_name }}"
             git push
