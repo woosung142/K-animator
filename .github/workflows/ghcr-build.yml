@@ -123,8 +123,14 @@ jobs:
             SERVICE=$(echo "$build_data_json" | jq -r '.service')
             IMAGE_FULL_TAG=$(echo "$build_data_json" | jq -r '.tag')
             IMAGE_TAG=$(echo "$IMAGE_FULL_TAG" | cut -d ':' -f 2)
-            echo "Updating image for service: ${SERVICE} with tag: ${IMAGE_TAG}"
-            yq e '(.images[] | select(.name | test("ghcr.io/${{ github.repository_owner }}/k-animator/'"$SERVICE"'")) | .newTag) = strenv(IMAGE_TAG)' -i ${KUSTOMIZE_PATH}
+
+            echo "--- Debug Info ---"
+            echo "Service: ${SERVICE}"
+            echo "Full Tag from previous job: ${IMAGE_FULL_TAG}"
+            echo "Extracted Tag to be applied: ${IMAGE_TAG}"
+            echo "------------------"
+            
+            yq e "(.images[] | select(.name | test(\"ghcr.io/${{ github.repository_owner }}/k-animator/${SERVICE}\")) | .newTag) = \"${IMAGE_TAG}\"" -i ${KUSTOMIZE_PATH}
           done
 
           # 디버깅
