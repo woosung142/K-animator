@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY shared/ /app/shared/
 
-COPY util/ /app/util/
+COPY utils/ /app/util/
 
 EXPOSE 8003
 
