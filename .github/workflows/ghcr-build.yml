@@ -41,7 +41,7 @@ jobs:
         service: ${{ fromJson(needs.changes.outputs.services) }}
         
     outputs:
-      build_data: ${{ steps.prepare-output.outputs.data }}
+      build_data: ${{ steps.prepare-output.outputs.build_data }}
 
     steps:
       - name: Checkout repository
