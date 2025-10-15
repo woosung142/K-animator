@@ -75,7 +75,7 @@ jobs:
             "auth")         SERVICE_PATH="k-animator-project/auth" ;;
             "model-api")    SERVICE_PATH="k-animator-project/model_api" ;;
             "model-worker") SERVICE_PATH="k-animator-project/model_worker" ;;
-            "util")         SERVICE_PATH="k-animator-project/util" ;;
+            "utils")         SERVICE_PATH="k-animator-project/utils" ;;
             *)
               echo "::error::Unknown service name: $SERVICE_NAME"
               exit 1
