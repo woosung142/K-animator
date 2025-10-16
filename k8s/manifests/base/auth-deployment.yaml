@@ -18,6 +18,12 @@ spec:
           image: ghcr.io/woosung142/k-animator/auth:main
           ports:
             - containerPort: 8001
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8001
+            initialDelaySeconds: 15
+            periodSeconds: 10
           envFrom:
             - secretRef:
                 name: app-secrets
