@@ -125,7 +125,7 @@ def read_images(
     user_id: str = Depends(get_user_id_from_gateway),
     db: Session = Depends(database.get_db)
 ):
-    images_from_db = crud.get_images_by_user(db=db, user_id=user.id)
+    images_from_db = crud.get_images_by_user(db=db, user_id=user_id)
     
     response_images = []
     for image in images_from_db:
