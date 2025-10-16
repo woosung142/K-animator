@@ -4,6 +4,7 @@ from celery import Celery
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import logging
+from sqlalchemy.orm import Session
 
 from shared.dependencies import get_user_id_from_gateway # 공유폴더
 from shared.db import database
