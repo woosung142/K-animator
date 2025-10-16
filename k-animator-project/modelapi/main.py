@@ -23,7 +23,7 @@ app.add_middleware(
 # --------------------
 
 # [핵심] Terraform/Ingress에 설정된 경로와 일치하도록 prefix를 설정합니다.
-app.include_router(model_pi_router, prefix="/api/model")
+app.include_router(modelapi_router, prefix="/api/model")
 
 @app.get("/")
 def read_root():
