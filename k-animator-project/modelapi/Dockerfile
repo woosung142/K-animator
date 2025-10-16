@@ -15,5 +15,5 @@ COPY modelapi/ /app/modelapi/
 
 EXPOSE 8002
 
-CMD ["uvicorn", "modelapi.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "modelapi.main:app", "--host", "0.0.0.0", "--port", "8002"]
 #...
