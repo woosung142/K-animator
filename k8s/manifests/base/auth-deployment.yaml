@@ -16,6 +16,7 @@ spec:
       containers:
         - name: auth
           image: ghcr.io/woosung142/k-animator/auth:main
+          imagePullPolicy: Always
           ports:
             - containerPort: 8001
           readinessProbe:
