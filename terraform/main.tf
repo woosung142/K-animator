@@ -1,5 +1,5 @@
 # ----------------------------------------------------
-# Aks Cluster
+# Aks Cluster - CPU Node Pool
 # ----------------------------------------------------
 resource "azurerm_resource_group" "aks_rg" {
   name     = var.aks_cluster_resource_group_name
@@ -41,6 +41,27 @@ resource "azurerm_kubernetes_cluster" "aks_cluster" {
   tags = {
     Environment = "Production"
     Project     = "Webtoon-Generator-New" # 새로운 프로젝트임을 명시
+  }
+}
+# ----------------------------------------------------
+# Aks Cluster - GPU Node Pool
+# ----------------------------------------------------
+resource "azurerm_kubernetes_cluster_node_pool" "gpu_nodepool" {
+  name =  "gpu"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.aks_cluster.id
+  vm_size = "Standard_NV36ads_A10_v5"
+
+  enable_auto_scaling = true # 자동 스케일링 활성화
+  min_count = 0
+  max_count = 2
+  vnet_subnet_id = data.azurerm_subnet.existing_subnet.id
+  mode = "User"
+
+  node_taints = ["sku=gpu:NoSchedule"]
+  
+  tags = {
+    Environment = "Production"
+    PoolType    = "GPU"
   }
 }
 # ----------------------------------------------------
