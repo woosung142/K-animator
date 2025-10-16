@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: model_api-service
+  name: model-api-service
 spec:
   selector:
-    app: model_api
+    app: model-api
   ports:
     - protocol: TCP
       port: 80
