@@ -21,7 +21,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: 8001
+              port: 8000
             initialDelaySeconds: 15
             periodSeconds: 10
           envFrom:
