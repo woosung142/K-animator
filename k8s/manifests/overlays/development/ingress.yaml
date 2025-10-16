@@ -31,12 +31,12 @@ spec:
               number: 80
 
       # --- [수정] Model API 라우팅 ---
-      # /api/model/* 요청은 model-api 서비스로 전달됩니다.
+      # /api/model/* 요청은 modelapi 서비스로 전달됩니다.
       - path: /api/model
         pathType: Prefix
         backend:
           service:
-            name: model-api-service
+            name: modelapi-service
             port:
               number: 80
 

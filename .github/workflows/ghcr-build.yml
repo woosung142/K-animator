@@ -21,8 +21,8 @@ jobs:
               - 'k-animator-project/frontend/**'
             auth:
               - 'k-animator-project/auth/**'
-            model_api:
-              - 'k-animator-project/model_api/**'
+            modelapi:
+              - 'k-animator-project/modelapi/**'
             model_worker:
               - 'k-animator-project/model_worker/**'
             utils:

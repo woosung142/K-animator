@@ -12,8 +12,8 @@ resources:
   - utils-deployment.yaml
   - utils-service.yaml
 
-  - model-api-deploy.yaml
-  - model-api-service.yaml
+  - modelapi-deploy.yaml
+  - modelapi-service.yaml
 
   - model-worker-deploy.yaml
   - model-worker-service.yaml

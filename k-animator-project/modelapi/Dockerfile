@@ -6,14 +6,14 @@ ENV PYTHONPATH=/app
 
 WORKDIR /app
 
-COPY model_api/requirements.txt .
+COPY modelapi/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY shared/ /app/shared/
 
-COPY model_api/ /app/model_api/
+COPY modelapi/ /app/modelapi/
 
 EXPOSE 8002
 
-CMD ["uvicorn", "model_api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "modelapi.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 #...

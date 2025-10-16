@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: model-api-deployment
+  name: modelapi-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: model-api
+      app: modelapi
   template:
     metadata:
       labels:
-        app: model-api
+        app: modelapi
     spec:
-      serviceAccountName: model-api-sa
+      serviceAccountName: modelapi-sa
       containers:
-        - name: model-api
-          image: ghcr.io/woosung142/k-animator/model-api:main
+        - name: modelapi
+          image: ghcr.io/woosung142/k-animator/modelapi:main
           imagePullPolicy: Always
           ports:
             - containerPort: 8002

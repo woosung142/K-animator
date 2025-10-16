@@ -3,9 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # src 폴더를 기준으로 각 기능별 라우터를 import 합니다.
 from auth.api import endpoints as auth_endpoints
-from model_api import api as model_endpoints
-from backend import web as utils_endpoints
-from backend.web import LimitUploadSizeMiddleware, MAX_SIZE
+from modelapi import api as model_endpoints
+from utils import web as utils_endpoints
+from utils.web import LimitUploadSizeMiddleware, MAX_SIZE
 from auth.db import models, database
 
 # --- 태그 메타데이터 정의 ---
