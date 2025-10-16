@@ -21,5 +21,5 @@ COPY utils/ /app/utils/
 
 EXPOSE 8003
 
-CMD ["python", "-c", "import utils.main"]
+CMD ["uvicorn", "utils.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 #...

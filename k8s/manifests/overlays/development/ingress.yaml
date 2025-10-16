@@ -36,7 +36,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: model-api-service
+            name: model_api-service
             port:
               number: 80
 
@@ -46,7 +46,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: util-service # Terraform의 util_api에 해당
+            name: utils-service # Terraform의 util_api에 해당
             port:
               number: 80
               
