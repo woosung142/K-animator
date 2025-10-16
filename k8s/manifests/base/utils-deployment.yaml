@@ -1,21 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: util-deployment
+  name: utils-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: util
+      app: utils
   template:
     metadata:
       labels:
-        app: util
+        app: utils
     spec:
       serviceAccountName: util-sa
       containers:
-        - name: util
+        - name: utils
           image: ghcr.io/woosung142/k-animator/utils:main
+          imagePullPolicy: Always
           ports:
             - containerPort: 8003
           envFrom:

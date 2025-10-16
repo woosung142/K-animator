@@ -9,8 +9,8 @@ resources:
   - auth-deployment.yaml
   - auth-service.yaml
 
-  - util-deployment.yaml
-  - util-service.yaml
+  - utils-deployment.yaml
+  - utils-service.yaml
 
   - model-api-deploy.yaml
   - model-api-service.yaml
