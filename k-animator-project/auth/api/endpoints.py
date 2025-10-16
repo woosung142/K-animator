@@ -66,18 +66,15 @@ def login_for_access_token(
         refresh_token,
         ex=int(security.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60)
     )
-    
-
-    is_secure_env = request.url.scheme == 'https'
-    cookie_samesite = "none" if is_secure_env else "lax"
-    
+        
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
         max_age=int(security.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60),
-        samesite=cookie_samesite,
-        secure=is_secure_env
+        domain=".prtest.shop",  # 도메인 설정
+        samesite="none",
+        secure=True
     )
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
@@ -145,18 +142,15 @@ def refresh_access_token(
         new_refresh_token,
         ex=int(security.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60)
     )
-    
-
-    is_secure_env = request.url.scheme == 'https'
-    cookie_samesite = "none" if is_secure_env else "lax"
 
     response.set_cookie(
         key="refresh_token",
         value=new_refresh_token,
         httponly=True,
         max_age=int(security.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60),
-        samesite=cookie_samesite,
-        secure=is_secure_env
+        domain=".prtest.shop",  # 도메인 설정
+        samesite="none",
+        secure=True
     )
 
     return {"access_token": new_access_token, "refresh_token": new_refresh_token, "token_type": "bearer"}
@@ -175,7 +169,12 @@ def logout(
     redis_refresh: redis.Redis = Depends(get_redis_refresh)
 ):
     redis_refresh.delete(user_id)
-    response.delete_cookie(key="refresh_token")
+    response.delete_cookie(
+        key="refresh_token",
+        domain=".prtest.shop",  # 도메인 설정
+        samesite="none",
+        secure=True
+    )
     return {"message": "성공적으로 로그아웃되었습니다."}
 
 # 보호 API 엔드포인트
