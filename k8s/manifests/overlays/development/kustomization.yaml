@@ -7,7 +7,7 @@ resources:
 images:
   - name: ghcr.io/woosung142/k-animator/frontend
     newTag: develop
-  - name: ghcr.io/woosung142/k-animator/util
+  - name: ghcr.io/woosung142/k-animator/utils
     newTag: develop
   - name: ghcr.io/woosung142/k-animator/model-api
     newTag: develop

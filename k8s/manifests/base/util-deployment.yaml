@@ -15,7 +15,7 @@ spec:
       serviceAccountName: util-sa
       containers:
         - name: util
-          image: ghcr.io/woosung142/k-animator/util:main
+          image: ghcr.io/woosung142/k-animator/utils:main
           ports:
             - containerPort: 8003
           envFrom:
