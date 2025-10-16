@@ -36,7 +36,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: model_api-service
+            name: model-api-service
             port:
               number: 80
 
