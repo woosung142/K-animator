@@ -6,53 +6,47 @@ on:
 
 jobs:
   changes:
-    if: "${{ !startsWith(github.event.head_commit.message, 'ci: Update image tags') }}"
     runs-on: ubuntu-latest
     outputs:
-      services: ${{ steps.filter.outputs.changes }}
-
+      service_changes: ${{ steps.filter.outputs.changes }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@v4.1.7
       - name: Detect changed services
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v3.0.2
         id: filter
         with:
-          list-files: json
           filters: |
             frontend:
               - 'k-animator-project/frontend/**'
             auth:
               - 'k-animator-project/auth/**'
-            model-api:
+            model_api:
               - 'k-animator-project/model_api/**'
-            model-worker:
+            model_worker:
               - 'k-animator-project/model_worker/**'
             utils:
               - 'k-animator-project/utils/**'
-  
-  build-and-push:
+
+  build-push-update:
     needs: changes
-    if: ${{ needs.changes.outputs.services != '[]' }}
+    if: ${{ needs.changes.outputs.service_changes != '[]' }}
     runs-on: ubuntu-latest
-    
     strategy:
       matrix:
-        service: ${{ fromJson(needs.changes.outputs.services) }}
-        
-    outputs:
-      build_data: ${{ steps.prepare-output.outputs.build_data }}
+        service: ${{ fromJson(needs.changes.outputs.service_changes) }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.7
+        with:
+          token: ${{ secrets.WOOSUNG142 }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v3.3.0
 
       - name: Login to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v3.2.0
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -60,106 +54,59 @@ jobs:
 
       - name: Generate Docker tags
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v5.0.0
         with:
           images: ghcr.io/${{ github.repository_owner }}/k-animator/${{ matrix.service }}
           tags: |
-            type=sha,prefix={{branch}}-,format=short
+            type=raw,value=main,enable=${{ github.ref_name == 'main' }}
+            type=raw,value=develop,enable=${{ github.ref_name == 'develop' }}
+            type=sha,format=short
 
-      - name: Set Docker build context and file path
+      - name: Set Docker build context
         id: set-context
         run: |
-          SERVICE_NAME="${{ matrix.service }}"
-          SERVICE_PATH=""
-          case "$SERVICE_NAME" in
-            "frontend")     SERVICE_PATH="k-animator-project/frontend" ;;
-            "auth")         SERVICE_PATH="k-animator-project/auth" ;;
-            "model-api")    SERVICE_PATH="k-animator-project/model_api" ;;
-            "model-worker") SERVICE_PATH="k-animator-project/model_worker" ;;
-            "utils")         SERVICE_PATH="k-animator-project/utils" ;;
-            *)
-              echo "::error::Unknown service name: $SERVICE_NAME"
-              exit 1
-              ;;
-          esac
-          echo "path=${SERVICE_PATH}" >> $GITHUB_OUTPUT
-      
+          echo "path=k-animator-project/${{ matrix.service }}" >> $GITHUB_OUTPUT
+
       - name: Build and Push image to GHCR
-        uses: docker/build-push-action@v6
+        id: build
+        uses: docker/build-push-action@v6.5.0
         with:
           context: ./k-animator-project
-          file: ${{ steps.set-context.outputs.path }}/Dockerfile
+          file: ./${{ steps.set-context.outputs.path }}/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          no-cache: true
-
-      - name: Prepare build data for this job
-        id: prepare-output
-        run: |
-          JSON_STRING=$(jq -c -n --arg service "${{ matrix.service }}" --arg tag "${{ steps.meta.outputs.version }}" '{service: $service, tag: $tag}')
-          {
-            echo "build_data<<EOF"
-            echo "$JSON_STRING"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
-  update-manifests:
-    needs: [build-and-push]
-    if: always() && needs.build-and-push.result == 'success'
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.WOOSUNG142 }}
-
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
       - name: Update Kustomize Manifest
-        env:
-          BUILD_OUTPUTS_JSON: ${{ toJSON(needs.build-and-push.outputs) }}
+        if: github.ref_name == 'main' || github.ref_name == 'develop'
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          export IMAGE_TAG=${{ github.ref_name }}
 
-          BRANCH_NAME="${{ github.ref_name }}"
-          if [[ "$BRANCH_NAME" == "main" ]]; then
+          if [[ -z "${IMAGE_TAG}" ]]; then
+            echo "Error: IMAGE_TAG is empty. Aborting."
+            exit 1
+          fi
+
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
             KUSTOMIZE_PATH="k8s/manifests/overlays/production/kustomization.yaml"
           else
             KUSTOMIZE_PATH="k8s/manifests/overlays/development/kustomization.yaml"
           fi
 
+          echo "Updating ${KUSTOMIZE_PATH} for ${{ matrix.service }} with tag ${IMAGE_TAG}"
+
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          git fetch origin ${{ github.ref_name }}
+          git reset --hard origin/${{ github.ref_name }}
+          
           wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           chmod a+x /usr/local/bin/yq
+          yq e '(.images[] | select(.name | test("ghcr.io/${{ github.repository_owner }}/k-animator/${{ matrix.service }}")) | .newTag) = strenv(IMAGE_TAG)' -i ${KUSTOMIZE_PATH}
 
-          echo "Received build data array:"
-          echo "${BUILD_OUTPUTS_JSON}"
-
-          echo "${BUILD_OUTPUTS_JSON}" | jq -r '.[] | .build_data | fromjson | @base64' | while IFS= read -r b64; do
-            JSON_STRING=$(echo "$b64" | base64 --decode)
-            SERVICE=$(echo "$JSON_STRING" | jq -r '.service')
-            IMAGE_TAG=$(echo "$JSON_STRING" | jq -r '.tag')
-            
-            echo "--- Updating ---"
-            echo "Service: ${SERVICE}"
-            echo "New Tag: ${IMAGE_TAG}"
-            echo "File: ${KUSTOMIZE_PATH}"
-            echo "----------------"
-
-            yq e "(.images[] | select(.name == \"ghcr.io/${{ github.repository_owner }}/k-animator/${SERVICE}\")).newTag = \"${IMAGE_TAG}\"" -i ${KUSTOMIZE_PATH}
-          done
-
-          echo "--- Checking for file changes ---"
-          git status
-          echo "--- Displaying diff for ${KUSTOMIZE_PATH} ---"
-          git diff ${KUSTOMIZE_PATH}
-
-          if ! git diff --quiet ${KUSTOMIZE_PATH}; then
-            git add ${KUSTOMIZE_PATH}
-            git commit -m "ci: Update image tags for changed services on ${{ github.ref_name }}"
-            git pull --rebase
-            git push
-          else
-            echo "No changes to commit in ${KUSTOMIZE_PATH}."
-          fi
-
+          git add ${KUSTOMIZE_PATH}
+          git commit -m "ci: Update ${{ matrix.service }} image to tag ${IMAGE_TAG}" || echo "No changes to commit"
+          git push

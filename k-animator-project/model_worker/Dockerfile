@@ -19,5 +19,5 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY shared/ /app/shared/
 COPY model_worker/ /app/model_worker/
 
-CMD ["celery", "-A", "model-worker.worker:celery_app", "worker", "--loglevel=info"]
+CMD ["celery", "-A", "model_worker.worker:celery_app", "worker", "--loglevel=info"]
 #.
