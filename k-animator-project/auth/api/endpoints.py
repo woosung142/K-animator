@@ -125,7 +125,6 @@ def refresh_access_token(
         print(f"--- [DEBUG][실패] 4. Redis에서 user_id '{user_id}'에 대한 토큰을 찾을 수 없습니다.")
         raise credentials_exception
     
-    stored_refresh_token = stored_token_from_redis.decode('utf-8')
     print(f"--- [DEBUG][성공] 4. Redis에서 토큰 조회 성공: ...{stored_refresh_token[-10:]}")
 
     if stored_refresh_token != refresh_token:
