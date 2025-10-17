@@ -18,9 +18,8 @@ celery_app.conf.result_backend = CELERY_BROKER_URL
 async def generate_image_task(
     request: ImagePromptRequest
 ):
-    try:
-        if not request.text_prompt or not request.text_prompt.strip():
-            raise HTTPException(status_code=400, detail="Text prompt cannot be empty.")
+    if not request.text_prompt or not request.text_prompt.strip():
+        raise HTTPException(status_code=400, detail="Text prompt cannot be empty.")
 
     logging.info(f"[REQUEST] POST /api/generate-image")
     logging.info(f"[DATA] prompt: {request.text_prompt}")
@@ -35,11 +34,3 @@ async def generate_image_task(
     )
     logging.info(f"[TASK] Celery task 전송 완료 - task_id: {task.id}")
     return {"task_id": task.id}
-
-    except HTTPException as http_exc:
-        raise http_exc
-        
-    except Exception as e:
-        # 그 외의 모든 예외는 서버 오류로 처리
-        logger.error(f"[ERROR] Task creation failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
