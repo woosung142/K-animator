@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://apim-k-animator.azure-api.net'; 
+const API_BASE_URL = 'https://api.prtest.shop'; 
 
 const api = axios.create({
     baseURL: API_BASE_URL,
