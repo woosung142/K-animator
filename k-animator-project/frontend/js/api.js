@@ -1,6 +1,3 @@
-// js/api.js
-
-// 1. API의 기본 주소를 Azure API Management(APIM)의 게이트웨이 루트로 통일합니다.
 const API_BASE_URL = 'https://apim-k-animator.azure-api.net'; 
 
 // 2. 기본 설정을 포함한 axios 인스턴스(api 통신 전용 객체)를 생성합니다.
@@ -57,4 +54,3 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
-
