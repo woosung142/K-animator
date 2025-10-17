@@ -67,18 +67,20 @@ def generate_image(self, text_prompt: str, image_url: str | None = None) -> dict
             "prompt": final_prompt,
             "n": 1,
             "size": "1024x1024",
-            "response_format": "url"  # 이미지 URL을 받도록 설정
+            "quality": "medium",
+            "output_format": "png",
+            "response_format": "b64_json"  # 이미지 URL을 받도록 설정
         }
 
         response = requests.post(generation_url, headers=headers, json=body)
-        response.raise_for_status()  # HTTP 오류 발생 시 예외 처리
-        
+        response.raise_for_status()
         response_json = response.json()
-        generated_image_url = response_json['data'][0]['url']
-        logging.info(f"[STEP 2] 이미지 생성 완료, URL: {generated_image_url}")
+        
+        b64_image = response_json["data"][0]["b64_json"]
+        logging.info(f"[STEP 2] 이미지 생성 완료 : {b64_image[:30]}...")
 
         # --- 이하 로직은 동일 ---
-        image_data = requests.get(generated_image_url).content
+        image_data = base64.b64decode(b64_image)
         pil_image = Image.open(BytesIO(image_data))
 
         filename_png = f"public/generated/png/{task_id}.png"
