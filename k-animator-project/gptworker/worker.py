@@ -40,7 +40,7 @@ def setup_loggers(logger, *args, **kwargs):
 client = AzureOpenAI(
     api_key=AZURE_OPENAI_KEY,
     azure_endpoint=AZURE_OPENAI_ENDPOINT,
-    api_version=AZURE_OPENAI_VERSION
+    api_version=AZURE_OPENAI_API_VERSION
 )
 
 @celery_app.task(name="gpt_image", bind=True)
@@ -53,30 +53,17 @@ def generate_image(self, text_prompt: str, image_url: str | None = None) -> dict
         final_prompt = f"A Korean-style webtoon background scene of: {text_prompt}"
         logging.info(f"[STEP 1] 최종 생성 프롬프트: {final_prompt}")
 
-        # --- FIX: openai 라이브러리 대신 requests를 사용하여 API 직접 호출 ---
-        generation_url = (
-            f"{AZURE_OPENAI_ENDPOINT}openai/deployments/{AZURE_OPENAI_DEPLOYMENT}"
-            f"/images/generations?api-version={AZURE_OPENAI_VERSION}"
+        # --- FIX: openai 라이브러리를 사용하여 API 호출 ---
+        response = client.images.generate(
+            model=AZURE_OPENAI_DEPLOYMENT,
+            prompt=final_prompt,
+            n=1,
+            size="1024x1024",
+            quality="hd",
+            response_format="b64_json"
         )
         
-        headers = {
-            'Api-Key': AZURE_OPENAI_KEY,
-            'Content-Type': 'application/json'
-        }
-        
-        body = {
-            "prompt": final_prompt,
-            "n": 1,
-            "size": "1024x1024",
-            "quality": "standard",
-            "response_format": "b64_json"
-        }
-
-        response = requests.post(generation_url, headers=headers, json=body)
-        response.raise_for_status()
-        response_json = response.json()
-        
-        b64_image = response_json["data"][0]["b64_json"]
+        b64_image = response.data[0].b64_json
         logging.info(f"[STEP 2] 이미지 생성 완료 : {b64_image[:30]}...")
 
         # --- 이하 로직은 동일 ---
