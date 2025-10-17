@@ -4,6 +4,10 @@ from celery import Celery
 import os
 import logging
 
+router = APIRouter(
+    tags=["GPT API"]
+)
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -11,7 +15,7 @@ class ImagePromptRequest(BaseModel):
     text_prompt: str
     image_url: str | None = None
 
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")  #배포 전 수정
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")  #배포 전 수정
 celery_app = Celery("worker", broker=CELERY_BROKER_URL)
 celery_app.conf.result_backend = CELERY_BROKER_URL
 
@@ -27,7 +31,7 @@ async def generate_image_task(
     logging.info(f"[DATA] image_url: {request.image_url}")
 
     task = celery_app.send_task(    #redis에 적재
-        "generate_image",
+        "gpt_image",
         args=[
             request.text_prompt,    
             request.image_url

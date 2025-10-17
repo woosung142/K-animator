@@ -23,7 +23,7 @@ AZURE_ACCOUNT_NAME = os.getenv("AZURE_ACCOUNT_NAME")
 AZURE_ACCOUNT_KEY = os.getenv("AZURE_ACCOUNT_KEY")
 AZURE_CONTAINER_NAME = os.getenv("AZURE_CONTAINER_NAME")
 
-celery_app = Celery('worker', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')
+celery_app = Celery('worker', broker='redis://redis:6379/0', backend='redis://reids:6379/0')
 
 # --- 로거 설정 ---
 @after_setup_logger.connect
@@ -41,13 +41,13 @@ client = AzureOpenAI(
     api_version=AZURE_OPENAI_VERSION
 )
 
-@celery_app.task(name="generate_image", bind=True)
+@celery_app.task(name="gpt_image", bind=True)
 def generate_image(self, text_prompt: str, image_url: str | None = None) -> dict:
     """
     사용자로부터 받은 텍스트 프롬프트를 사용하여 직접 이미지를 생성합니다.
     """
     task_id = self.request.id
-    logging.info(f"[TASK] generate_image 시작 - task_id: {task_id}")
+    logging.info(f"[TASK] gpt_image 시작 - task_id: {task_id}")
     logging.info(f"[INPUT] text_prompt: {text_prompt}")
 
     try:
