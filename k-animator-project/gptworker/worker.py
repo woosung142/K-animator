@@ -75,7 +75,7 @@ def generate_image(self, text_prompt: str, image_url: str | None = None) -> dict
         png_buffer = BytesIO()
         pil_image.save(png_buffer, format="PNG")
         png_buffer.seek(0)
-        blob_storage.upload_blob(name=filename_png, data=png_buffer, overwrite=True)
+        blob_storage.upload_blob(blob_name=filename_png, data=png_buffer, overwrite=True)
         logging.info(f"[STEP 5] PNG Blob 저장 완료: {filename_png}")
         png_buffer.close()
 
@@ -86,7 +86,7 @@ def generate_image(self, text_prompt: str, image_url: str | None = None) -> dict
         subprocess.run(["convert", temp_png_path, temp_psd_path], check=True)
         
         with open(temp_psd_path, "rb") as f:
-            blob_storage.upload_blob(name=filename_psd, data=f, overwrite=True)
+            blob_storage.upload_blob(blob_name=filename_psd, data=f, overwrite=True)
         logging.info(f"[STEP 6] PSD Blob 저장 완료: {filename_psd}")
 
         os.remove(temp_png_path)
