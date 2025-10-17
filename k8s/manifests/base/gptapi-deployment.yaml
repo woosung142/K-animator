@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: modelapi-deployment
+  name: gptapi-deployment
 spec:
   replicas: 1
   selector:
@@ -13,7 +13,7 @@ spec:
         app: gptapi
     spec:
       containers:
-        - name: modelapi
+        - name: gptapi
           image: ghcr.io/woosung142/k-animator/gptapi:main
           imagePullPolicy: Always
           ports:
