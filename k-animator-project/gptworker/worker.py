@@ -18,7 +18,7 @@ load_dotenv()
 AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "https://gbsa0-mcsqr6kr-swedencentral.cognitiveservices.azure.com/")
 AZURE_OPENAI_DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-image-1")
-AZURE_OPENAI_VERSION = os.getenv("AZURE_OPENAI_VERSION", "2025-04-01-preview")
+AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION", "2025-04-01-preview") # gpt-image-1
 
 # Azure Blob Storage 환경변수
 AZURE_ACCOUNT_NAME = os.getenv("AZURE_ACCOUNT_NAME")
