@@ -125,12 +125,12 @@ def refresh_access_token(
         print(f"--- [DEBUG][실패] 4. Redis에서 user_id '{user_id}'에 대한 토큰을 찾을 수 없습니다.")
         raise credentials_exception
     
-    print(f"--- [DEBUG][성공] 4. Redis에서 토큰 조회 성공: ...{stored_refresh_token[-10:]}")
+    print(f"--- [DEBUG][성공] 4. Redis에서 토큰 조회 성공: ...{stored_token_from_redis[-10:]}")
 
-    if stored_refresh_token != refresh_token:
+    if stored_token_from_redis != refresh_token:
         print("--- [DEBUG][실패] 5. 쿠키의 토큰과 Redis의 토큰이 일치하지 않습니다.")
         print(f"    - 쿠키 토큰: ...{refresh_token[-10:]}")
-        print(f"    - Redis 토큰: ...{stored_refresh_token[-10:]}")
+        print(f"    - Redis 토큰: ...{stored_token_from_redis[-10:]}")
         raise credentials_exception
     print("--- [DEBUG][성공] 5. 쿠키 토큰과 Redis 토큰 일치 확인.")
 
