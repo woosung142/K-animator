@@ -15,8 +15,9 @@ from shared import blob_storage
 load_dotenv()
 #  gpt-image-1
 AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_VERSION = "2025-04-01-preview"
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "https://gbsa0-mcsqr6kr-swedencentral.cognitiveservices.azure.com/")
+AZURE_OPENAI_DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-image-1")
+AZURE_OPENAI_VERSION = os.getenv("AZURE_OPENAI_VERSION", "2025-04-01-preview")
 
 # Azure Blob Storage 환경변수
 AZURE_ACCOUNT_NAME = os.getenv("AZURE_ACCOUNT_NAME")
@@ -43,9 +44,6 @@ client = AzureOpenAI(
 
 @celery_app.task(name="gpt_image", bind=True)
 def generate_image(self, text_prompt: str, image_url: str | None = None) -> dict:
-    """
-    사용자로부터 받은 텍스트 프롬프트를 사용하여 직접 이미지를 생성합니다.
-    """
     task_id = self.request.id
     logging.info(f"[TASK] gpt_image 시작 - task_id: {task_id}")
     logging.info(f"[INPUT] text_prompt: {text_prompt}")
@@ -54,15 +52,32 @@ def generate_image(self, text_prompt: str, image_url: str | None = None) -> dict
         final_prompt = f"A Korean-style webtoon background scene of: {text_prompt}"
         logging.info(f"[STEP 1] 최종 생성 프롬프트: {final_prompt}")
 
-        response = client.images.generate(
-            model="gpt-image-1",
-            prompt=final_prompt,
-            size="1024x1024",
-            n=1
+        # --- FIX: openai 라이브러리 대신 requests를 사용하여 API 직접 호출 ---
+        generation_url = (
+            f"{AZURE_OPENAI_ENDPOINT}openai/deployments/{AZURE_OPENAI_DEPLOYMENT}"
+            f"/images/generations?api-version={AZURE_OPENAI_VERSION}"
         )
-        generated_image_url = response.data[0].url
+        
+        headers = {
+            'Api-Key': AZURE_OPENAI_KEY,
+            'Content-Type': 'application/json'
+        }
+        
+        body = {
+            "prompt": final_prompt,
+            "n": 1,
+            "size": "1024x1024",
+            "response_format": "url"  # 이미지 URL을 받도록 설정
+        }
+
+        response = requests.post(generation_url, headers=headers, json=body)
+        response.raise_for_status()  # HTTP 오류 발생 시 예외 처리
+        
+        response_json = response.json()
+        generated_image_url = response_json['data'][0]['url']
         logging.info(f"[STEP 2] 이미지 생성 완료, URL: {generated_image_url}")
 
+        # --- 이하 로직은 동일 ---
         image_data = requests.get(generated_image_url).content
         pil_image = Image.open(BytesIO(image_data))
 
@@ -97,5 +112,5 @@ def generate_image(self, text_prompt: str, image_url: str | None = None) -> dict
 
     except Exception as e:
         logging.error(f"[ERROR] 전체 프로세스 실패 (task_id: {task_id}): {e}", exc_info=True)
-        return {"status": "FAILURE", "error": str(e)}
+        raise e
 
