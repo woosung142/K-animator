@@ -8,6 +8,7 @@ import os
 import subprocess
 from openai import AzureOpenAI
 import logging
+import base64
 
 from shared import blob_storage
 
@@ -67,9 +68,8 @@ def generate_image(self, text_prompt: str, image_url: str | None = None) -> dict
             "prompt": final_prompt,
             "n": 1,
             "size": "1024x1024",
-            "quality": "medium",
-            "output_format": "png",
-            "response_format": "b64_json"  # 이미지 URL을 받도록 설정
+            "quality": "standard",
+            "response_format": "b64_json"
         }
 
         response = requests.post(generation_url, headers=headers, json=body)
