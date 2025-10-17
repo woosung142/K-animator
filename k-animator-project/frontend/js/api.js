@@ -19,37 +19,39 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// 4. "응답 가로채기" 설정: 토큰 자동 재발급
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
-
-        if (error.response.status === 401 && !originalRequest._retry && originalRequest.url !== '/api/auth/login') {
-            originalRequest._retry = true; // 무한 루프 방지를 위해 재시도 플래그 설정
+        
+        if (error.response.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/api/auth/')) {
+            originalRequest._retry = true;
 
             try {
                 console.log('Access Token 만료! 재발급을 시도합니다...');
-                
                 const refreshResponse = await api.post('/api/auth/refresh');
 
-                const { access_token: newAccessToken } = refreshResponse.data;
+                if (refreshResponse.data && refreshResponse.data.access_token) {
+                    const newAccessToken = refreshResponse.data.access_token;
+                    localStorage.setItem('accessToken', newAccessToken);
+                    console.log('토큰 재발급 성공! 원래 요청을 다시 시도합니다.');
 
-                localStorage.setItem('accessToken', newAccessToken);
-                console.log('토큰 재발급 성공! 다시 시도합니다.');
-
-                // 원래 실패했던 요청을 새로운 토큰으로 다시 실행
-                return api(originalRequest);
+                    originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+                    return api(originalRequest);
+                } else {
+                    console.error('Refresh 응답은 성공했으나, access_token이 비어있습니다. 응답 데이터:', refreshResponse.data);
+                    throw new Error('Invalid refresh response');
+                }
 
             } catch (refreshError) {
-                console.error('Refresh Token이 유효하지 않습니다. 강제 로그아웃합니다.', refreshError);
+                console.error('Refresh Token이 유효하지 않거나 재발급에 실패했습니다. 강제 로그아웃합니다.', refreshError);
                 localStorage.removeItem('accessToken');
-                window.location.href = 'index.html'; // 로그인 페이지로 리디렉션
+                window.location.href = 'index.html'; 
                 return Promise.reject(refreshError);
             }
         }
         
+        // 처리할 수 없는 다른 모든 에러는 그대로 반환
         return Promise.reject(error);
     }
 );
-
