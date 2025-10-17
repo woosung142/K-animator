@@ -15,6 +15,7 @@ spec:
       containers:
         - name: gptworker
           image: ghcr.io/woosung142/k-animator/gptworker:main
+          imagePullPolicy: Always
           envFrom:
             - secretRef:
                 name: gpt-secrets
