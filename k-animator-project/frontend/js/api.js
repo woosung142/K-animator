@@ -36,7 +36,6 @@ api.interceptors.response.use(
                     localStorage.setItem('accessToken', newAccessToken);
                     console.log('토큰 재발급 성공! 원래 요청을 다시 시도합니다.');
 
-                    originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
                     return api(originalRequest);
                 } else {
                     console.error('Refresh 응답은 성공했으나, access_token이 비어있습니다. 응답 데이터:', refreshResponse.data);
