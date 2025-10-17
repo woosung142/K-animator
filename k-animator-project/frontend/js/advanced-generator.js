@@ -1,174 +1,167 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('generation-form');
+    // --- DOM 요소 가져오기 ---
+    const form = document.querySelector('.settings-panel form');
     const promptTextarea = document.getElementById('prompt');
     const charCounter = document.querySelector('.char-counter');
-    const submitBtn = document.getElementById('submit-btn');
-    const displayArea = document.getElementById('image-display-area');
-    const fileInput = document.getElementById('file-input');
+    const submitButton = document.querySelector('.btn-submit');
+    const displayPanel = document.querySelector('.panel.display-panel');
     const uploadBox = document.querySelector('.upload-box');
-    const uploadIcon = uploadBox.querySelector('i');
+    const fileInput = document.querySelector('.file-input');
 
-    let uploadedFileAsBase64 = null;
+    // Terraform에 설정된 API Gateway 경로를 기반으로 URL 설정
+    const API_BASE_URL = '/api/gpt'; 
+    // 결과 조회 API는 별도의 경로를 가질 수 있으므로 따로 정의
+    const RESULT_API_BASE_URL = '/api/gpt';
 
-    promptTextarea.addEventListener('input', updateCharCounter);
-    form.addEventListener('submit', handleImageGenerationRequest);
-    fileInput.addEventListener('change', handleFilePreview);
+    /**
+     * 오른쪽 이미지 표시 패널의 상태를 업데이트하는 함수
+     * @param {'loading' | 'success' | 'error' | 'initial'} state - 현재 상태
+     * @param {object | null} data - 상태에 따라 필요한 데이터 (e.g., 이미지 URL, 에러 메시지)
+     */
+    const updateDisplayPanel = (state, data = null) => {
+        const resultContainer = displayPanel.querySelector('.display-header + div');
+        let content = '';
 
-    function updateCharCounter() {
-        const currentLength = promptTextarea.value.length;
-        charCounter.textContent = `${currentLength}/500`;
-    }
-
-    function handleFilePreview(event) {
-        const file = event.target.files[0];
-        if (!file) {
-            // Clear preview if no file is selected
-            uploadedFileAsBase64 = null;
-            const existingPreview = uploadBox.querySelector('.image-preview');
-            if(existingPreview) existingPreview.remove();
-            uploadIcon.style.display = 'block';
-            return;
+        switch (state) {
+            case 'loading':
+                content = `
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                        <p><b>이미지를 생성하고 있습니다...</b></p>
+                        <p>잠시만 기다려 주세요. 최대 1~2분 소요될 수 있습니다.</p>
+                    </div>
+                `;
+                break;
+            case 'success':
+                content = `
+                    <div class="image-result-container">
+                        <img src="${data.png_url}" alt="생성된 이미지" class="generated-image">
+                        <div class="image-actions">
+                            <a href="${data.png_url}" download="generated_image.png" class="btn btn-download">PNG 다운로드</a>
+                            <a href="${data.psd_url}" download="generated_image.psd" class="btn btn-download">PSD 다운로드</a>
+                        </div>
+                    </div>
+                `;
+                break;
+            case 'error':
+                content = `
+                    <div class="image-placeholder error">
+                        <i class="fa-regular fa-circle-xmark"></i>
+                        <p><b>이미지 생성에 실패했습니다</b></p>
+                        <p>${data.error || '알 수 없는 오류가 발생했습니다. 다시 시도해 주세요.'}</p>
+                    </div>
+                `;
+                break;
+            default: // initial
+                content = `
+                    <div class="image-placeholder">
+                        <i class="fa-regular fa-image"></i>
+                        <p><b>아직 생성된 이미지가 없습니다</b></p>
+                        <p>왼쪽 패널에서 설정을 완료하고 이미지를 생성해보세요</p>
+                    </div>
+                `;
         }
+        resultContainer.innerHTML = content;
+    };
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            uploadedFileAsBase64 = e.target.result; // Save as base64
-            
-            // Display preview
-            const existingPreview = uploadBox.querySelector('.image-preview');
-            if(existingPreview) existingPreview.remove();
-            
-            const img = document.createElement('img');
-            img.src = uploadedFileAsBase64;
-            img.classList.add('image-preview');
-            uploadBox.appendChild(img);
-            uploadIcon.style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-    }
-    
-    async function handleImageGenerationRequest(event) {
-        event.preventDefault();
+    /**
+     * 작업 ID를 사용하여 주기적으로 결과를 확인하는 함수 (폴링)
+     * @param {string} taskId - 확인할 Celery 작업 ID
+     */
+    const pollForResult = (taskId) => {
+        const pollInterval = 4000; 
+        const maxAttempts = 45;   
+        let attempts = 0;
+
+        const intervalId = setInterval(async () => {
+            if (attempts >= maxAttempts) {
+                clearInterval(intervalId);
+                updateDisplayPanel('error', { error: '작업 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.' });
+                submitButton.disabled = false;
+                submitButton.textContent = '이미지 생성하기';
+                return;
+            }
+
+            try {
+                const response = await axios.get(`${RESULT_API_BASE_URL}/result/${taskId}`);
+                const result = response.data;
+
+                if (result.status === 'SUCCESS') {
+                    clearInterval(intervalId);
+                    updateDisplayPanel('success', result);
+                    submitButton.disabled = false;
+                    submitButton.textContent = '이미지 생성하기';
+                } else if (result.status === 'FAILURE') {
+                    clearInterval(intervalId);
+                    updateDisplayPanel('error', { error: response.data.detail || '작업 실패' });
+                    submitButton.disabled = false;
+                    submitButton.textContent = '이미지 생성하기';
+                }
         
+            } catch (error) {
+                console.error('결과 폴링 중 오류 발생:', error);
+                clearInterval(intervalId);
+                const errorMessage = error.response?.data?.detail || '결과를 가져오는 중 오류가 발생했습니다.';
+                updateDisplayPanel('error', { error: errorMessage });
+                submitButton.disabled = false;
+                submitButton.textContent = '이미지 생성하기';
+            }
+            attempts++;
+        }, pollInterval);
+    };
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
         const prompt = promptTextarea.value.trim();
+
         if (!prompt) {
             alert('프롬프트를 입력해주세요.');
             return;
         }
 
-        setLoadingState(true);
+        submitButton.disabled = true;
+        submitButton.textContent = '생성 중...';
+        updateDisplayPanel('loading');
 
         try {
-            // Step 1: Send the initial request to create the task
-            const response = await axios.post('/api/generate-image', {
+            const response = await axios.post(`${API_BASE_URL}/generate-image`, {
                 text_prompt: prompt,
-                image_url: uploadedFileAsBase64 // Can be null
+                image_url: null 
             });
 
-            const taskId = response.data.task_id;
-            if (!taskId) {
+            const { task_id } = response.data;
+
+            if (task_id) {
+                pollForResult(task_id);
+            } else {
                 throw new Error('Task ID를 받지 못했습니다.');
             }
-            
-            // Step 2: Start polling for the result
-            pollForResult(taskId);
-
         } catch (error) {
-            console.error('Error starting generation task:', error);
-            displayError('이미지 생성 시작에 실패했습니다. 잠시 후 다시 시도해주세요.');
-            setLoadingState(false);
+            console.error('생성 요청 실패:', error);
+            const errorMessage = error.response?.data?.detail || 'API 요청에 실패했습니다. 서버 상태를 확인해주세요.';
+            updateDisplayPanel('error', { error: errorMessage });
+            submitButton.disabled = false;
+            submitButton.textContent = '이미지 생성하기';
         }
-    }
+    });
 
-    /**
-     * Polls the result endpoint until the task is complete or fails.
-     * @param {string} taskId - The ID of the task to poll.
-     */
-    function pollForResult(taskId) {
-        const pollInterval = 3000; // Poll every 3 seconds
-        const maxPollTime = 120000; // Timeout after 2 minutes
+    promptTextarea.addEventListener('input', () => {
+        const count = promptTextarea.value.length;
+        charCounter.textContent = `${count}/500`;
+    });
 
-        const intervalId = setInterval(async () => {
-            try {
-                const resultResponse = await axios.get(`/api/result/${taskId}`);
-                const { status, result } = resultResponse.data;
+    uploadBox.addEventListener('click', () => {
+        fileInput.click();
+    });
 
-                if (status === 'SUCCESS') {
-                    clearInterval(intervalId);
-                    clearTimeout(timeoutId);
-                    displayResult(result);
-                    setLoadingState(false);
-                } else if (status === 'FAILURE') {
-                    clearInterval(intervalId);
-                    clearTimeout(timeoutId);
-                    displayError(result?.error || '이미지 생성에 실패했습니다.');
-                    setLoadingState(false);
-                }
-
-            } catch (error) {
-                console.error('Error polling for result:', error);
-                clearInterval(intervalId);
-                clearTimeout(timeoutId);
-                displayError('결과를 조회하는 중 오류가 발생했습니다.');
-                setLoadingState(false);
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                uploadBox.innerHTML = `<img src="${e.target.result}" alt="참조 이미지 미리보기" class="image-preview">`;
             }
-        }, pollInterval);
-
-        const timeoutId = setTimeout(() => {
-            clearInterval(intervalId);
-            displayError('이미지 생성 시간이 초과되었습니다. 나중에 다시 시도해주세요.');
-            setLoadingState(false);
-        }, maxPollTime);
-    }
-    
-    /**
-     * Toggles the UI into a loading state.
-     * @param {boolean} isLoading - True to show loading, false to hide.
-     */
-    function setLoadingState(isLoading) {
-        submitBtn.disabled = isLoading;
-        promptTextarea.disabled = isLoading;
-        if (isLoading) {
-            submitBtn.textContent = '생성 중...';
-            displayArea.innerHTML = '<div class="loading-spinner"></div>';
-        } else {
-            submitBtn.textContent = '이미지 생성하기';
-            promptTextarea.disabled = false;
+            reader.readAsDataURL(fileInput.files[0]);
         }
-    }
-    
-    /**
-     * Displays the generated image and download links.
-     * @param {object} resultData - The result object containing png_url and psd_url.
-     */
-    function displayResult(resultData) {
-        if (!resultData || !resultData.png_url) {
-            displayError('유효하지 않은 결과 데이터입니다.');
-            return;
-        }
-
-        displayArea.innerHTML = `
-            <div class="result-container">
-                <img src="${resultData.png_url}" alt="Generated Image" class="result-image">
-                <div class="download-buttons">
-                    <a href="${resultData.png_url}" class="btn-png" download>PNG 다운로드</a>
-                    <a href="${resultData.psd_url}" class="btn-psd" download>PSD 다운로드</a>
-                </div>
-            </div>
-        `;
-    }
-
-    /**
-     * Displays an error message in the display area.
-     * @param {string} message - The error message to display.
-     */
-    function displayError(message) {
-        displayArea.innerHTML = `
-            <div class="image-placeholder">
-                <i class="fa-solid fa-circle-exclamation" style="color: var(--error-color);"></i>
-                <p><b>오류 발생</b></p>
-                <p>${message}</p>
-            </div>
-        `;
-    }
+    });
 });
+

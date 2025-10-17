@@ -23,7 +23,7 @@ AZURE_ACCOUNT_NAME = os.getenv("AZURE_ACCOUNT_NAME")
 AZURE_ACCOUNT_KEY = os.getenv("AZURE_ACCOUNT_KEY")
 AZURE_CONTAINER_NAME = os.getenv("AZURE_CONTAINER_NAME")
 
-celery_app = Celery('worker', broker='redis://redis:6379/0', backend='redis://reids:6379/0')
+celery_app = Celery('worker', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
 
 # --- 로거 설정 ---
 @after_setup_logger.connect

@@ -18,3 +18,18 @@ resource "azurerm_api_management_api_operation" "gpt_generate_image" {
   method = "POST"
   url_template = "/generate-image"
 }
+resource "azurerm_api_management_api_operation" "gpt_result" {
+  operation_id = "get-reuslt-gpt"
+  api_name = azurerm_api_management_api.gpt_api.name
+  api_management_name = azurerm_api_management.apim.name
+  resource_group_name = var.resource_group_name
+  display_name = "Get GPT Image Result"
+  method = "GET"
+  url_template = "/result/{task_id}"
+
+  template_parameter {
+    name     = "task_id"
+    type     = "string"   
+    required = true      
+  }
+}
