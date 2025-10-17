@@ -85,6 +85,10 @@ variable "backend_util_url" {
   description = "The URL for the Util backend service."
   type        = string
 }
+variable "backend_gpt_url" {
+  description = "The URL for the gpt backend service."
+  type        = string
+}
 # --------------------------
 # APIM Settings Variable
 # --------------------------

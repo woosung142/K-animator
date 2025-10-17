@@ -41,7 +41,6 @@ try:
 
 except Exception as e:     #로컬용
     logger.warning(f"Azure Key Vault에서 JWT검색하는 동안 오류 발생: {e}. 로컬 환경 변수를 사용")
-    SECRET_KEY = "82ca9425621368bf1c07dc117d6679d21739424adbdb37c7493cd3d772672293"  # 로컬 개발용 비밀키
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 15 # 15분

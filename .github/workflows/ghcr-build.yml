@@ -27,6 +27,10 @@ jobs:
               - 'k-animator-project/model_worker/**'
             utils:
               - 'k-animator-project/utils/**'
+            gptapi:
+              - 'k-animator-project/gptapi/**'
+            gptworker:
+              - 'k-animator-project/gptworker/**'
 
   build-push-update:
     needs: changes

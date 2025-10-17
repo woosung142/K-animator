@@ -10,11 +10,8 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  # host를 명시하지 않아 Ingress Controller의 IP로 들어오는 모든 요청을 처리합니다.
   - http:
       paths:
-      # --- [수정] Auth & Users API 라우팅 ---
-      # /api/auth/* 및 /api/users/* 요청은 모두 auth-service로 전달됩니다.
       - path: /api/auth
         pathType: Prefix
         backend:
@@ -49,7 +46,14 @@ spec:
             name: utils-service # Terraform의 util_api에 해당
             port:
               number: 80
-              
+      # --- [추가] GPT API 라우팅 ---
+      - path: /api/gpt
+        pathType: Prefix
+        backend:
+          service:
+            name: gptapi-service
+            port:
+              number: 80
       # --- 프론트엔드 라우팅 규칙 (가장 마지막에 위치) ---
       # 위 경로에 해당하지 않는 모든 요청은 프론트엔드로 전달됩니다.
       - path: /

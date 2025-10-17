@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gptworker-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gptworker
+  template:
+    metadata:
+      labels:
+        app: gptworker
+    spec:
+      containers:
+        - name: gptworker
+          image: ghcr.io/woosung142/k-animator/gptworker:main
+          envFrom:
+            - secretRef:
+                name: gpt-secrets
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+      imagePullSecrets:
+        - name: ghcr-secret

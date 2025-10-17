@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: modelapi-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gptapi
+  template:
+    metadata:
+      labels:
+        app: gptapi
+    spec:
+      containers:
+        - name: modelapi
+          image: ghcr.io/woosung142/k-animator/gptapi:main
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8004
+          envFrom:
+            - secretRef:
+                name: gpt-secrets
+      imagePullSecrets:
+        - name: ghcr-secret

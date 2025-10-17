@@ -5,4 +5,9 @@ resource "azurerm_api_management" "apim" {
   publisher_name = "K-Anumator Team"
   publisher_email = "garbage0233@gamil.com"
   sku_name = "Consumption_0"
+
+  identity {
+    type = "SystemAssigned"
+  }
+  
 }

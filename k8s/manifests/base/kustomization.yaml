@@ -20,3 +20,8 @@ resources:
   
   - redis-deploy.yaml
   - redis-service.yaml
+
+  - gptapi-deployment.yaml
+  - gptapi-service.yaml
+
+  - gptworker-deployment.yaml

@@ -44,6 +44,27 @@ resource "azurerm_kubernetes_cluster" "aks_cluster" {
   }
 }
 # ----------------------------------------------------
+# Aks Cluster - GPU Node Pool
+# ----------------------------------------------------
+resource "azurerm_kubernetes_cluster_node_pool" "gpu_nodepool" {
+  name =  "gpu"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.aks_cluster.id
+  vm_size = "Standard_NV36ads_A10_v5"
+
+  enable_auto_scaling = true # 자동 스케일링 활성화
+  min_count = 0
+  max_count = 2
+  vnet_subnet_id = data.azurerm_subnet.existing_subnet.id
+  mode = "User"
+
+  node_taints = ["sku=gpu:NoSchedule"]
+
+  tags = {
+    Environment = "Production"
+    PoolType    = "GPU"
+  }
+}
+# ----------------------------------------------------
 # PostgreSQL DNS Vnet Link
 # ----------------------------------------------------
 resource "azurerm_private_dns_zone" "pg_dns_zone" {
@@ -155,4 +176,5 @@ module "api_gateway" {
   auth_url                = var.backend_auth_url
   model_api_url           = var.backend_model_api_url
   util_url                = var.backend_util_url
+  gpt_url                 = var.backend_gpt_url
 }

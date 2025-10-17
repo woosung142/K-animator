@@ -29,3 +29,8 @@ variable "util_url" {
   description = "백엔드 util의 서버 주소"
   type       = string
 }
+
+variable "gpt_url" {
+  description = "백엔드 gpt의 서버 주소"
+  type       = string
+}
