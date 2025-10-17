@@ -35,3 +35,11 @@ async def generate_image_task(
     )
     logging.info(f"[TASK] Celery task 전송 완료 - task_id: {task.id}")
     return {"task_id": task.id}
+
+    except HTTPException as http_exc:
+        raise http_exc
+        
+    except Exception as e:
+        # 그 외의 모든 예외는 서버 오류로 처리
+        logger.error(f"[ERROR] Task creation failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
