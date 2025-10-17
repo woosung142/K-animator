@@ -72,9 +72,9 @@ def login_for_access_token(
         value=refresh_token,
         httponly=True,
         max_age=int(security.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60),
-        domain=".prtest.shop",  # 도메인 설정
         samesite="none",
-        secure=True
+        secure=True,
+        path="/"
     )
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
@@ -148,9 +148,9 @@ def refresh_access_token(
         value=new_refresh_token,
         httponly=True,
         max_age=int(security.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60),
-        domain=".prtest.shop",  # 도메인 설정
         samesite="none",
-        secure=True
+        secure=True,
+        path="/"
     )
 
     return {"access_token": new_access_token, "refresh_token": new_refresh_token, "token_type": "bearer"}
@@ -171,9 +171,9 @@ def logout(
     redis_refresh.delete(user_id)
     response.delete_cookie(
         key="refresh_token",
-        domain=".prtest.shop",  # 도메인 설정
         samesite="none",
-        secure=True
+        secure=True,
+        path="/"
     )
     return {"message": "성공적으로 로그아웃되었습니다."}
 
