@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from celery import Celery
+import os
 import logging
 
 logging.basicConfig(level=logging.INFO)
