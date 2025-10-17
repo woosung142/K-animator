@@ -92,8 +92,8 @@ def generate_image(self, text_prompt: str, image_url: str | None = None) -> dict
         os.remove(temp_png_path)
         os.remove(temp_psd_path)
 
-        png_url = blob_storage.generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_png)
-        psd_url = blob_storage.generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_psd)
+        png_url = blob_storage.generate_sas_url(filename_png)
+        psd_url = blob_storage.generate_sas_url(filename_psd)
 
         logging.info(f"[SUCCESS] 작업 완료 - task_id: {task_id}")
         return {"status": "SUCCESS", "png_url": png_url, "psd_url": psd_url}
