@@ -51,7 +51,11 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7   # 7일
 def create_access_token(data: dict):
 
     to_encode = data.copy()
-    to_encode.update({"type": "access"})
+    to_encode.update({
+        "type": "access",
+        "iss": "k-animator-auth-service",
+        "aud": "k-animator-api"        
+        })
 
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
@@ -62,7 +66,11 @@ def create_access_token(data: dict):
 def create_refresh_token(data: dict):
 
     to_encode = data.copy()
-    to_encode.update({"type": "refresh"})
+    to_encode.update({
+        "type": "refresh",
+        "iss": "k-animator-auth-service",
+        "aud": "k-animator-api"        
+        })
 
     expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     to_encode.update({"exp": expire})
