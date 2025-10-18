@@ -25,3 +25,5 @@ resources:
   - gptapi-service.yaml
 
   - gptworker-deployment.yaml
+
+  - layerworker-deployment.yaml

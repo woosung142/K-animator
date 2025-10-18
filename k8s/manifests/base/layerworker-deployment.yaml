@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: layerworker-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: layerworker
+  template:
+    metadata:
+      labels:
+        app: layerworker
+    spec:
+      containers:
+        - name: layerworker
+          image: ghcr.io/woosung142/k-animator/layerworker:main
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: gpt-secrets
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+      imagePullSecrets:
+        - name: ghcr-secret
