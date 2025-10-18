@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 import cv2
 from PIL import Image
-from psd_tools.api.layers import ImageLayer
+from psd_tools.api.layers import Layer
 from psd_tools.api.psd_image import PSDImage
 
 # shared.blob_storage 모듈을 임포트합니다.
@@ -157,11 +157,15 @@ def separate_layers_task(self, image_url: str) -> dict:
             output_psd_path = os.path.join(temp_dir, f"{task_id}.psd")
             
             # psd-tools를 사용하여 레이어 생성
-            color_image_layer = ImageLayer.from_pil(color_layer_pil, name='color')
-            sketch_image_layer = ImageLayer.from_pil(sketch_layer_rgba_pil, name='sketch')
-            
-            # PSD 이미지 구성 (아래쪽 레이어부터 순서대로)
-            psd = PSDImage([color_image_layer, sketch_image_layer])
+            color_layer = Layer.from_pil(color_layer_pil, name='color')
+            sketch_layer = Layer.from_pil(sketch_layer_rgba_pil, name='sketch')
+
+            # PSD 이미지 구성
+            psd = PSDImage.new(
+                'RGB',
+                (W, H),
+                layers=[color_layer, sketch_layer]
+            )
             with open(output_psd_path, 'wb') as f:
                 psd.save(f)
             logging.info(f"[STEP 4] PSD 생성 완료: {output_psd_path}")
