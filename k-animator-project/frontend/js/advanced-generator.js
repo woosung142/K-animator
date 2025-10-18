@@ -37,8 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="image-result-container">
                         <img src="${data.png_url}" alt="생성된 이미지" class="generated-image">
                         <div class="image-actions">
-                            <a href="${data.png_url}" download="generated_image.png" class="btn btn-download">PNG 다운로드</a>
-                            <a href="${data.psd_url}" download="generated_image.psd" class="btn btn-download">PSD 다운로드</a>
+                            <a href="edit-mode.html?imageUrl=${encodeURIComponent(data.png_url)}" class="btn btn-primary">이미지 편집하기</a>
+                            <a href="${data.png_url}" download="generated_image.png" class="btn btn-secondary">PNG 다운로드</a>
+                            <a href="${data.psd_url}" download="generated_image.psd" class="btn btn-secondary">PSD 다운로드</a>
                         </div>
                     </div>
                 `;
