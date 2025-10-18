@@ -11,6 +11,8 @@ from pathlib import Path
 import numpy as np
 import cv2
 from PIL import Image
+from psd_tools.api.layers import ImageLayer
+from psd_tools.api.psd_image import PSDImage
 
 # shared.blob_storage 모듈을 임포트합니다.
 # 이 모듈은 Dockerfile에 의해 /app/shared/ 경로에 복사되어 있어야 합니다.
@@ -126,7 +128,6 @@ def separate_layers_task(self, image_url: str) -> dict:
             response = requests.get(image_url, stream=True)
             response.raise_for_status()
             
-            # Pillow를 사용하여 이미지 열기
             input_image = Image.open(response.raw).convert("RGB")
             rgb_array = np.array(input_image)
             logging.info(f"[STEP 1] 이미지 다운로드 및 RGB 변환 완료. Shape: {rgb_array.shape}")
@@ -135,42 +136,34 @@ def separate_layers_task(self, image_url: str) -> dict:
             logging.info(f"[STEP 2] 레이어 분리 시작")
             A_soft, A_hard, color_only_u8, _ = webtoon_decompose(rgb_array)
             
-            H, W = A_soft.shape
+            H, W, _ = rgb_array.shape
             
-            # 3. 주요 레이어 임시 파일로 저장
-            logging.info(f"[STEP 3] 주요 레이어 임시 파일로 저장 시작")
+            # 3. 주요 레이어를 Pillow 이미지 객체로 준비
+            logging.info(f"[STEP 3] 주요 레이어 Pillow 이미지로 변환 시작")
             
-            # 색상 레이어 (color_white_lines.png)
-            color_layer = whiten_lines(img_rgb=color_only_u8, line_mask_01=A_soft)
-            color_layer_path = os.path.join(temp_dir, "color_layer.png")
-            Image.fromarray(color_layer).save(color_layer_path)
-            logging.info(f"[STEP 3] 색상 레이어 저장 완료: {color_layer_path}")
-
-            # 선화 레이어 (sketch_hard_rgba.png)
+            color_layer_pil = Image.fromarray(whiten_lines(img_rgb=color_only_u8, line_mask_01=A_soft))
+            
             sketch_hard_u8 = np.clip(A_hard*255.0, 0, 255).astype(np.uint8)
-            sketch_layer_rgba = np.dstack([
+            sketch_layer_rgba_pil = Image.fromarray(np.dstack([
                 np.zeros((H,W), np.uint8),
                 np.zeros((H,W), np.uint8),
                 np.zeros((H,W), np.uint8),
                 sketch_hard_u8
-            ])
-            sketch_layer_path = os.path.join(temp_dir, "sketch_layer.png")
-            Image.fromarray(sketch_layer_rgba, mode="RGBA").save(sketch_layer_path)
-            logging.info(f"[STEP 3] 선화 레이어 저장 완료: {sketch_layer_path}")
+            ]), mode="RGBA")
+            logging.info(f"[STEP 3] 레이어 변환 완료")
 
-            # 4. ImageMagick으로 PSD 생성
+            # 4. psd-tools로 PSD 생성
             logging.info(f"[STEP 4] PSD 생성 시작")
             output_psd_path = os.path.join(temp_dir, f"{task_id}.psd")
             
-            # ImageMagick convert 명령어 실행
-            # 아래 순서대로 포토샵 레이어가 쌓임 (color가 아래, sketch가 위)
-            cmd = [
-                "convert",
-                color_layer_path,
-                sketch_layer_path,
-                output_psd_path
-            ]
-            subprocess.run(cmd, check=True)
+            # psd-tools를 사용하여 레이어 생성
+            color_image_layer = ImageLayer.from_pil(color_layer_pil, name='color')
+            sketch_image_layer = ImageLayer.from_pil(sketch_layer_rgba_pil, name='sketch')
+            
+            # PSD 이미지 구성 (아래쪽 레이어부터 순서대로)
+            psd = PSDImage([color_image_layer, sketch_image_layer])
+            with open(output_psd_path, 'wb') as f:
+                psd.save(f)
             logging.info(f"[STEP 4] PSD 생성 완료: {output_psd_path}")
 
             # 5. PSD 파일 Blob Storage에 업로드

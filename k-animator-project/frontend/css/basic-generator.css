@@ -71,9 +71,9 @@ a.btn-mode { /* a 태그도 버튼처럼 보이게 스타일 추가 */
     font-size: 14px;
 }
 .btn-mode.active {
-    background-color: #d9534f;
+    background-color: #c79100;
     color: white;
-    border-color: #d9534f;
+    border-color: #c79100;
 }
 .mode-info span {
     margin-right: 15px;
@@ -128,9 +128,9 @@ a.btn-edit { /* a 태그도 버튼처럼 보이게 스타일 추가 */
     cursor: pointer;
 }
 .btn-option.active {
-    background-color: #d9534f;
+    background-color: #c79100;
     color: white;
-    border-color: #d9534f;
+    border-color: #c79100;
 }
 input[type="text"], textarea {
     width: 100%;
@@ -167,7 +167,7 @@ input[type="text"], textarea {
 }
 .btn-submit {
     width: 100%;
-    background-color: #d9534f;
+    background-color: #c79100;
     color: white;
     border: none;
     padding: 15px;

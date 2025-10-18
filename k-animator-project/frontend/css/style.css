@@ -50,11 +50,11 @@ body {
 }
 /* 히어로 섹션 (메인 배너) */
 .hero {
-    background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('../images/KakaoTalk_20251017_182414323_05.jpg'); /* TODO: 실제 배경 이미지로 교체 */
-    background-size: contain;
-    background-position: center;
+    background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('../images/Gemini_Generated_Image_bnvjarbnvjarbnvj.png'); /* TODO: 실제 배경 이미지로 교체 */
+    background-size: cover;
+    background-position: center bottom 40%;
     color: #fff;
-    padding: 220px 0 450px;
+    padding: 220px 0 250px;
     text-align: center;
 }
 .hero h1 {
