@@ -19,4 +19,4 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY shared/ /app/shared/
 COPY layerworker/ /app/layerworker/
 
-CMD ["celery", "-A", "layerworker.worker:celery_app", "worker", "--loglevel=info"]
+CMD ["celery", "-A", "layerworker.worker:celery_app", "worker", "-Q", "layer_queue", "--loglevel=info"]

@@ -35,7 +35,8 @@ async def separate_layers_task_endpoint(
 
     task = celery_app.send_task(
         "separate_layers_task",
-        args=[request.image_url]
+        args=[request.image_url],
+        queue='layer_queue'
     )
     logging.info(f"[TASK] Celery task 'separate_layers_task' 전송 완료 - task_id: {task.id}")
     return {"task_id": task.id}
@@ -51,12 +52,13 @@ async def generate_image_task(
     logging.info(f"[DATA] prompt: {request.text_prompt}")
     logging.info(f"[DATA] image_url: {request.image_url}")
 
-    task = celery_app.send_task(    #redis에 적재
+    task = celery_app.send_task(
         "gpt_image",
         args=[
             request.text_prompt,    
             request.image_url
-        ]
+        ],
+        queue='gpt_queue'
     )
     logging.info(f"[TASK] Celery task 전송 완료 - task_id: {task.id}")
     return {"task_id": task.id}

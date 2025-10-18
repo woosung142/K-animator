@@ -19,4 +19,4 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY shared/ /app/shared/
 COPY gptworker/ /app/gptworker/
 
-CMD ["celery", "-A", "gptworker.worker:celery_app", "worker", "--loglevel=info"]
+CMD ["celery", "-A", "gptworker.worker:celery_app", "worker", "-Q", "gpt_queue", "--loglevel=info"]
