@@ -168,7 +168,6 @@ def separate_layers_task(self, image_url: str) -> dict:
                 "convert",
                 color_layer_path,
                 sketch_layer_path,
-                "-layers", "merge", # 각 이미지를 레이어로 만듦
                 output_psd_path
             ]
             subprocess.run(cmd, check=True)
