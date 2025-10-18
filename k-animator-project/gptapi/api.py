@@ -16,9 +16,29 @@ class ImagePromptRequest(BaseModel):
     text_prompt: str
     image_url: str | None = None
 
+class LayerSeparationRequest(BaseModel):
+    image_url: str
+
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")  #배포 전 수정
 celery_app = Celery("worker", broker=CELERY_BROKER_URL)
 celery_app.conf.result_backend = CELERY_BROKER_URL
+
+@router.post("/separate-layers")
+async def separate_layers_task_endpoint(
+    request: LayerSeparationRequest
+    ):
+    if not request.image_url or not request.image_url.strip():
+        raise HTTPException(status_code=400, detail="Image URL cannot be empty.")
+
+    logger.info(f"[REQUEST] POST /api/gpt/separate-layers")
+    logger.info(f"[DATA] image_url: {request.image_url}")
+
+    task = celery_app.send_task(
+        "separate_layers_task",
+        args=[request.image_url]
+    )
+    logging.info(f"[TASK] Celery task 'separate_layers_task' 전송 완료 - task_id: {task.id}")
+    return {"task_id": task.id}
 
 @router.post("/generate-image")
 async def generate_image_task(

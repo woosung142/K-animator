@@ -18,6 +18,15 @@ resource "azurerm_api_management_api_operation" "gpt_generate_image" {
   method = "POST"
   url_template = "/generate-image"
 }
+resource "azurerm_api_management_api_operation" "gpt_separate_layers" {
+  operation_id = "image-separate-layers"
+  api_name = azurerm_api_management_api.gpt_api.name
+  api_management_name = azurerm_api_management.apim.name
+  resource_group_name = var.resource_group_name
+  display_name = "Separate Image Layers"
+  method = "POST"
+  url_template = "/separate-layers"
+}
 resource "azurerm_api_management_api_operation" "gpt_result" {
   operation_id = "get-reuslt-gpt"
   api_name = azurerm_api_management_api.gpt_api.name

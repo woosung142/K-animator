@@ -256,12 +256,14 @@ input[type="text"], textarea {
     background-color: #a17600;
 }
 .btn-secondary {
-    background-color: #f0f0f0;
-    color: #333;
-    border: 1px solid #ddd;
+    background-color: transparent;
+    color: #c79100;
+    border: 1px solid #c79100;
 }
 .btn-secondary:hover {
-    background-color: #e0e0e0;
+    background-color: #fdf8f7;
+    color: #a17600;
+    border-color: #a17600;
 }
 
 /* --- 로딩 스피너 --- */
