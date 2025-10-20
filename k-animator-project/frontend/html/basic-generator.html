@@ -17,7 +17,6 @@
                 </a>
             </div>
             <div class="user-menu">
-                <!-- ID 추가: user-profile-btn.. -->
                 <button class="icon-btn" id="user-profile-btn"><i class="fa-regular fa-user"></i></button>
                 <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
             </div>
@@ -32,9 +31,10 @@
                 </div>
                 <div class="mode-info">
                     <span>현재 모드: 기본 모드</span>
-                    <a href="edit.html" class="btn btn-edit">
-                        <i class="fa-solid fa-pen"></i> 갤러리
-                    </a>
+                    <!-- ID 변경 및 href 제거 -->
+                    <button id="my-images-btn" class="btn btn-edit">
+                        <i class="fa-solid fa-images"></i> 갤러리
+                    </button>
                 </div>
             </div>
 
@@ -67,7 +67,13 @@
                             <input type="text" id="keywords" placeholder="예: 김치, 한옥, 한복 등">
                         </div>
                         <div class="form-group">
-                            <label for="description">장면 설명 *</label>
+                            <!-- STT 버튼을 위한 라벨 레이아웃 변경 -->
+                            <div class="label-group">
+                                <label for="description">장면 설명 *</label>
+                                <button type="button" id="stt-btn" class="icon-btn stt-btn" title="음성으로 입력">
+                                    <i class="fa-solid fa-microphone"></i>
+                                </button>
+                            </div>
                             <textarea id="description" rows="5" placeholder="예: 접시에 담긴 먹음직스러운 김치 그려줘"></textarea>
                             <div class="char-counter">0/500</div>
                         </div>
@@ -101,7 +107,7 @@
         <i class="fa-solid fa-headset"></i> Talk with Us
     </button>
     
-    <!-- === 사용자 프로필 모달 추가 === -->
+    <!-- === 사용자 프로필 모달 (수정됨) === -->
     <div id="user-profile-modal" class="modal-overlay">
         <div class="profile-card">
             <button class="close-btn" id="close-profile-btn"><i class="fa-solid fa-xmark"></i></button>
@@ -116,8 +122,14 @@
                 <p class="info-value" id="profile-username">로딩 중...</p>
             </div>
             <div class="profile-info-group">
-                <p class="info-label">전체 이름</p>
-                <p class="info-value" id="profile-fullname">로딩 중...</p>
+                <div class="info-header">
+                    <p class="info-label">전체 이름</p>
+                    <div>
+                        <button id="edit-profile-btn" class="btn-sm-icon"><i class="fa-solid fa-pen"></i></button>
+                        <button id="save-profile-btn" class="btn-sm-icon" style="display: none;"><i class="fa-solid fa-check"></i></button>
+                    </div>
+                </div>
+                <p class="info-value" id="profile-fullname" contenteditable="false">로딩 중...</p>
             </div>
             <div class="profile-info-group">
                 <p class="info-label">이메일</p>
@@ -125,11 +137,46 @@
             </div>
             
             <div class="profile-actions">
-                <button id="logout-btn" class="btn btn-danger btn-full-width">로그아웃</button>
+                <button id="change-password-btn" class="btn btn-secondary btn-full-width">비밀번호 변경</button>
+                <button id="logout-btn" class="btn btn-secondary btn-full-width">로그아웃</button>
+                <button id="delete-account-btn" class="btn btn-danger btn-full-width">회원 탈퇴</button>
             </div>
         </div>
     </div>
-    <!-- ============================= -->
+    
+    <!-- === 비밀번호 변경 모달 (신규) === -->
+    <div id="change-password-modal" class="modal-overlay">
+        <div class="form-card">
+            <button id="close-change-password-btn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            <h3>비밀번호 변경</h3>
+            <form id="change-password-form">
+                <div class="form-group">
+                    <label for="old-password">현재 비밀번호</label>
+                    <input type="password" id="old-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-password">새 비밀번호</label>
+                    <input type="password" id="new-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">새 비밀번호 확인</label>
+                    <input type="password" id="confirm-password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full-width">변경하기</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- === 내 이미지 갤러리 모달 (신규) === -->
+    <div id="my-images-modal" class="modal-overlay">
+        <div class="gallery-card">
+            <button id="close-my-images-btn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            <h3>내 이미지 갤러리</h3>
+            <div id="my-images-container" class="gallery-container">
+                <!-- JS에 의해 이미지 목록이 채워집니다 -->
+            </div>
+        </div>
+    </div>
     
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="../js/api.js"></script>

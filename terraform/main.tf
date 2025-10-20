@@ -178,3 +178,14 @@ module "api_gateway" {
   util_url                = var.backend_util_url
   gpt_url                 = var.backend_gpt_url
 }
+# ----------------------------------------------------
+# SD Storage module
+# ----------------------------------------------------
+module "sd_storage" {
+  source = "./modules/sd_storage"
+
+  prefix                 = "kanimator"
+  location                = azurerm_resource_group.aks_rg.location
+  resource_group_name     = azurerm_resource_group.aks_rg.name
+  tags                    = azurerm_kubernetes_cluster_node_pool.gpu_nodepool.tags
+}

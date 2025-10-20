@@ -10,6 +10,7 @@ resource "azurerm_api_management_api" "auth_api" {
   path = "api/auth"
   protocols = ["https"]
   service_url = var.auth_url
+  subscription_required = false
 }
 # 공개 Operation에는 JWT 검증 정책 미적용
 resource "azurerm_api_management_api_operation" "auth_signup" {
@@ -51,6 +52,7 @@ resource "azurerm_api_management_api" "users_api" {
   path = "api/users"
   protocols = ["https"]
   service_url = var.auth_url
+  subscription_required = false
 }
 # 보호된 Operation에만 JWT 검증 정책 적용 -> 포털에서
 resource "azurerm_api_management_api_operation" "users_logout" {

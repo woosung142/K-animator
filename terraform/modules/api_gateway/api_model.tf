@@ -10,6 +10,7 @@ resource "azurerm_api_management_api" "model_api" {
   path = "api/model"
   protocols = ["https"]
   service_url = var.model_api_url
+  subscription_required = false
 }
 # 보호된 Operation에만 JWT 검증 정책 적용 -> 포털에서
 resource "azurerm_api_management_api_operation" "model_generate" {

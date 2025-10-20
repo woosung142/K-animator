@@ -10,6 +10,7 @@ resource "azurerm_api_management_api" "util_api" {
   path = "api/utils"
   protocols = ["https"]
   service_url = var.util_url
+  subscription_required = false
 }
 # 보호된 Operation에만 JWT 검증 정책 적용 -> 포털에서
 resource "azurerm_api_management_api_operation" "util_upload_image" {

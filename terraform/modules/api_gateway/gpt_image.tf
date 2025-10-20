@@ -7,6 +7,7 @@ resource "azurerm_api_management_api" "gpt_api" {
   path = "api/gpt"
   protocols = ["https"]
   service_url = var.gpt_url
+  subscription_required = false
 }
 # 공개 Operation에는 JWT 검증 정책 미적용
 resource "azurerm_api_management_api_operation" "gpt_generate_image" {

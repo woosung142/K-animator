@@ -405,3 +405,152 @@ input[type="text"], textarea {
     flex-grow: 1;
 }
 /* 기타 스타일 생략... */
+
+/* ========================================= */
+/*            추가된 CSS 스타일              */
+/* ========================================= */
+
+/* --- STT 버튼 --- */
+.label-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.stt-btn {
+    font-size: 1.2rem;
+    padding: 5px;
+    color: #666;
+}
+
+/* --- 프로필 모달 내부 --- */
+.info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-sm-icon {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    color: #999;
+    padding: 5px;
+}
+.btn-sm-icon:hover {
+    color: #333;
+}
+
+#profile-fullname[contenteditable="true"] {
+    outline: 2px solid #5b9bd5;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-secondary {
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+}
+.btn-secondary:hover {
+    background-color: #e0e0e0;
+}
+
+.btn-primary {
+    background-color: #1e88e5;
+    color: white;
+    border: none;
+}
+.btn-primary:hover {
+    background-color: #1565c0;
+}
+
+/* --- 비밀번호 변경 모달 --- */
+.form-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 30px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    position: relative;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.form-card h3 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.form-card .form-group input {
+    background-color: #f7f7f7;
+}
+
+/* --- 갤러리 모달 --- */
+.gallery-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 30px;
+    width: 90%;
+    max-width: 1200px;
+    height: 80vh;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.gallery-card h3 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.gallery-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 10px;
+}
+
+.my-image-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow 0.3s;
+}
+
+.my-image-item:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.my-image-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+
+.my-image-item p {
+    padding: 10px;
+    margin: 0;
+    font-size: 0.9rem;
+    background-color: #f9f9f9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
