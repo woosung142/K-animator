@@ -74,7 +74,8 @@ def login_for_access_token(
         max_age=int(security.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60),
         samesite="none",
         secure=True,
-        path="/"
+        path="/",
+        domain=".prtest.shop"
     )
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
@@ -151,7 +152,8 @@ def refresh_access_token(
         max_age=int(security.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60),
         samesite="none",
         secure=True,
-        path="/"
+        path="/",
+        domain=".prtest.shop"
     )
 
     return {"access_token": new_access_token, "refresh_token": new_refresh_token, "token_type": "bearer"}
@@ -174,7 +176,8 @@ def logout(
         key="refresh_token",
         samesite="none",
         secure=True,
-        path="/"
+        path="/",
+        domain=".prtest.shop"
     )
     return {"message": "성공적으로 로그아웃되었습니다."}
 
