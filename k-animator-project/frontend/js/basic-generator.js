@@ -208,7 +208,8 @@ if (changePasswordBtn && changePasswordModal && closeChangePasswordBtn && change
         }
 
         try {
-            await api.put('/api/users/me/password', {
+            // [FIX] HTTP 메소드를 PUT에서 PATCH로 변경
+            await api.patch('/api/users/me/password', {
                 current_password: oldPassword,
                 new_password: newPassword,
             });
@@ -260,7 +261,8 @@ if (myImagesBtn && myImagesModal && closeMyImagesBtn && myImagesContainer) {
         myImagesContainer.innerHTML = '<p>이미지를 불러오는 중...</p>';
         myImagesModal.classList.add('active');
         try {
-            const response = await api.get('/api/images/me');
+            // [FIX] API 경로를 /api/images/me에서 /api/utils/my-images로 변경
+            const response = await api.get('/api/utils/my-images');
             const images = response.data;
             myImagesContainer.innerHTML = ''; // 기존 내용 초기화
 
