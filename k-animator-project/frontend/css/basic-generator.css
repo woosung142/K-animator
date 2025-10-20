@@ -407,7 +407,7 @@ input[type="text"], textarea {
 /* 기타 스타일 생략... */
 
 /* ========================================= */
-/*            추가된 CSS 스타일              */
+/*            추가/수정된 CSS 스타일         */
 /* ========================================= */
 
 /* --- STT 버튼 --- */
@@ -422,6 +422,18 @@ input[type="text"], textarea {
     font-size: 1.2rem;
     padding: 5px;
     color: #666;
+}
+
+/* STT 버튼 녹음 중 스타일 */
+.stt-btn.recording {
+    color: #e53935; /* 빨간색으로 변경 */
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
 /* --- 프로필 모달 내부 --- */
@@ -473,7 +485,7 @@ input[type="text"], textarea {
     background-color: #1565c0;
 }
 
-/* --- 비밀번호 변경 모달 --- */
+/* --- 비밀번호 변경 모달 (개선됨) --- */
 .form-card {
     background: #ffffff;
     border-radius: 12px;
@@ -488,69 +500,42 @@ input[type="text"], textarea {
 .form-card h3 {
     font-size: 1.5rem;
     color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 25px; /* 여백 추가 */
     text-align: center;
+}
+
+.form-card .form-group {
+    margin-bottom: 20px;
+}
+
+.form-card .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+    font-size: 0.9rem;
 }
 
 .form-card .form-group input {
-    background-color: #f7f7f7;
-}
-
-/* --- 갤러리 모달 --- */
-.gallery-card {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 30px;
-    width: 90%;
-    max-width: 1200px;
-    height: 80vh;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
-
-.gallery-card h3 {
-    font-size: 1.5rem;
-    color: #333;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.gallery-container {
-    flex-grow: 1;
-    overflow-y: auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-    padding: 10px;
-}
-
-.my-image-item {
+    width: 100%;
+    padding: 14px;
     border: 1px solid #ddd;
     border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: box-shadow 0.3s;
+    background-color: #fff; /* 흰색 배경 */
+    font-size: 1rem;
+    color: #333;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.my-image-item:hover {
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+.form-card .form-group input:focus {
+    outline: none;
+    border-color: #c79100; /* 포커스 시 테마 색상으로 변경 */
+    box-shadow: 0 0 0 3px rgba(199, 145, 0, 0.2); /* 은은한 그림자 효과 */
 }
 
-.my-image-item img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    display: block;
+.form-card .btn-primary {
+    margin-top: 10px; /* 버튼 상단 여백 추가 */
 }
 
-.my-image-item p {
-    padding: 10px;
-    margin: 0;
-    font-size: 0.9rem;
-    background-color: #f9f9f9;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+/* --- 갤러리 모달 관련 스타일 제거됨 --- */

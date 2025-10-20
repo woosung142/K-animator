@@ -7,6 +7,7 @@
     <script src="../js/auth-guard.js"></script>         
     <link rel="stylesheet" href="../css/basic-generator.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://aka.ms/csspeech/js/sdk/speech.sdk.bundle.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -31,10 +32,10 @@
                 </div>
                 <div class="mode-info">
                     <span>현재 모드: 기본 모드</span>
-                    <!-- ID 변경 및 href 제거 -->
-                    <button id="my-images-btn" class="btn btn-edit">
+                    <!-- 갤러리 버튼을 edit.html로 가는 링크로 변경 -->
+                    <a href="edit.html" class="btn btn-edit">
                         <i class="fa-solid fa-images"></i> 갤러리
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -167,16 +168,7 @@
         </div>
     </div>
 
-    <!-- === 내 이미지 갤러리 모달 (신규) === -->
-    <div id="my-images-modal" class="modal-overlay">
-        <div class="gallery-card">
-            <button id="close-my-images-btn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
-            <h3>내 이미지 갤러리</h3>
-            <div id="my-images-container" class="gallery-container">
-                <!-- JS에 의해 이미지 목록이 채워집니다 -->
-            </div>
-        </div>
-    </div>
+    <!-- 내 이미지 갤러리 모달 제거됨 -->
     
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="../js/api.js"></script>

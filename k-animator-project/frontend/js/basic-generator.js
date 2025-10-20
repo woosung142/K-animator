@@ -108,44 +108,51 @@ if (generateButton) {
 // 추가된 기능들
 // ===================================================================================
 
-// 1. STT (Speech-to-Text) 기능
+// 1. STT (Speech-to-Text) 기능 (Azure Speech SDK 사용)
 // -----------------------------------------------------------------------------------
 const sttButton = document.getElementById('stt-btn');
 const promptInput = document.getElementById('description');
 
 if (sttButton && promptInput) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'ko-KR';
-        recognition.continuous = false;
-        recognition.interimResults = false;
+    sttButton.addEventListener('click', async () => {
+        sttButton.disabled = true;
+        sttButton.classList.add('recording');
 
-        sttButton.addEventListener('click', () => {
-            sttButton.textContent = '음성 인식 중...';
-            sttButton.disabled = true;
-            recognition.start();
-        });
+        try {
+            // 1. 백엔드에서 Azure Speech 인증 토큰 받아오기
+            const response = await api.get('/api/utils/get-speech-token');
+            const { token, region } = response.data;
 
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            promptInput.value = transcript;
-        };
+            // 2. Azure Speech SDK 설정
+            const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
+            speechConfig.speechRecognitionLanguage = 'ko-KR';
 
-        recognition.onerror = (event) => {
-            console.error('음성 인식 오류:', event.error);
-            alert('음성 인식 중 오류가 발생했습니다.');
-        };
+            const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+            const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
 
-        recognition.onend = () => {
-            sttButton.textContent = '음성으로 입력';
+            // 3. 음성 인식 시작 및 결과 처리
+            recognizer.recognizeOnceAsync(result => {
+                let text;
+                if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+                    text = result.text;
+                    promptInput.value = text;
+                } else {
+                    console.error(`Speech-to-Text 변환 실패: ${result.errorDetails}`);
+                    alert('음성 인식에 실패했습니다. 다시 시도해주세요.');
+                }
+                // 4. 리소스 정리
+                recognizer.close();
+                sttButton.disabled = false;
+                sttButton.classList.remove('recording');
+            });
+
+        } catch (error) {
+            console.error('STT 토큰 요청 또는 초기화 실패:', error);
+            alert('음성 인식 서비스를 초기화하는 데 실패했습니다.');
             sttButton.disabled = false;
-        };
-
-    } else {
-        sttButton.style.display = 'none';
-        console.warn('이 브라우저는 음성 인식을 지원하지 않습니다.');
-    }
+            sttButton.classList.remove('recording');
+        }
+    });
 }
 
 
@@ -245,62 +252,5 @@ if (deleteAccountBtn) {
                 alert('회원 탈퇴 처리 중 오류가 발생했습니다.');
             }
         }
-    });
-}
-
-
-// 5. 내 이미지 목록 조회
-// -----------------------------------------------------------------------------------
-const myImagesBtn = document.getElementById('my-images-btn');
-const myImagesModal = document.getElementById('my-images-modal');
-const closeMyImagesBtn = document.getElementById('close-my-images-btn');
-const myImagesContainer = document.getElementById('my-images-container');
-
-if (myImagesBtn && myImagesModal && closeMyImagesBtn && myImagesContainer) {
-    myImagesBtn.addEventListener('click', async () => {
-        myImagesContainer.innerHTML = '<p>이미지를 불러오는 중...</p>';
-        myImagesModal.classList.add('active');
-        try {
-            // [FIX] API 경로를 /api/images/me에서 /api/utils/my-images로 변경
-            const response = await api.get('/api/utils/my-images');
-            const images = response.data;
-            myImagesContainer.innerHTML = ''; // 기존 내용 초기화
-
-            if (images.length === 0) {
-                myImagesContainer.innerHTML = '<p>생성한 이미지가 없습니다.</p>';
-                return;
-            }
-
-            images.forEach(image => {
-                const imgElement = document.createElement('div');
-                imgElement.className = 'my-image-item';
-                imgElement.style.cursor = 'pointer'; // 클릭 가능함을 나타내는 커서 스타일
-                imgElement.innerHTML = `
-                    <img src="${image.url}" alt="user image">
-                    <p>프롬프트: ${image.prompt || '없음'}</p>
-                `;
-
-                // 클릭 이벤트 리스너 추가
-                imgElement.addEventListener('click', () => {
-                    // API 응답에 id가 있다고 가정하고, edit.html로 이동
-                    if (image.id) {
-                        window.location.href = `edit.html?imageId=${image.id}`;
-                    } else {
-                        console.error('이미지 ID가 없어 편집 페이지로 이동할 수 없습니다.', image);
-                        alert('이미지 정보가 올바르지 않아 편집 페이지로 이동할 수 없습니다.');
-                    }
-                });
-
-                myImagesContainer.appendChild(imgElement);
-            });
-
-        } catch (error) {
-            console.error('내 이미지 목록 조회 실패:', error);
-            myImagesContainer.innerHTML = '<p>이미지를 불러오는 데 실패했습니다.</p>';
-        }
-    });
-
-    closeMyImagesBtn.addEventListener('click', () => {
-        myImagesModal.classList.remove('active');
     });
 }
