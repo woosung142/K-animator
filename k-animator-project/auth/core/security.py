@@ -1,5 +1,7 @@
 import os
 import logging
+import base64
+
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from fastapi.security import APIKeyHeader
@@ -37,6 +39,7 @@ try:
     retrieved_secret = client.get_secret(secret_name)
 
     SECRET_KEY = retrieved_secret.value
+    SECRET_KEY = base64.b64decode(SECRET_KEY)
     logger.info("Azure Key Vault 에서 JWT를 성공적으로 검색함.")
     logger.info(f"!!! DEBUG: Loaded SECRET_KEY: {SECRET_KEY} !!!")
 
