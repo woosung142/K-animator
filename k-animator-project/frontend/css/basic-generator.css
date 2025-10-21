@@ -2,6 +2,7 @@
 /* 기본 스타일 */
 body {
     background-color: #fdf8f7;
+    margin: 0;
     color: #333;
 }
 .app-container {
@@ -347,15 +348,6 @@ input[type="text"], textarea {
 }
 
 /* 기타 기존 스타일... */
-.app-header { 
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 25px;
-    background-color: #fff;
-    border-bottom: 1px solid #eaeaea;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
 .logo a {
     display: flex;
     align-items: center;
@@ -383,9 +375,6 @@ input[type="text"], textarea {
 }
 .icon-btn:hover {
     color: #1e88e5;
-}
-.main-content {
-    padding: 25px;
 }
 .panel {
     background: #fff;

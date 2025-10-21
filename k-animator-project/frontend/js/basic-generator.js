@@ -115,46 +115,49 @@ const promptInput = document.getElementById('description');
 
 if (sttButton && promptInput) {
     sttButton.addEventListener('click', async () => {
+        // 1. 버튼을 즉시 비활성화하고 '녹음 중' 상태로 변경
         sttButton.disabled = true;
         sttButton.classList.add('recording');
+        let recognizer; // finally 블록에서도 접근 가능하도록 외부에 선언
 
         try {
-            // 1. 백엔드에서 Azure Speech 인증 토큰 받아오기
+            // 2. 백엔드에서 인증 토큰 가져오기
             const response = await api.get('/api/utils/get-speech-token');
             const { token, region } = response.data;
 
-            // 2. Azure Speech SDK 설정
+            // 3. 음성 인식기 설정 및 생성
             const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
             speechConfig.speechRecognitionLanguage = 'ko-KR';
 
             const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-            const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+            recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
 
-            // 3. 음성 인식 시작 및 결과 처리
-            recognizer.recognizeOnceAsync(result => {
-                let text;
-                if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-                    text = result.text;
-                    promptInput.value = text;
-                } else {
-                    console.error(`Speech-to-Text 변환 실패: ${result.errorDetails}`);
-                    alert('음성 인식에 실패했습니다. 다시 시도해주세요.');
-                }
-                // 4. 리소스 정리
-                recognizer.close();
-                sttButton.disabled = false;
-                sttButton.classList.remove('recording');
-            });
+            // 4. 음성 인식이 끝날 때까지 'await'로 기다리기
+            const result = await recognizer.recognizeOnceAsync();
+
+            // 5. 결과 처리
+            if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+                promptInput.value = result.text;
+            } else {
+                console.error(`음성 변환 실패: ${result.errorDetails}`);
+                alert('음성 인식에 실패했습니다. 다시 시도해주세요.');
+            }
 
         } catch (error) {
-            console.error('STT 토큰 요청 또는 초기화 실패:', error);
-            alert('음성 인식 서비스를 초기화하는 데 실패했습니다.');
+            // 6. 토큰 요청, 마이크 권한, 인식 실패 등 모든 에러를 한 곳에서 처리
+            console.error('음성 인식 중 오류 발생:', error);
+            alert('음성 인식 중 오류가 발생했습니다.');
+
+        } finally {
+            // 7. 성공/실패 여부와 관계없이 항상 버튼을 원래 상태로 되돌리고 자원을 정리
+            if (recognizer) {
+                recognizer.close();
+            }
             sttButton.disabled = false;
             sttButton.classList.remove('recording');
         }
     });
 }
-
 
 // 2. 내 정보 수정 (이름)
 // -----------------------------------------------------------------------------------
