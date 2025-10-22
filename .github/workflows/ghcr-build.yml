@@ -88,7 +88,7 @@ jobs:
       - name: Update Kustomize Manifest
         if: github.ref_name == 'main' || github.ref_name == 'develop'
         run: |
-          SHORT_SHA=$(echo"${{ github.sha }}" | cut -c1-7)
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           export IMAGE_TAG="${{ github.ref_name }}-${SHORT_SHA}"
 
           if [[ -z "${IMAGE_TAG}" ]]; then
@@ -115,5 +115,5 @@ jobs:
           yq e '(.images[] | select(.name | test("ghcr.io/${{ github.repository_owner }}/k-animator/${{ matrix.service }}")) | .newTag) = strenv(IMAGE_TAG)' -i ${KUSTOMIZE_PATH}
 
           git add ${KUSTOMIZE_PATH}
-          git commit -m "ci: Update ${{ matrix.service }} image to tag ${IMAGE_TAG}" || echo "No changes to commit"
+          git commit -m "ci: Update ${{ matrix.service }} image to tag ${IMAGE_TAG} [skip ci]" || echo "No changes to commit"
           git push
