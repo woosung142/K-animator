@@ -80,7 +80,9 @@ jobs:
           context: ./k-animator-project
           file: ./${{ steps.set-context.outputs.path }}/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/k-animator/${{ matrix.service }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/k-animator/${{ matrix.service }}:${{ github.ref_name }}-$(echo ${{ github.sha }} | cut -c1-7)
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
