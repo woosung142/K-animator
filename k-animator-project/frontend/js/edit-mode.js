@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. 페이지 로드 시 이미지 표시
     if (imageUrl) {
-        imageDisplay.src = decodeURIComponent(imageUrl);
+        imageDisplay.src = imageUrl;
         imageDisplay.alt = "편집할 이미지";
     } else {
         imageDisplay.alt = "편집할 이미지를 불러오지 못했습니다.";
