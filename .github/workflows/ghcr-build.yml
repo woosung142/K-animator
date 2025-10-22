@@ -88,7 +88,8 @@ jobs:
       - name: Update Kustomize Manifest
         if: github.ref_name == 'main' || github.ref_name == 'develop'
         run: |
-          export IMAGE_TAG=${{ github.ref_name }}
+          SHORT_SHA=$(echo"${{ github.sha }}" | cut -c1-7)
+          export IMAGE_TAG="${{ github.ref_name }}-${SHORT_SHA}"
 
           if [[ -z "${IMAGE_TAG}" ]]; then
             echo "Error: IMAGE_TAG is empty. Aborting."
