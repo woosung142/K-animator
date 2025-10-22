@@ -157,8 +157,8 @@ def separate_layers_task(self, image_url: str) -> dict:
             output_psd_path = os.path.join(temp_dir, f"{task_id}.psd")
             
             # psd-tools를 사용하여 레이어 생성
-            color_layer = PixelLayer(pil_image=color_layer_pil, name='color')
-            sketch_layer = PixelLayer(pil_image=sketch_layer_rgba_pil, name='sketch')
+            color_layer = PixelLayer.from_pil(pil_image=color_layer_pil, name='color')
+            sketch_layer = PixelLayer.from_pil(pil_image=sketch_layer_rgba_pil, name='sketch')
 
             # PSD 이미지 구성
             psd = PSDImage.new('RGB', (W, H))
