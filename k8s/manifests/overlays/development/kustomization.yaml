@@ -18,6 +18,6 @@ images:
   - name: ghcr.io/woosung142/k-animator/gptapi
     newTag: develop-57c9eb8
   - name: ghcr.io/woosung142/k-animator/gptworker
-    newTag: develop
+    newTag: develop-57c9eb8
   - name: ghcr.io/woosung142/k-animator/layerworker
     newTag: develop
