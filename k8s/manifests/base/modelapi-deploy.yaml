@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: modelapi-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: modelapi
+  template:
+    metadata:
+      labels:
+        app: modelapi
+    spec:
+      serviceAccountName: modelapi-sa
+      containers:
+        - name: modelapi
+          image: ghcr.io/woosung142/k-animator/modelapi:main
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8002
+          envFrom:
+            - secretRef:
+                name: app-secrets
+          env:
+            - name: TRANSFORMERS_CACHE
+              value: /models
+          volumeMounts:
+            - mountPath: /models
+              name: model-cache
+      volumes:
+        - name: model-cache
+          emptyDir: {}
+      imagePullSecrets:
+        - name: ghcr-secret

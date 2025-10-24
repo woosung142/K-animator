@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: utils-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: utils
+  template:
+    metadata:
+      labels:
+        app: utils
+    spec:
+      serviceAccountName: util-sa
+      containers:
+        - name: utils
+          image: ghcr.io/woosung142/k-animator/utils:main
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8003
+          envFrom:
+            - secretRef:
+                name: app-secrets
+      imagePullSecrets:
+        - name: ghcr-secret

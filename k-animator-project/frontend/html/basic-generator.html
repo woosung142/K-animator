@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이미지 생성 - 한국풍 이미지 생성기</title>
+
+    <link rel="stylesheet" href="../css/basic-generator.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle.js"defer></script>
+    
+
+    <script src="../js/auth-guard.js"defer></script> 
+    <script src="../js/api.js"defer></script>
+    <script src="../js/basic-generator.js"defer></script>        
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="../images/logo-gray%20(1).png" alt="K-Animator Logo" style="height: 40px;">
+                </a>
+            </div>
+            <div class="user-menu">
+                <button class="icon-btn" id="user-profile-btn"><i class="fa-regular fa-user"></i></button>
+                <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="panel mode-selector">
+                <div class="modes">
+                    <a href="basic-generator.html" class="btn-mode active">기본 모드</a>
+                    <a href="style-generator.html" class="btn-mode">스타일 생성 모드</a>
+                    <a href="advanced-generator.html" class="btn-mode">고급 생성 모드</a>
+                </div>
+                <div class="mode-info">
+                    <span>현재 모드: 기본 모드</span>
+                    <!-- 갤러리 버튼을 edit.html로 가는 링크로 변경 -->
+                    <a href="edit.html" class="btn btn-edit">
+                        <i class="fa-solid fa-images"></i> 갤러리
+                    </a>
+                </div>
+            </div>
+
+            <div class="generator-layout">
+                <div class="panel settings-panel">
+                    <h2>이미지 설정</h2>
+                    <form>
+                        <div class="form-group">
+                            <label>카테고리 *</label>
+                            <div class="btn-group">
+                                <button type="button" class="btn-option">명소</button>
+                                <button type="button" class="btn-option">음식</button>
+                                <button type="button" class="btn-option">문화</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>레이어 *</label>
+                            <div class="btn-group">
+                                <button type="button" class="btn-option">콘티</button>
+                                <button type="button" class="btn-option">스케치</button>
+                                <button type="button" class="btn-option active">채색(기본)</button>
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" class="btn-option">채색(명암)</button>
+                                <button type="button" class="btn-option">배경</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="keywords">키워드 *</label>
+                            <input type="text" id="keywords" placeholder="예: 김치, 한옥, 한복 등">
+                        </div>
+                        <div class="form-group">
+                            <!-- STT 버튼을 위한 라벨 레이아웃 변경 -->
+                            <div class="label-group">
+                                <label for="description">장면 설명 *</label>
+                                <button type="button" id="stt-btn" class="icon-btn stt-btn" title="음성으로 입력">
+                                    <i class="fa-solid fa-microphone"></i>
+                                </button>
+                            </div>
+                            <textarea id="description" rows="5" placeholder="예: 접시에 담긴 먹음직스러운 김치 그려줘"></textarea>
+                            <div class="char-counter">0/500</div>
+                        </div>
+                        <div class="form-group">
+                            <label>참조 이미지</label>
+                            <div class="upload-box">
+                                <i class="fa-solid fa-plus"></i>
+                                <input type="file" class="file-input">
+                            </div>
+                        </div>
+                        <button id="generate-button" type="button" class="btn-submit">이미지 생성하기</button>
+                    </form>
+                </div>
+
+                <div class="panel display-panel">
+                    <div class="display-header">
+                        <h2>생성된 이미지</h2>
+                        <span>총 0개</span>
+                    </div>
+                    <div class="image-placeholder">
+                        <i class="fa-regular fa-image"></i>
+                        <p><b>아직 생성된 이미지가 없습니다</b></p>
+                        <p>왼쪽 패널에서 설정을 완료하고 이미지를 생성해보세요</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <button class="talk-button">
+        <i class="fa-solid fa-headset"></i> Talk with Us
+    </button>
+    
+    <!-- === 사용자 프로필 모달 (수정됨) === -->
+    <div id="user-profile-modal" class="modal-overlay">
+        <div class="profile-card">
+            <button class="close-btn" id="close-profile-btn"><i class="fa-solid fa-xmark"></i></button>
+            <h3>내 프로필</h3>
+            
+            <div class="profile-avatar">
+                <i class="fa-solid fa-circle-user"></i>
+            </div>
+
+            <div class="profile-info-group">
+                <p class="info-label">사용자 이름 (ID)</p>
+                <p class="info-value" id="profile-username">로딩 중...</p>
+            </div>
+            <div class="profile-info-group">
+                <div class="info-header">
+                    <p class="info-label">전체 이름</p>
+                    <div>
+                        <button id="edit-profile-btn" class="btn-sm-icon"><i class="fa-solid fa-pen"></i></button>
+                        <button id="save-profile-btn" class="btn-sm-icon" style="display: none;"><i class="fa-solid fa-check"></i></button>
+                    </div>
+                </div>
+                <p class="info-value" id="profile-fullname" contenteditable="false">로딩 중...</p>
+            </div>
+            <div class="profile-info-group">
+                <p class="info-label">이메일</p>
+                <p class="info-value" id="profile-email">로딩 중...</p>
+            </div>
+            
+            <div class="profile-actions">
+                <button id="change-password-btn" class="btn btn-secondary btn-full-width">비밀번호 변경</button>
+                <button id="logout-btn" class="btn btn-secondary btn-full-width">로그아웃</button>
+                <button id="delete-account-btn" class="btn btn-danger btn-full-width">회원 탈퇴</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- === 비밀번호 변경 모달 (신규) === -->
+    <div id="change-password-modal" class="modal-overlay">
+        <div class="form-card">
+            <button id="close-change-password-btn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            <h3>비밀번호 변경</h3>
+            <form id="change-password-form">
+                <div class="form-group">
+                    <label for="old-password">현재 비밀번호</label>
+                    <input type="password" id="old-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-password">새 비밀번호</label>
+                    <input type="password" id="new-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">새 비밀번호 확인</label>
+                    <input type="password" id="confirm-password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full-width">변경하기</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

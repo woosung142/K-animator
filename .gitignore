@@ -5,6 +5,7 @@ __pycache__/
 *.pyd
 *.egg-info/
 .env
+venv/
 
 # Docker
 *.log
@@ -43,5 +44,10 @@ logs/
 # Ignore node modules if you ever use frontend deps
 node_modules/
 
+
 secret.yaml
 *.secret.yaml
+*-secret.yaml
+# Ignore Kubernetes manifests for local
+k8s/manifests/base/*-secrets.yaml
+app-secrets.yaml

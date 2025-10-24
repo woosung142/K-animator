@@ -18,13 +18,21 @@ jobs:
         with:
           filters: |
             frontend:
-              - 'web/frontend/**'
-            backend:
-              - 'web/backend/**'
-            model-api:
-              - 'model-api/**'
-            model-worker:
-              - 'model-worker/**'
+              - 'k-animator-project/frontend/**'
+            auth:
+              - 'k-animator-project/auth/**'
+            modelapi:
+              - 'k-animator-project/modelapi/**'
+            model_worker:
+              - 'k-animator-project/model_worker/**'
+            utils:
+              - 'k-animator-project/utils/**'
+            gptapi:
+              - 'k-animator-project/gptapi/**'
+            gptworker:
+              - 'k-animator-project/gptworker/**'
+            layerworker:
+              - 'k-animator-project/layerworker/**'
 
   build-push-update:
     needs: changes
@@ -63,20 +71,21 @@ jobs:
       - name: Set Docker build context
         id: set-context
         run: |
-          if [[ "${{ matrix.service }}" == "frontend" || "${{ matrix.service }}" == "backend" ]]; then
-            echo "path=web/${{ matrix.service }}" >> $GITHUB_OUTPUT
-          else
-            echo "path=${{ matrix.service }}" >> $GITHUB_OUTPUT
-          fi
+          echo "path=k-animator-project/${{ matrix.service }}" >> $GITHUB_OUTPUT
+
+      - name: Get short SHA
+        run: echo "SHORT_SHA=$(echo '${{ github.sha }}' | cut -c1-7)" >> $GITHUB_ENV
 
       - name: Build and Push image to GHCR
         id: build
         uses: docker/build-push-action@v6.5.0
         with:
-          context: ./${{ steps.set-context.outputs.path }}
+          context: ./k-animator-project
           file: ./${{ steps.set-context.outputs.path }}/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/k-animator/${{ matrix.service }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/k-animator/${{ matrix.service }}:${{ github.ref_name }}-${{ env.SHORT_SHA }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -84,7 +93,8 @@ jobs:
       - name: Update Kustomize Manifest
         if: github.ref_name == 'main' || github.ref_name == 'develop'
         run: |
-          export IMAGE_TAG=${{ github.ref_name }}
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          export IMAGE_TAG="${{ github.ref_name }}-${SHORT_SHA}"
 
           if [[ -z "${IMAGE_TAG}" ]]; then
             echo "Error: IMAGE_TAG is empty. Aborting."
@@ -110,5 +120,5 @@ jobs:
           yq e '(.images[] | select(.name | test("ghcr.io/${{ github.repository_owner }}/k-animator/${{ matrix.service }}")) | .newTag) = strenv(IMAGE_TAG)' -i ${KUSTOMIZE_PATH}
 
           git add ${KUSTOMIZE_PATH}
-          git commit -m "ci: Update ${{ matrix.service }} image to tag ${IMAGE_TAG}" || echo "No changes to commit"
+          git commit -m "ci: Update ${{ matrix.service }} image to tag ${IMAGE_TAG} [skip ci]" || echo "No changes to commit"
           git push

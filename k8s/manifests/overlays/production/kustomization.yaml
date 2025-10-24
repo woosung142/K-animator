@@ -7,9 +7,17 @@ resources:
 images:
   - name: ghcr.io/woosung142/k-animator/frontend
     newTag: main
-  - name: ghcr.io/woosung142/k-animator/backend
+  - name: ghcr.io/woosung142/k-animator/utils
     newTag: main
-  - name: ghcr.io/woosung142/k-animator/model-api
+  - name: ghcr.io/woosung142/k-animator/modelapi
     newTag: main
   - name: ghcr.io/woosung142/k-animator/model-worker
+    newTag: main
+  - name: ghcr.io/woosung142/k-animator/auth
+    newTag: main
+  - name: ghcr.io/woosung142/k-animator/gptapi
+    newTag: main
+  - name: ghcr.io/woosung142/k-animator/gptworker
+    newTag: main
+  - name: ghcr.io/woosung142/k-animator/layerworker
     newTag: main

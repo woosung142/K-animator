@@ -1,13 +1,29 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  - service-accounts.yaml
+
   - frontend-deployment.yaml
   - frontend-service.yaml
-  - backend-deployment.yaml
-  - backend-service.yaml
-  - model-api-deploy.yaml
-  - model-api-service.yaml
+
+  - auth-deployment.yaml
+  - auth-service.yaml
+
+  - utils-deployment.yaml
+  - utils-service.yaml
+
+  - modelapi-deploy.yaml
+  - modelapi-service.yaml
+
   - model-worker-deploy.yaml
   - model-worker-service.yaml
+  
   - redis-deploy.yaml
   - redis-service.yaml
+
+  - gptapi-deployment.yaml
+  - gptapi-service.yaml
+
+  - gptworker-deployment.yaml
+
+  - layerworker-deployment.yaml

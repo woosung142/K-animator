@@ -1,0 +1,9 @@
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+celery==5.3.6
+redis==5.0.4
+python-dotenv==1.0.1
+azure-keyvault-secrets==4.10.0
+azure-identity==1.25.0
+SQLAlchemy==2.0.43
+psycopg2-binary==2.9.10
