@@ -8,7 +8,7 @@ images:
   - name: ghcr.io/woosung142/k-animator/frontend
     newTag: develop-c35333d
   - name: ghcr.io/woosung142/k-animator/utils
-    newTag: develop-d88cae5
+    newTag: develop-c35333d
   - name: ghcr.io/woosung142/k-animator/modelapi
     newTag: develop-c35333d
   - name: ghcr.io/woosung142/k-animator/model-worker
