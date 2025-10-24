@@ -11,7 +11,7 @@ images:
     newTag: develop-c35333d
   - name: ghcr.io/woosung142/k-animator/modelapi
     newTag: develop-c35333d
-  - name: ghcr.io/woosung142/k-animator/model-worker
+  - name: ghcr.io/woosung142/k-animator/model_worker
     newTag: develop
   - name: ghcr.io/woosung142/k-animator/auth
     newTag: develop-c35333d
