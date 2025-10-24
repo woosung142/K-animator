@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: model-worker
+  name: modelworker
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: model-worker
+      app: modelworker
   template:
     metadata:
       labels:
-        app: model-worker
+        app: modelworker
     spec:
-      serviceAccountName: model-worker-sa
+      serviceAccountName: modelworker-sa
       containers:
-        - name: model-worker
-          image: ghcr.io/woosung142/k-animator/model-worker:main
+        - name: modelworker
+          image: ghcr.io/woosung142/k-animator/modelworker:main
           envFrom:
             - secretRef:
                 name: app-secrets

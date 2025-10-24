@@ -30,12 +30,12 @@ fluent-bit:
           Regex  ^\[(?<tag>[^\]]+)\]\s(?<message>.*)$
 
       [PARSER]
-          Name   model-worker-parser
+          Name   modelworker-parser
           Format regex
           Regex  ^\[(?<time>[^\]]+): (?<level>\w+)/(?<processName>[^\]]+)\] (?<message>.*)$
 
       [PARSER]
-          Name   model-worker-extra-parser
+          Name   modelworker-extra-parser
           Format regex
           Regex  .*task_id:\s(?<task_id>[0-9a-f\-]+).*succeeded in (?<latency_s>[0-9\.]+)s.*
 
@@ -69,15 +69,15 @@ fluent-bit:
       [FILTER]
           Name        rewrite_tag
           Match       kube.*
-          Rule        $kubernetes['container_name'] ^model-worker$ model-worker.logs false
+          Rule        $kubernetes['container_name'] ^modelworker$ modelworker.logs false
           Rule        $kubernetes['container_name'] ^model-api$ app.logs false
           Emitter_Name re_emitted
 
       [FILTER]
           Name         parser
-          Match        model-worker.logs
+          Match        modelworker.logs
           Key_Name     log
-          Parser       model-worker-parser
+          Parser       modelworker-parser
           Reserve_Data On
 
       [FILTER]
@@ -89,9 +89,9 @@ fluent-bit:
 
       [FILTER]
           Name         parser
-          Match        model-worker.logs
+          Match        modelworker.logs
           Key_Name     log
-          Parser       model-worker-extra-parser
+          Parser       modelworker-extra-parser
           Reserve_Data On
 
       [FILTER]

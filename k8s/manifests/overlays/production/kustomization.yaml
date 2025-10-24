@@ -6,18 +6,18 @@ resources:
   - ingress.yaml
 images:
   - name: ghcr.io/woosung142/k-animator/frontend
-    newTag: main
+    newTag: main-97e3cb4
   - name: ghcr.io/woosung142/k-animator/utils
-    newTag: main
+    newTag: main-97e3cb4
   - name: ghcr.io/woosung142/k-animator/modelapi
-    newTag: main
-  - name: ghcr.io/woosung142/k-animator/model-worker
+    newTag: main-97e3cb4
+  - name: ghcr.io/woosung142/k-animator/modelworker
     newTag: main
   - name: ghcr.io/woosung142/k-animator/auth
-    newTag: main
+    newTag: main-97e3cb4
   - name: ghcr.io/woosung142/k-animator/gptapi
-    newTag: main
+    newTag: main-97e3cb4
   - name: ghcr.io/woosung142/k-animator/gptworker
-    newTag: main
+    newTag: main-97e3cb4
   - name: ghcr.io/woosung142/k-animator/layerworker
-    newTag: main
+    newTag: main-97e3cb4

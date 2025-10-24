@@ -15,8 +15,8 @@ resources:
   - modelapi-deploy.yaml
   - modelapi-service.yaml
 
-  - model-worker-deploy.yaml
-  - model-worker-service.yaml
+  - modelworker-deploy.yaml
+  - modelworker-service.yaml
   
   - redis-deploy.yaml
   - redis-service.yaml
