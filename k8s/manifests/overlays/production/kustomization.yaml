@@ -11,7 +11,7 @@ images:
     newTag: main-97e3cb4
   - name: ghcr.io/woosung142/k-animator/modelapi
     newTag: main-97e3cb4
-  - name: ghcr.io/woosung142/k-animator/model-worker
+  - name: ghcr.io/woosung142/k-animator/modelworker
     newTag: main
   - name: ghcr.io/woosung142/k-animator/auth
     newTag: main-97e3cb4

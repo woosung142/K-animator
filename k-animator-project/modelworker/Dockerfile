@@ -6,7 +6,7 @@ RUN apt-get update && \
 
 FROM base AS builder
 WORKDIR /app
-COPY model_worker/requirements.txt .
+COPY modelworker/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 FROM base AS final
@@ -17,7 +17,7 @@ COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 COPY shared/ /app/shared/
-COPY model_worker/ /app/model_worker/
+COPY modelworker/ /app/modelworker/
 
-CMD ["celery", "-A", "model_worker.worker:celery_app", "worker", "--loglevel=info"]
+CMD ["celery", "-A", "modelworker.worker:celery_app", "worker", "--loglevel=info"]
 #.

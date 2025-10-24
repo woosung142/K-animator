@@ -10,7 +10,8 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - http:
+  - host: dev.prtest.shop
+    http:
       paths:
       - path: /api/auth
         pathType: Prefix

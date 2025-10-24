@@ -19,9 +19,5 @@ spec:
           envFrom:
             - secretRef:
                 name: gpt-secrets
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
       imagePullSecrets:
         - name: ghcr-secret

@@ -44,7 +44,7 @@ def upload_blob(blob_name: str, data: bytes, container_name: str = AZURE_CONTAIN
     blob_client.upload_blob(data, overwrite=overwrite)
     logging.info(f"Blob uploaded successfully: {container_name}/{blob_name}")
 
-# 5. Blob 데이터를 다운로드하는 공용 함수를 만듭니다. (model-worker에서 사용)
+# 5. Blob 데이터를 다운로드하는 공용 함수를 만듭니다. (modelworker에서 사용)
 def get_blob_bytes(blob_name: str, container_name: str) -> bytes:
     """Blob에서 데이터를 바이트 형태로 다운로드합니다."""
     if not blob_service_client:

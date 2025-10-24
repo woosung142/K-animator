@@ -95,7 +95,7 @@ https://www.prtest.shop
         ↓
 [ 5. 작업 큐 등록 (Redis - 작업 상태 및 결과 저장) ]
         ↓
-[ 6. Celery 워커 (model-worker - 프롬프트 생성 + RAG 파이프라인 기반 이미지 생성) ]
+[ 6. Celery 워커 (modelworker - 프롬프트 생성 + RAG 파이프라인 기반 이미지 생성) ]
         ↓
 [ 7. 결과 저장 (Azure Blob Storage 저장 + Redis에 상태 업데이트) ]
         ↓
@@ -133,7 +133,7 @@ https://www.prtest.shop
    │    ├─ Redis에서 해당 task 상태 확인
    │    └─ SUCCESS면 png_url, psd_url 함께 반환
    ▼
-[비동기 처리: Celery (model-worker)]
+[비동기 처리: Celery (modelworker)]
    ├─ generate_prompt
    │    ├─ KoCLIP 임베딩 + PostgreSQL 유사도 검색
    │    ├─ GPT-4o로 프롬프트 생성
@@ -156,7 +156,7 @@ https://www.prtest.shop
 | `web`          | 사용자 인터페이스(UI) | 정적 HTML/CSS/JS 파일 서빙, 사용자 입력 처리   | `index.html`, `style.css`, `script.js` |
 | `web`          | 웹 요청 처리 | 이미지 업로드, STT 토큰 발급 등 프론트엔드의 요청을 받아 처리   | `web.py` |
 | `model-api`    | API 중계        | Celery 작업 요청 및 결과 확인     | `api.py`               |
-| `model-worker` | AI 비동기 처리     | 프롬프트 생성, 이미지 생성, Blob 저장 | `worker.py`            |
+| `modelworker` | AI 비동기 처리     | 프롬프트 생성, 이미지 생성, Blob 저장 | `worker.py`            |
 | `redis`        | 작업 상태 저장      | Celery 큐 및 결과 상태 관리      | (환경 구성 요소)             |
 
 ---
@@ -295,9 +295,9 @@ https://www.prtest.shop
 → 사용처: 프론트엔드에서 생성 완료 여부 확인용
 
 ---
-## 모델 워커 (`model-worker/worker.py`) 설명
+## 모델 워커 (`modelworker/worker.py`) 설명
 
-### POD 이름: `model-worker`
+### POD 이름: `modelworker`
 
 ### 주요 역할:
 

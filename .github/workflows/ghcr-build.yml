@@ -23,8 +23,8 @@ jobs:
               - 'k-animator-project/auth/**'
             modelapi:
               - 'k-animator-project/modelapi/**'
-            model_worker:
-              - 'k-animator-project/model_worker/**'
+            modelworker:
+              - 'k-animator-project/modelworker/**'
             utils:
               - 'k-animator-project/utils/**'
             gptapi:
