@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-storage-claim
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: "" 
+  volumeName: model-storage-pv 
+  resources:
+    requests:
+      storage: 50Gi

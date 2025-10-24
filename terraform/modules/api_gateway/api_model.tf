@@ -31,6 +31,15 @@ resource "azurerm_api_management_api_operation" "model_generate_image" {
   method = "POST"
   url_template = "/generate-image-from-prompt"
 }
+resource "azurerm_api_management_api_operation" "object_separation_inpainting" {
+  operation_id = "object-separation-inpainting-model"
+  api_name = azurerm_api_management_api.model_api.name
+  api_management_name = azurerm_api_management.apim.name
+  resource_group_name = var.resource_group_name
+  display_name = "Object Separation and Inpainting"
+  method = "POST"
+  url_template = "/object-si"
+}
 resource "azurerm_api_management_api_operation" "model_result" {
   operation_id = "get-result-model"
   api_name = azurerm_api_management_api.model_api.name

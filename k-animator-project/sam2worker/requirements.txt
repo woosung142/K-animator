@@ -1,0 +1,7 @@
+celery==5.3.6
+redis==5.0.4
+numpy
+opencv-python-headless
+Pillow
+controlnet_aux
+transformers

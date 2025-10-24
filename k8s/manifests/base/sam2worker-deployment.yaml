@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sam2worker-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sam2worker
+  template:
+    metadata:
+      labels:
+        app: sam2worker
+    spec:
+      nodeSelector:
+        agentpool: gpu
+      tolerations:
+      - key: "sku"
+        operator: "Equal"
+        value: "gpu"
+        effect: "NoSchedule"
+
+        containers:
+        - name: sam2worker
+          image: ghcr.io/woosung142/k-animator/sam2worker:main
+          imagePullPolicy: Always
+          envFrom:

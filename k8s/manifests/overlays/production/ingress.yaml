@@ -1,51 +1,66 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  name: internal-ingress-for-apim # APIM 연동용임을 명시
   namespace: default
-  name: web-ingress
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Cert-Manager를 사용해 인증서를 발급받도록 지정
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: "nginx"
+    # TLS/SSL 및 도메인 관련 어노테이션은 모두 APIM이 담당하므로 제거합니다.
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
 spec:
   ingressClassName: nginx
-  tls:
-    - hosts:
-        - www.prtest.shop  # 자신의 도메인으로 변경
-      secretName: www-prtest-shop-tls  # 인증서를 저장할 Secret 이름
   rules:
-    - host: www.prtest.shop  # 자신의 도메인으로 변경
-      http:
-        paths:
-        # api.py로 보냄
-          - path: /api/
-            pathType: Prefix
-            backend:
-              service:
-                name: model-api
-                port:
-                  number: 80
-        # 2개는 web.py로 보냄
-          - path: /upload-image
-            pathType: Prefix
-            backend:
-              service:
-                name: backend-service
-                port:
-                  number: 80
-          - path: /get-speech-token
-            pathType: Prefix
-            backend:
-              service:
-                name: backend-service
-                port:
-                  number: 80
-        # 나머지는 frontend로 보냄
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: frontend-service
-                port:
-                  number: 80
+  - http:
+      paths:
+      - path: /api/auth
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service
+            port:
+              number: 80
+      - path: /api/users
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service
+            port:
+              number: 80
+
+      # --- [수정] Model API 라우팅 ---
+      # /api/model/* 요청은 modelapi 서비스로 전달됩니다.
+      - path: /api/model
+        pathType: Prefix
+        backend:
+          service:
+            name: modelapi-service
+            port:
+              number: 80
+
+      # --- [수정] Util API 라우팅 ---
+      # /api/utils/* 요청은 backend-service (또는 util-service)로 전달됩니다.
+      - path: /api/utils
+        pathType: Prefix
+        backend:
+          service:
+            name: utils-service # Terraform의 util_api에 해당
+            port:
+              number: 80
+      # --- [추가] GPT API 라우팅 ---
+      - path: /api/gpt
+        pathType: Prefix
+        backend:
+          service:
+            name: gptapi-service
+            port:
+              number: 80
+      # --- 프론트엔드 라우팅 규칙 (가장 마지막에 위치) ---
+      # 위 경로에 해당하지 않는 모든 요청은 프론트엔드로 전달됩니다.
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-service
+            port:
+              number: 80
+

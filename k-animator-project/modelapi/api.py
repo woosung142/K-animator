@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
-from celery import Celery
+from celery import Celery, chain
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import logging
@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 # Celery 설정 -> 쓰기
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")  #배포 전 수정
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
 celery_app = Celery("modelapi", broker=CELERY_BROKER_URL)
 celery_app.conf.result_backend = CELERY_BROKER_URL
 
@@ -29,6 +29,12 @@ class PromptRequest(BaseModel):
 
 class FinalPromptRequest(BaseModel):
     dalle_prompt: str  
+
+# New BaseModel for object separation and inpainting
+class ObjectSeparationInpaintingRequest(BaseModel):
+    image_path: str
+    inpainting_prompt: str | None = "clean empty background, seamless, natural"
+    inpainting_negative_prompt: str | None = "person, people, human, face, hands, feet, text, watermark, artifacts, blurry, low quality"
 
 # 프롬프트 생성 요청
 @router.post("/generate-prompt")
@@ -60,6 +66,33 @@ async def generate_prompt_endpoint(
     )
     logging.info(f"[TASK] Celery task 전송 완료 - task_id: {task.id}")
     return {"task_id": task.id}
+
+# New API endpoint for object separation and inpainting
+@router.post("/object-separation-inpainting")
+async def object_separation_inpainting_endpoint(
+    request: ObjectSeparationInpaintingRequest,
+    user_id: str = Depends(get_user_id_from_gateway)
+):
+    logging.info(f"[REQUEST] POST /api/object-separation-inpainting")
+    logging.info(f"[DATA] user_id: {user_id}")
+    logging.info(f"[DATA] image_path: {request.image_path}")
+    logging.info(f"[DATA] inpainting_prompt: {request.inpainting_prompt}")
+    logging.info(f"[DATA] inpainting_negative_prompt: {request.inpainting_negative_prompt}")
+
+    # Celery chain: sam2.segment -> inpainting.inpaint
+    task_chain = (
+        celery_app.signature('sam2.segment', args=[request.image_path]) |
+        celery_app.signature('inpainting.inpaint', kwargs={
+            'prompt': request.inpainting_prompt,
+            'negative_prompt': request.inpainting_negative_prompt
+        })
+    )
+    
+    # Apply the chain asynchronously
+    result = task_chain.apply_async()
+
+    logging.info(f"[TASK] Celery chain 전송 완료 - task_id: {result.id}")
+    return {"task_id": result.id}
 
 '''
 # 최종 이미지 생성 요청
