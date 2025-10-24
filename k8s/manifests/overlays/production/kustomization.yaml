@@ -14,7 +14,7 @@ images:
   - name: ghcr.io/woosung142/k-animator/model-worker
     newTag: main
   - name: ghcr.io/woosung142/k-animator/auth
-    newTag: main
+    newTag: main-97e3cb4
   - name: ghcr.io/woosung142/k-animator/gptapi
     newTag: main
   - name: ghcr.io/woosung142/k-animator/gptworker
