@@ -10,6 +10,7 @@ app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 origins = [
     "https://dev.prtest.shop", # 실제 배포된 프론트엔드 주소
+    "https://www.prtest.shop",
     "http://localhost:8080",    # 로컬 개발 환경 주소
 ]
 
@@ -20,9 +21,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# --------------------
+#Front Door 및 APIM 헬스체크용 API
+@app.get("/health", include_in_schema=False)
+def health_check():
+    return {"status": "ok"}
 
-# [핵심] Terraform/Ingress에 설정된 경로와 일치하도록 prefix를 설정합니다.
 app.include_router(modelapi_router, prefix="/api/model")
 
 @app.get("/")

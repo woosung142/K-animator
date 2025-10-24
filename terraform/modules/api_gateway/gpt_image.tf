@@ -9,6 +9,20 @@ resource "azurerm_api_management_api" "gpt_api" {
   service_url = var.gpt_url
   subscription_required = false
 }
+#Front Door 및 APIM 헬스체크용 API
+resource "azurerm_api_management_api_operation" "gpt_health" {
+  operation_id        = "health-check"
+  api_name            = azurerm_api_management_api.gpt_api.name
+  api_management_name = azurerm_api_management.apim.name
+  resource_group_name = var.resource_group_name
+  display_name        = "Health Check"
+  method              = "GET"
+  url_template        = "/health"
+  response {
+    status_code = 200
+    description = "Health OK"
+  }
+}
 # 공개 Operation에는 JWT 검증 정책 미적용
 resource "azurerm_api_management_api_operation" "gpt_generate_image" {
   operation_id = "gpt-generate-image"

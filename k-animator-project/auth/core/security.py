@@ -41,7 +41,6 @@ try:
     SECRET_KEY = retrieved_secret.value
     SECRET_KEY = base64.b64decode(SECRET_KEY)
     logger.info("Azure Key Vault 에서 JWT를 성공적으로 검색함.")
-    logger.info(f"!!! DEBUG: Loaded SECRET_KEY: {SECRET_KEY} !!!")
 
 except Exception as e:     #로컬용
     logger.warning(f"Azure Key Vault에서 JWT검색하는 동안 오류 발생: {e}. 로컬 환경 변수를 사용")
