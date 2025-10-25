@@ -50,7 +50,26 @@ resource "azurerm_cdn_frontdoor_custom_domain" "main" {
     minimum_tls_version = "TLS12"
   }
 }
+resource "azurerm_cdn_frontdoor_custom_domain" "www" {
+  name = "${var.prefix}-custom-domain-www"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.main.id
+  host_name = "www.prtest.shop"
 
+  tls{
+    certificate_type = "ManagedCertificate"
+    minimum_tls_version = "TLS12"
+  }
+}
+resource "azurerm_cdn_frontdoor_custom_domain" "dev" {
+  name = "${var.prefix}-custom-domain-dev"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.main.id
+  host_name = "dev.prtest.shop"
+
+  tls{
+    certificate_type = "ManagedCertificate"
+    minimum_tls_version = "TLS12"
+  }
+}
 # 퍼블릭 엔드포인트와 원본 그룹을 연결합니다.
 resource "azurerm_cdn_frontdoor_route" "main" {
   name                          = "${var.prefix}-default-route"
@@ -58,7 +77,10 @@ resource "azurerm_cdn_frontdoor_route" "main" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.main.id
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.apim.id]
 
-  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.main.id]
+  cdn_frontdoor_custom_domain_ids = [
+    azurerm_cdn_frontdoor_custom_domain.main.id,
+    azurerm_cdn_frontdoor_custom_domain.www.id,
+    azurerm_cdn_frontdoor_custom_domain.dev.id]
   
   supported_protocols           = ["Http", "Https"]
   patterns_to_match             = ["/*"]

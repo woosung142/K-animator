@@ -4,6 +4,8 @@ Pillow==10.2.0                # 이미지 처리 (PNG 저장, PSD 변환)
 celery==5.3.6                 # Celery 워커 태스크 처리
 redis==5.0.3                  # Redis 브로커/백엔드 연결
 azure-storage-blob==12.19.1  # Azure Blob Storage 연동
+azure-keyvault-secrets==4.10.0
+azure-identity==1.25.0
 python-dotenv==1.0.1         # .env 환경변수 로드
 openai==1.93.3                # OpenAI GPT / AzureOpenAI API 사용
 psycopg2-binary==2.9.9        # PostgreSQL 접속 (psycopg2 경량판)

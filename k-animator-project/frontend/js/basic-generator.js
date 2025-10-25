@@ -95,50 +95,33 @@ logoutBtn.addEventListener('click', async () => {
 });
 
 
-// 기타 생성기 관련 로직은 여기에 추가될 수 있습니다.
-const generateButton = document.getElementById('generate-button');
-if (generateButton) {
-    generateButton.addEventListener('click', () => {
-        console.log('이미지 생성 버튼이 클릭되었습니다.');
-        // 여기에 이미지 생성 API 호출 로직을 구현합니다.
-    });
-}
-
 // ===================================================================================
-// 추가된 기능들
+// 페이지 로드 시 실행되는 기능들
 // ===================================================================================
-
-// 1. STT (Speech-to-Text) 기능 (Azure Speech SDK 사용)
-// -----------------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. 필요한 모든 변수를 미리 선언합니다.
+    // 1. STT (Speech-to-Text) 기능
+    // -----------------------------------------------------------------------------------
     const sttBtn = document.getElementById('stt-btn');
-    const descriptionTextarea = document.getElementById('description');
-    let recognizer; // 음성 인식기는 한 번만 만들어서 계속 사용할 것이므로 미리 변수를 만들어 둡니다.
+    const descriptionTextareaForStt = document.getElementById('description');
+    let recognizer; 
 
-    // 2. [잘 되던 코드의 장점] 페이지가 열리면 딱 한 번만 실행해서 미리 모든 것을 준비합니다.
     const initializeSpeechRecognizer = async () => {
         try {
-            // 백엔드에서 토큰을 먼저 받아옵니다.
             const response = await api.get('/api/utils/get-speech-token');
             const { token, region } = response.data;
 
-            // 받아온 토큰으로 SpeechSDK 설정을 구성합니다.
             const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
             speechConfig.speechRecognitionLanguage = 'ko-KR';
 
-            // 마이크 입력을 설정합니다.
             const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
             
             recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
 
-            // 모든 준비가 끝났으므로 버튼을 활성화합니다.
             sttBtn.disabled = false;
             console.log("음성 인식기가 성공적으로 초기화되었습니다.");
 
         } catch (error) {
-            // 초기화 과정에서 에러가 발생하면 사용자에게 알립니다.
             console.error('음성 인식기 초기화 실패:', error);
             sttBtn.title = "음성 인식 서비스를 사용할 수 없습니다.";
             sttBtn.innerHTML = '<i class="fa-solid fa-microphone-slash"></i>';
@@ -146,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // 3. [개선된 에러 처리] 버튼 클릭 이벤트는 이제 '사용'에만 집중하며, 어떤 상황에서도 먹통이 되지 않습니다.
     sttBtn.addEventListener('click', async () => {
         if (!recognizer) {
             alert('음성 인식 서비스가 아직 준비되지 않았습니다.');
@@ -155,36 +137,218 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const originalIconHTML = sttBtn.innerHTML;
         sttBtn.disabled = true;
-        sttBtn.innerHTML = '<i class="fa-solid fa-ear-listen"></i>'; // 듣는 중 아이콘
-        descriptionTextarea.placeholder = '말씀해주세요...';
+        sttBtn.innerHTML = '<i class="fa-solid fa-ear-listen"></i>'; 
+        descriptionTextareaForStt.placeholder = '말씀해주세요...';
 
         try {
-            // 미리 준비된 recognizer를 사용해 음성 인식을 시작합니다.
             const result = await recognizer.recognizeOnceAsync();
 
-            // 결과를 텍스트 상자에 표시합니다.
             if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-                descriptionTextarea.value = result.text;
+                descriptionTextareaForStt.value = result.text;
             } else {
-                descriptionTextarea.placeholder = '음성을 인식하지 못했습니다. 다시 시도해주세요.';
+                descriptionTextareaForStt.placeholder = '음성을 인식하지 못했습니다. 다시 시도해주세요.';
             }
         } catch (error) {
             console.error("음성 인식 중 에러 발생:", error);
-            descriptionTextarea.placeholder = '음성 인식 중 오류가 발생했습니다.';
+            descriptionTextareaForStt.placeholder = '음성 인식 중 오류가 발생했습니다.';
         } finally {
-            // 성공하든, 실패하든, 무조건 버튼을 원래 상태로 되돌립니다.
             sttBtn.disabled = false;
             sttBtn.innerHTML = originalIconHTML;
-            descriptionTextarea.placeholder = '예: 접시에 담긴 먹음직스러운 김치 그려줘';
+            descriptionTextareaForStt.placeholder = '예: 접시에 담긴 먹음직스러운 김치 그려줘';
         }
     });
 
-    // --- 실행 시작 ---
-    // 페이지의 모든 HTML이 준비되면, 음성 인식기 초기화를 시작합니다.
     initializeSpeechRecognizer();
+
+    // 2. 이미지 생성 기능
+    // -----------------------------------------------------------------------------------
+    
+    const categoryButtons = document.querySelectorAll('.form-group:nth-of-type(1) .btn-option');
+    const layerButtons = document.querySelectorAll('.form-group:nth-of-type(2) .btn-option');
+    const keywordsInput = document.getElementById('keywords');
+    const descriptionTextarea = document.getElementById('description');
+    const charCounter = document.querySelector('.char-counter');
+    const generateButton = document.getElementById('generate-button');
+    const displayPanel = document.querySelector('.panel.display-panel');
+    const uploadBox = document.querySelector('.upload-box');
+    const fileInput = document.querySelector('.file-input');
+    let uploadedImageUrl = null;
+
+    const API_BASE_URL = '/api/model';
+
+    function setupButtonGroup(buttons) {
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                buttons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+            });
+        });
+    }
+    setupButtonGroup(categoryButtons);
+    setupButtonGroup(layerButtons);
+
+    const updateDisplayPanel = (state, data = null) => {
+        const containerToUpdate = displayPanel.querySelector('.image-placeholder, .loading-spinner, .image-result-container, .error');
+        let content = '';
+
+        switch (state) {
+            case 'loading':
+                content = `
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                        <p><b>이미지를 생성하고 있습니다...</b></p>
+                        <p>잠시만 기다려 주세요. 최대 1~2분 소요될 수 있습니다.</p>
+                    </div>
+                `;
+                break;
+            case 'success':
+                content = `
+                    <div class="image-result-container">
+                        <img src="${data.png_url}" alt="생성된 이미지" class="generated-image">
+                        <div class="image-actions">
+                            <a href="edit.html?imageUrl=${encodeURIComponent(data.png_url)}" class="btn btn-primary">이미지 편집하기</a>
+                            <a href="${data.png_url}" download="generated_image.png" class="btn btn-secondary">PNG 다운로드</a>
+                            <a href="${data.psd_url}" download="generated_image.psd" class="btn btn-secondary">PSD 다운로드</a>
+                        </div>
+                    </div>
+                `;
+                break;
+            case 'error':
+                content = `
+                    <div class="image-placeholder error">
+                        <i class="fa-regular fa-circle-xmark"></i>
+                        <p><b>이미지 생성에 실패했습니다</b></p>
+                        <p>${data.error || '알 수 없는 오류가 발생했습니다. 다시 시도해 주세요.'}</p>
+                    </div>
+                `;
+                break;
+            default: 
+                content = `
+                    <div class="image-placeholder">
+                        <i class="fa-regular fa-image"></i>
+                        <p><b>아직 생성된 이미지가 없습니다</b></p>
+                        <p>왼쪽 패널에서 설정을 완료하고 이미지를 생성해보세요</p>
+                    </div>
+                `;
+        }
+        
+        if (containerToUpdate) {
+            containerToUpdate.outerHTML = content;
+        }
+    };
+
+    const pollForResult = (taskId) => {
+        const pollInterval = 4000;
+        const maxAttempts = 45;
+        let attempts = 0;
+
+        const intervalId = setInterval(async () => {
+            if (attempts >= maxAttempts) {
+                clearInterval(intervalId);
+                updateDisplayPanel('error', { error: '작업 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.' });
+                generateButton.disabled = false;
+                generateButton.textContent = '이미지 생성하기';
+                return;
+            }
+
+            try {
+                const response = await api.get(`${API_BASE_URL}/result/${taskId}`);
+                const result = response.data;
+
+                if (result.status === 'SUCCESS') {
+                    clearInterval(intervalId);
+                    updateDisplayPanel('success', result);
+                    generateButton.disabled = false;
+                    generateButton.textContent = '이미지 생성하기';
+                } else if (result.status === 'FAILURE') {
+                    clearInterval(intervalId);
+                    updateDisplayPanel('error', { error: result.error || '작업 실패' });
+                    generateButton.disabled = false;
+                    generateButton.textContent = '이미지 생성하기';
+                }
+            } catch (error) {
+                console.error('결과 폴링 중 오류 발생:', error);
+                clearInterval(intervalId);
+                const errorMessage = error.response?.data?.detail || '결과를 가져오는 중 오류가 발생했습니다.';
+                updateDisplayPanel('error', { error: errorMessage });
+                generateButton.disabled = false;
+                generateButton.textContent = '이미지 생성하기';
+            }
+            attempts++;
+        }, pollInterval);
+    };
+
+    if (generateButton) {
+        generateButton.addEventListener('click', async (event) => {
+            event.preventDefault();
+
+            const activeCategory = document.querySelector('.form-group:nth-of-type(1) .btn-option.active');
+            const activeLayer = document.querySelector('.form-group:nth-of-type(2) .btn-option.active');
+            const keywords = keywordsInput.value.trim();
+            const description = descriptionTextarea.value.trim();
+
+            if (!activeCategory || !activeLayer || !keywords || !description) {
+                alert('카테고리, 레이어, 키워드, 장면 설명을 모두 입력해주세요.');
+                return;
+            }
+
+            generateButton.disabled = true;
+            generateButton.textContent = '생성 중...';
+            updateDisplayPanel('loading');
+
+            const requestData = {
+                category: activeCategory.textContent,
+                layer: activeLayer.textContent,
+                tag: keywords,
+                caption_input: description,
+                image_url: uploadedImageUrl
+            };
+
+            try {
+                const response = await api.post(`${API_BASE_URL}/generate-prompt`, requestData);
+                const { task_id } = response.data;
+
+                if (task_id) {
+                    pollForResult(task_id);
+                } else {
+                    throw new Error('Task ID를 받지 못했습니다.');
+                }
+            } catch (error) {
+                console.error('생성 요청 실패:', error);
+                const errorMessage = error.response?.data?.detail || 'API 요청에 실패했습니다. 서버 상태를 확인해주세요.';
+                updateDisplayPanel('error', { error: errorMessage });
+                generateButton.disabled = false;
+                generateButton.textContent = '이미지 생성하기';
+            }
+        });
+    }
+
+    if (uploadBox) {
+        uploadBox.addEventListener('click', () => fileInput.click());
+    }
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    uploadedImageUrl = e.target.result;
+                    uploadBox.innerHTML = `<img src="${uploadedImageUrl}" alt="참조 이미지 미리보기" class="image-preview">`;
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        });
+    }
+    
+    if (descriptionTextarea) {
+        descriptionTextarea.addEventListener('input', () => {
+            const count = descriptionTextarea.value.length;
+            if(charCounter) charCounter.textContent = `${count}/500`;
+        });
+    }
 });
 
-// 2. 내 정보 수정 (이름)
+// 3. 내 정보 수정 (이름)
 // -----------------------------------------------------------------------------------
 const editProfileBtn = document.getElementById('edit-profile-btn');
 const saveProfileBtn = document.getElementById('save-profile-btn');
@@ -208,14 +372,13 @@ if (editProfileBtn && saveProfileBtn && profileFullname) {
         } catch (error) {
             console.error('이름 변경 실패:', error);
             alert('이름 변경에 실패했습니다.');
-            // 원래 이름으로 되돌릴 수 있도록 다시 프로필 정보를 불러옵니다.
             fetchAndDisplayUserProfile(); 
         }
     });
 }
 
 
-// 3. 비밀번호 변경
+// 4. 비밀번호 변경
 // -----------------------------------------------------------------------------------
 const changePasswordBtn = document.getElementById('change-password-btn');
 const changePasswordModal = document.getElementById('change-password-modal');
@@ -243,7 +406,6 @@ if (changePasswordBtn && changePasswordModal && closeChangePasswordBtn && change
         }
 
         try {
-            // [FIX] HTTP 메소드를 PUT에서 PATCH로 변경
             await api.patch('/api/users/me/password', {
                 current_password: oldPassword,
                 new_password: newPassword,
@@ -263,7 +425,7 @@ if (changePasswordBtn && changePasswordModal && closeChangePasswordBtn && change
 }
 
 
-// 4. 회원 탈퇴
+// 5. 회원 탈퇴
 // -----------------------------------------------------------------------------------
 const deleteAccountBtn = document.getElementById('delete-account-btn');
 
