@@ -252,8 +252,8 @@ def generate_image(self, user_id: int, username: str, category: str, layer: str,
         os.remove(temp_png_path)
         os.remove(temp_psd_path)
 
-        png_url = blob_storage.generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_png)
-        psd_url = blob_storage.generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_psd)
+        png_url = blob_storage.generate_sas_url(filename_png)
+        psd_url = blob_storage.generate_sas_url(filename_psd)
         return {"status": "SUCCESS", "png_url": png_url, "psd_url": psd_url}
 
     except Exception as e:
