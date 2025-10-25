@@ -9,6 +9,7 @@ import subprocess
 import psycopg2
 import base64
 import torch
+import base64
 from datetime import datetime, timedelta
 from transformers import AutoProcessor, AutoModel
 from openai import AzureOpenAI
@@ -200,10 +201,16 @@ def generate_image(self, user_id: int, username: str, category: str, layer: str,
         logging.info(f"[INPUT] DALL·E 프롬프트: {dalle_prompt}")
 
         # 8. DALL·E 3 이미지 생성
-        dalle_response = client.images.generate(model="gpt-image-1", prompt=dalle_prompt, size="1024x1024", n=1)
-        image_url = dalle_response.data[0].url
-        logging.info(f"[STEP 8] DALL·E 이미지 URL: {image_url}")
-        dalle_image_data = requests.get(image_url).content
+        dalle_response = client.images.generate(
+            model="gpt-image-1", 
+            prompt=dalle_prompt, 
+            size="1024x1024", 
+            n=1,
+            quality="high"
+        )
+        image_url = dalle_response.data[0].b64_json
+        logging.info(f"[STEP 8] DALL·E 이미지 URL: {len(image_url)}")
+        dalle_image_data = base64.b64decode(image_url)
         dalle_img = Image.open(BytesIO(dalle_image_data))
 
         # 9. Blob 저장: png/ 하위에 저장
