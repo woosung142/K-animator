@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from shared.dependencies import get_user_id_from_gateway # 공유폴더
 from shared.db import database
+from shared.db import shared_crud
 #from auth.db import models
 
 router = APIRouter(
