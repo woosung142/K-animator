@@ -141,20 +141,32 @@ document.addEventListener('DOMContentLoaded', () => {
         descriptionTextareaForStt.placeholder = '말씀해주세요...';
 
         try {
-            const result = await recognizer.recognizeOnceAsync();
+            recognizer.recognizeOnceAsync(
+                function (result) {
+                    console.log("음성 인식 결과:", result);
 
-            if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-                descriptionTextareaForStt.value = result.text;
-            } else {
-                descriptionTextareaForStt.placeholder = '음성을 인식하지 못했습니다. 다시 시도해주세요.';
-            }
+                    if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+                        descriptionTextareaForStt.value = result.text;
+                    } else {
+                        descriptionTextareaForStt.placeholder = '음성을 인식하지 못했습니다. 다시 시도해주세요.';
+                    }
+
+                    sttBtn.disabled = false;
+                    sttBtn.innerHTML = originalIconHTML;
+                    descriptionTextareaForStt.placeholder = '예: 접시에 담긴 먹음직스러운 김치 그려줘';
+                },
+                function (err) {
+                    console.error("음성 인식 중 에러 발생:", err);
+                    descriptionTextareaForStt.placeholder = '음성 인식 중 오류가 발생했습니다.';
+                    sttBtn.disabled = false;
+                    sttBtn.innerHTML = originalIconHTML;
+                }
+            );
         } catch (error) {
-            console.error("음성 인식 중 에러 발생:", error);
-            descriptionTextareaForStt.placeholder = '음성 인식 중 오류가 발생했습니다.';
-        } finally {
+            console.error("음성 인식 호출 오류:", error);
             sttBtn.disabled = false;
             sttBtn.innerHTML = originalIconHTML;
-            descriptionTextareaForStt.placeholder = '예: 접시에 담긴 먹음직스러운 김치 그려줘';
+            descriptionTextareaForStt.placeholder = '음성 인식 실패. 다시 시도해주세요.';
         }
     });
 
@@ -206,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="image-result-container">
                         <img src="${data.png_url}" alt="생성된 이미지" class="generated-image">
                         <div class="image-actions">
-                            <a href="edit.html?imageUrl=${encodeURIComponent(data.png_url)}" class="btn btn-primary">이미지 편집하기</a>
+                            <a href="edit-mode.html?imageUrl=${encodeURIComponent(data.png_url)}" class="btn btn-primary">이미지 편집하기</a>
                             <a href="${data.png_url}" download="generated_image.png" class="btn btn-secondary">PNG 다운로드</a>
                             <a href="${data.psd_url}" download="generated_image.psd" class="btn btn-secondary">PSD 다운로드</a>
                         </div>
