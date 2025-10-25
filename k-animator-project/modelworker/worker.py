@@ -40,7 +40,7 @@ device = next(model.parameters()).device
 client = AzureOpenAI(api_key=AZURE_OPENAI_KEY, azure_endpoint=AZURE_OPENAI_ENDPOINT, api_version=AZURE_OPENAI_VERSION)
 
 # Celery 설정 -> 읽기
-celery_app = Celery('worker', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')    # 배포 전 수정
+celery_app = Celery('worker', broker='redis://redis:6379/0', backend='redis://redis:6379/0')    # 배포 전 수정
 
 @after_setup_logger.connect
 def setup_loggers(logger, *args, **kwargs):
