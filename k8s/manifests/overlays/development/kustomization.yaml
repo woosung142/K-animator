@@ -16,7 +16,7 @@ images:
   - name: ghcr.io/woosung142/k-animator/auth
     newTag: develop-fdac2c3
   - name: ghcr.io/woosung142/k-animator/gptapi
-    newTag: develop-fdac2c3
+    newTag: develop-add2ff0
   - name: ghcr.io/woosung142/k-animator/gptworker
     newTag: develop-c35333d
   - name: ghcr.io/woosung142/k-animator/layerworker
