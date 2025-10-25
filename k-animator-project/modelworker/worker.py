@@ -218,7 +218,7 @@ def generate_image(self, user_id: int, username: str, category: str, layer: str,
         dalle_img.save(png_buffer, format="PNG")
         png_buffer.seek(0)
         
-        blob_storage.upload_blob(name=filename_png, data=png_buffer, overwrite=True)
+        blob_storage.upload_blob(blob_name=filename_png, data=png_buffer, overwrite=True)
         logging.info(f"[STEP 9] PNG Blob 저장 완료: {filename_png}")
         png_buffer.close()
 
@@ -228,7 +228,7 @@ def generate_image(self, user_id: int, username: str, category: str, layer: str,
         dalle_img.save(temp_png_path, format="PNG")
         subprocess.run(["convert", temp_png_path, temp_psd_path], check=True)
         with open(temp_psd_path, "rb") as f:
-            blob_storage.upload_blob(name=filename_psd, data=f, overwrite=True)
+            blob_storage.upload_blob(blob_name=filename_psd, data=f, overwrite=True)
         logging.info(f"[STEP 10] PSD 업로드 완료: {filename_psd}")
         
         # --- DB 저장 로직 추가 ---
