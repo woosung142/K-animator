@@ -12,7 +12,7 @@ images:
   - name: ghcr.io/woosung142/k-animator/modelapi
     newTag: develop-fdac2c3
   - name: ghcr.io/woosung142/k-animator/modelworker
-    newTag: develop-73e0d06
+    newTag: develop-fdac2c3
   - name: ghcr.io/woosung142/k-animator/auth
     newTag: develop-fdac2c3
   - name: ghcr.io/woosung142/k-animator/gptapi
