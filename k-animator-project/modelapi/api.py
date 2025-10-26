@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from shared.dependencies import get_user_id_from_gateway # 공유폴더
 from shared.db import database
+from shared.db import crud as shared_crud
 #from auth.db import models
 
 router = APIRouter(
@@ -50,6 +51,8 @@ async def generate_prompt_endpoint(
     logging.info(f"[REQUEST] POST /api/generate-image")
     logging.info(f"[DATA] id: {user.id}")
     logging.info(f"[DATA] name: {user.username}")
+    logging.info(f"[DATA] category: {request.category}")
+    logging.info(f"[DATA] layer: {request.layer}")
     logging.info(f"[DATA] tag: {request.tag}")
     logging.info(f"[DATA] caption_input: {request.caption_input}")
     logging.info(f"[DATA] image_url: {request.image_url}")
@@ -59,6 +62,8 @@ async def generate_prompt_endpoint(
         args=[
             user.id,
             user.username,
+            request.category,
+            request.layer,
             request.tag,    #키워드
             request.caption_input,  #장면 설명
             request.image_url

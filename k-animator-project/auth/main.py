@@ -9,6 +9,7 @@ app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 origins = [
     "https://dev.prtest.shop", # 실제 배포된 프론트엔드 주소
+    "https://www.prtest.shop",
     "http://localhost:8000",
 ]
 

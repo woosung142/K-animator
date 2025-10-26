@@ -1,17 +1,15 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: internal-ingress-for-apim # APIM 연동용임을 명시
+  name: internal-ingress-for-apim
   namespace: development
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    # TLS/SSL 및 도메인 관련 어노테이션은 모두 APIM이 담당하므로 제거합니다.
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
 spec:
   ingressClassName: nginx
   rules:
-  - host: dev.prtest.shop
-    http:
+  - http:
       paths:
       - path: /api/auth
         pathType: Prefix
@@ -20,6 +18,7 @@ spec:
             name: auth-service
             port:
               number: 80
+              
       - path: /api/users
         pathType: Prefix
         backend:
@@ -28,8 +27,6 @@ spec:
             port:
               number: 80
 
-      # --- [수정] Model API 라우팅 ---
-      # /api/model/* 요청은 modelapi 서비스로 전달됩니다.
       - path: /api/model
         pathType: Prefix
         backend:
@@ -38,16 +35,14 @@ spec:
             port:
               number: 80
 
-      # --- [수정] Util API 라우팅 ---
-      # /api/utils/* 요청은 backend-service (또는 util-service)로 전달됩니다.
       - path: /api/utils
         pathType: Prefix
         backend:
           service:
-            name: utils-service # Terraform의 util_api에 해당
+            name: utils-service
             port:
               number: 80
-      # --- [추가] GPT API 라우팅 ---
+
       - path: /api/gpt
         pathType: Prefix
         backend:
@@ -55,8 +50,7 @@ spec:
             name: gptapi-service
             port:
               number: 80
-      # --- 프론트엔드 라우팅 규칙 (가장 마지막에 위치) ---
-      # 위 경로에 해당하지 않는 모든 요청은 프론트엔드로 전달됩니다.
+
       - path: /
         pathType: Prefix
         backend:

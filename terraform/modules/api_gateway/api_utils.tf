@@ -12,6 +12,20 @@ resource "azurerm_api_management_api" "util_api" {
   service_url = var.util_url
   subscription_required = false
 }
+#Front Door 및 APIM 헬스체크용 API
+resource "azurerm_api_management_api_operation" "util_health" {
+  operation_id        = "health-check"
+  api_name            = azurerm_api_management_api.util_api.name
+  api_management_name = azurerm_api_management.apim.name
+  resource_group_name = var.resource_group_name
+  display_name        = "Health Check"
+  method              = "GET"
+  url_template        = "/health"
+  response {
+    status_code = 200
+    description = "Health OK"
+  }
+}
 # 보호된 Operation에만 JWT 검증 정책 적용 -> 포털에서
 resource "azurerm_api_management_api_operation" "util_upload_image" {
   operation_id        = "upload-image"

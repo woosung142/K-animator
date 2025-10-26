@@ -189,3 +189,14 @@ module "sd_storage" {
   resource_group_name     = azurerm_resource_group.aks_rg.name
   tags                    = azurerm_kubernetes_cluster_node_pool.gpu_nodepool.tags
 }
+# ----------------------------------------------------
+# frontdoor module
+# ----------------------------------------------------
+module "frontdoor" {
+  source = "./modules/frontdoor"
+
+  resource_group_name     = azurerm_resource_group.aks_rg.name
+
+  prefix = "kanimatorprod"
+  backend_host_name = "api.prtest.shop"
+}

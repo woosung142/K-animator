@@ -9,6 +9,7 @@ import subprocess
 import psycopg2
 import base64
 import torch
+import base64
 from datetime import datetime, timedelta
 from transformers import AutoProcessor, AutoModel
 from openai import AzureOpenAI
@@ -40,7 +41,7 @@ device = next(model.parameters()).device
 client = AzureOpenAI(api_key=AZURE_OPENAI_KEY, azure_endpoint=AZURE_OPENAI_ENDPOINT, api_version=AZURE_OPENAI_VERSION)
 
 # Celery 설정 -> 읽기
-celery_app = Celery('worker', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')    # 배포 전 수정
+celery_app = Celery('worker', broker='redis://redis:6379/0', backend='redis://redis:6379/0')    # 배포 전 수정
 
 @after_setup_logger.connect
 def setup_loggers(logger, *args, **kwargs):
@@ -58,6 +59,24 @@ def embed_text_koclip(text):
         embedding = model.get_text_features(**inputs)
     return embedding[0].cpu().numpy().tolist()
 
+layer_descriptions = {
+    "콘티": "A rough, gray pencil storyboard-style sketch focusing on layout and composition. "
+            "Forms are simplified with minimal detail and overlapping sketch lines are acceptable. "
+            "No color or shading is applied — the emphasis is solely on spatial arrangement and rough structure.",
+    "스케치": "A clean line drawing with clearly defined black outlines. "
+              "All main elements are visible with refined contours and accurate proportions. "
+              "No coloring or shading — just detailed, precise edges on a white background.",
+    "채색 기본": "A flat-colored illustration where base colors are applied to each element. "
+                 "No shadows, highlights, or gradients are used — the focus is on color separation and clarity. "
+                 "Shapes should be filled with solid tones to indicate material or category.",
+    "채색 명암": "A fully colored illustration with realistic shading, highlights, and lighting direction. "
+                 "Depth, form, and texture are emphasized using shadows and color intensity. "
+                 "Contrast between light and dark areas should reflect real-world perception.",
+    "배경": "A complete and polished scene with a coherent background, ambient lighting, and environmental context. "
+           "All elements should be fully rendered with consistent perspective and atmosphere. "
+           "The composition feels complete, as if prepared for publication or final output."
+}
+
 def get_wikipedia_main_image(tag):
     try:
         search_url = f"https://en.wikipedia.org/w/api.php?action=query&titles={tag}&prop=pageimages&format=json&pithumbsize=500"
@@ -74,12 +93,12 @@ def get_wikipedia_main_image(tag):
 
 
 @celery_app.task(name="generate_image", bind=True)
-def generate_image(self, user_id: int, username: str, tag: str, caption_input: str | None = None, image_url: str | None = None) -> dict:
+def generate_image(self, user_id: int, username: str, category: str, layer: str, tag: str, caption_input: str | None = None, image_url: str | None = None) -> dict:
     try:
         
         task_id = self.request.id
         logging.info(f"[TASK] generate_image 시작 - task_id: {task_id}")
-        logging.info(f"[INPUT] username: {username}, tag: {tag}, caption_input: {caption_input}, image_url: {image_url}")
+        logging.info(f"[INPUT] username: {username}, category: {category}, layer: {layer}, tag: {tag}, caption_input: {caption_input}, image_url: {image_url}")
         
         # 1. KoCLIP 임베딩
         text_to_embed = caption_input if caption_input else f"{tag}가 포함된 한국 웹툰 이미지를 그려주세요."
@@ -158,7 +177,8 @@ def generate_image(self, user_id: int, username: str, tag: str, caption_input: s
             "You may adjust the level of detail depending on the artistic stage, from rough draft to polished background.\n"
             "If necessary, you may include human figures, but they should not be the central focus — never portray them as main characters.\n"
             "The prompt must be written in natural, fluent English optimized for DALL·E 3 input.\n\n"
-            f"User's main keywords: '{tag}'\n"
+            f"Style step: '{layer}'\n"
+            f"Style guide for this step:\n{layer_descriptions.get(layer, '')}\n\n"
             f"Original description from the user: \"{caption_input}\""
 )
 
@@ -181,10 +201,16 @@ def generate_image(self, user_id: int, username: str, tag: str, caption_input: s
         logging.info(f"[INPUT] DALL·E 프롬프트: {dalle_prompt}")
 
         # 8. DALL·E 3 이미지 생성
-        dalle_response = client.images.generate(model="dall-e-3", prompt=dalle_prompt, size="1024x1024", n=1)
-        image_url = dalle_response.data[0].url
-        logging.info(f"[STEP 8] DALL·E 이미지 URL: {image_url}")
-        dalle_image_data = requests.get(image_url).content
+        dalle_response = client.images.generate(
+            model="gpt-image-1", 
+            prompt=dalle_prompt, 
+            size="1024x1024", 
+            n=1,
+            quality="high"
+        )
+        image_url = dalle_response.data[0].b64_json
+        logging.info(f"[STEP 8] DALL·E 이미지 URL: {len(image_url)}")
+        dalle_image_data = base64.b64decode(image_url)
         dalle_img = Image.open(BytesIO(dalle_image_data))
 
         # 9. Blob 저장: png/ 하위에 저장
@@ -192,7 +218,7 @@ def generate_image(self, user_id: int, username: str, tag: str, caption_input: s
         dalle_img.save(png_buffer, format="PNG")
         png_buffer.seek(0)
         
-        blob_storage.upload_blob(name=filename_png, data=png_buffer, overwrite=True)
+        blob_storage.upload_blob(blob_name=filename_png, data=png_buffer, overwrite=True)
         logging.info(f"[STEP 9] PNG Blob 저장 완료: {filename_png}")
         png_buffer.close()
 
@@ -202,7 +228,7 @@ def generate_image(self, user_id: int, username: str, tag: str, caption_input: s
         dalle_img.save(temp_png_path, format="PNG")
         subprocess.run(["convert", temp_png_path, temp_psd_path], check=True)
         with open(temp_psd_path, "rb") as f:
-            blob_storage.upload_blob(name=filename_psd, data=f, overwrite=True)
+            blob_storage.upload_blob(blob_name=filename_psd, data=f, overwrite=True)
         logging.info(f"[STEP 10] PSD 업로드 완료: {filename_psd}")
         
         # --- DB 저장 로직 추가 ---
@@ -226,8 +252,8 @@ def generate_image(self, user_id: int, username: str, tag: str, caption_input: s
         os.remove(temp_png_path)
         os.remove(temp_psd_path)
 
-        png_url = blob_storage.generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_png)
-        psd_url = blob_storage.generate_sas_url(AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, AZURE_CONTAINER_NAME, filename_psd)
+        png_url = blob_storage.generate_sas_url(filename_png)
+        psd_url = blob_storage.generate_sas_url(filename_psd)
         return {"status": "SUCCESS", "png_url": png_url, "psd_url": psd_url}
 
     except Exception as e:
