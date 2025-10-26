@@ -12,7 +12,7 @@ images:
   - name: ghcr.io/woosung142/k-animator/modelapi
     newTag: main-3e31484
   - name: ghcr.io/woosung142/k-animator/modelworker
-    newTag: main-f4a079d
+    newTag: main-3e31484
   - name: ghcr.io/woosung142/k-animator/auth
     newTag: main-3e31484
   - name: ghcr.io/woosung142/k-animator/gptapi
