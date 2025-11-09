@@ -56,15 +56,15 @@ K-Animator는 한국 웹툰 스타일의 이미지를 자동 생성하는 **AI �
 
 ## AI 파이프라인 상세
 
-### ✔ 1) KoCLIP 임베딩  
+### 1) KoCLIP 임베딩  
 - 사용자 입력 + 이미지 기반 similarity search  
 - PostgreSQL(Vector) 기반 벡터 유사도 검색
 
-### ✔ 2) GPT-4o 프롬프트 생성  
+### 2) GPT-4o 프롬프트 생성  
 - 한국어 → 고품질 웹툰 스타일 Prompt 자동 생성  
 - 사용자 키워드/장면 설명 기반
 
-### ✔ 3) GPT image 1 이미지 생성  
+### 3) GPT image 1 이미지 생성  
 - 1024×1024 PNG 이미지 생성  
 - Azure Blob에 저장  
 - 자동 PSD 변환(ImageMagick)
@@ -101,6 +101,15 @@ K-Animator는 한국 웹툰 스타일의 이미지를 자동 생성하는 **AI �
 
 ---
 
+## Tools
+| 구분 | 도구 |
+|------|------|
+| **DB Management** | <img src="https://img.shields.io/badge/DBeaver-382923?style=flat&logo=dbeaver&logoColor=white"/> |
+**Redis Management** | ![](https://img.shields.io/badge/Redis%20Insight-DC382D?style=flat&logo=redis&logoColor=white) |
+| **API Docs / Test** | ![](https://img.shields.io/badge/Swagger%20UI-85EA2D?style=flat&logo=swagger&logoColor=black) |
+
+---
+
 ## CI/CD & GitOps
 
 ### GitHub Actions
@@ -121,6 +130,7 @@ K-Animator는 한국 웹툰 스타일의 이미지를 자동 생성하는 **AI �
 - **Grafana** — 대시보드  
 - **Fluent-bit** — 노드 로그 수집  
 - **Loki** — 로그 저장/조회  
+
 
 
 
